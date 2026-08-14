@@ -16,9 +16,9 @@ Workhorse keeps this section, the skills, and the reference docs current automat
 
 This repo is a browser extension that overlays the Workhorse web app. It is not part of Workhorse itself — it is a separate product with its own specs, built against Workhorse's HTTP endpoints and rendered DOM.
 
-- The Workhorse source is a sibling checkout at `../workhorse`. Read it to confirm endpoint shapes, response fields, and markup before relying on them; do not guess
-- The extension is read-only with respect to the Workhorse API. It issues GETs and renders extra UI. The only writes it performs are to browser-local storage and to the app's own draft store in `localStorage`
-- Firefox is the primary target. Chrome shares the source, with differences confined to the manifest
+- Read the workhorse source to confirm endpoint shapes, response fields, and markup before relying on them; do not guess.
+- Firefox is the primary target.
+- You will never be implicitly asked to create a feature on Workhorse itself. Consider every work item in this repo to be for the extension, overlaying the website.
 
 ## Testing
 

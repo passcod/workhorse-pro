@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # Keeps a release pull request up to date from conventional commits. Merging
+  # it tags the release, which is what the job below waits for.
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      released: ${{ steps.release.outputs.release_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          release-type: node
+
+  # Signs the add-on, attaches it to the release, and republishes the update
+  # manifest Firefox polls.
+  publish:
+    needs: prepare
+    if: needs.prepare.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      # Unlisted: signed by AMO so Firefox will install it, but never listed
+      # there — no public page, not searchable, not installable from AMO.
+      - name: Sign
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: npx web-ext sign --source-dir dist/firefox --channel unlisted
+
+      # web-ext names the file from the manifest; the update manifest has to
+      # point at an exact URL, so give it a name this workflow decides.
+      - name: Name the artifact
+        id: artifact
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+          signed=$(find web-ext-artifacts -name '*.xpi' -print -quit)
+          if [ -z "$signed" ]; then
+            echo "no signed .xpi was produced" >&2
+            exit 1
+          fi
+          asset="web-ext-artifacts/workhorse-pro-${VERSION}.xpi"
+          mv "$signed" "$asset"
+          echo "path=$asset" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$asset")" >> "$GITHUB_OUTPUT"
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          ASSET: ${{ steps.artifact.outputs.path }}
+        run: gh release upload "$TAG" "$ASSET" --clobber
+
+      - name: Build the update manifest
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          ASSET_NAME: ${{ steps.artifact.outputs.name }}
+          REPO: ${{ github.repository }}
+          SERVER: ${{ github.server_url }}
+        run: |
+          set -euo pipefail
+          url="${SERVER}/${REPO}/releases/download/${TAG}/${ASSET_NAME}"
+          node scripts/updates-json.mjs "$VERSION" "$url" site/updates.json
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - uses: actions/deploy-pages@v5
+        id: deploy

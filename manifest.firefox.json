@@ -11,7 +11,8 @@
         "required": [
           "none"
         ]
-      }
+      },
+      "update_url": "https://passcod.github.io/workhorse-pro/updates.json"
     }
   },
   "icons": {

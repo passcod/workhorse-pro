@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test 'test/**/*.test.ts'",
     "start:firefox": "npm run build && web-ext run --source-dir dist/firefox",
+    "lint:addon": "npm run build && web-ext lint --source-dir dist/firefox --self-hosted",
     "package": "npm run build && web-ext build --source-dir dist/firefox --overwrite-dest"
   },
   "devDependencies": {

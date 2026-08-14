@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+
+      - name: Types
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # --self-hosted because this add-on is distributed from its own releases:
+      # without it the linter applies Mozilla-hosted rules, under which the
+      # update_url that makes auto-update work at all is an error.
+      #
+      # Zero errors is the bar. The one warning is that the Android minimum
+      # version predates a manifest key we use, and this is a desktop add-on.
+      - name: Add-on lint
+        run: npx web-ext lint --source-dir dist/firefox --self-hosted

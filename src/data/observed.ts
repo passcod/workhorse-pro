@@ -38,6 +38,22 @@ const VALIDATORS: { prefix: string; check: Validator }[] = [
     prefix: 'sessions-recent:',
     check: (body) => isObject(body) && Array.isArray(body.sessions),
   },
+  {
+    prefix: 'card-files:',
+    check: (body) => isObject(body) && Array.isArray(body.initialFiles),
+  },
+  {
+    prefix: 'card-detail:',
+    check: (body) => isObject(body) && isObject(body.card),
+  },
+  {
+    // `content` is null for a file absent from the base branch, which is a real
+    // answer rather than a missing one — so the field must be present, and null
+    // is an acceptable value for it.
+    prefix: 'base-file:',
+    check: (body) =>
+      isObject(body) && 'content' in body && (body.content === null || typeof body.content === 'string'),
+  },
 ]
 
 function validFor(key: string, body: unknown): boolean {

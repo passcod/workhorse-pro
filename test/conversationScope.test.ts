@@ -96,7 +96,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 5))
 async function render(scopeWide: boolean): Promise<void> {
   const context = {
     prefs: { ...PREF_DEFAULTS, scopeWide },
-    route: { workspace: 'workhorse', card: null },
+    route: { workspace: 'workhorse', card: null, filePath: null, view: null },
     schedule: () => {},
   }
   feature.reconcile(context)
@@ -112,7 +112,7 @@ function rows(): Element[] {
 function pass(scopeWide: boolean): void {
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS, scopeWide },
-    route: { workspace: 'workhorse', card: null },
+    route: { workspace: 'workhorse', card: null, filePath: null, view: null },
     schedule: () => {},
   })
 }
@@ -223,7 +223,7 @@ test('turning the feature off removes everything it added', async () => {
   await render(true)
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS, crossWorkspaceConversations: false, scopeWide: true },
-    route: { workspace: 'workhorse', card: null },
+    route: { workspace: 'workhorse', card: null, filePath: null, view: null },
     schedule: () => {},
   })
   assert.equal(document.querySelector('.whp-scope'), null)

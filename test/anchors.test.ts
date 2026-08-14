@@ -1,7 +1,7 @@
 import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { installDom, setBody } from './dom.ts'
-import { composerArea, prSection, sidebar } from './fixtures/app.ts'
+import { artefactPane, composerArea, prSection, sidebar } from './fixtures/app.ts'
 
 installDom()
 const { anchors } = await import('../src/content/anchors.ts')
@@ -140,4 +140,73 @@ test('a data attribute is preferred over the fallback', () => {
 
   setBody(`<textarea id="wrong"></textarea><textarea data-wh-composer id="right"></textarea>`)
   assert.equal(anchors.composer()?.id, 'right')
+})
+
+test('the artefact toggle resolves by its segments', () => {
+  setBody(artefactPane())
+  const toggle = anchors.artefactToggle()
+  assert.ok(toggle)
+  assert.deepEqual(
+    [...toggle.children].map((child) => child.textContent),
+    ['File', 'Changes'],
+  )
+})
+
+test('the device toggle above a mockup is not the artefact toggle', () => {
+  // Same component, same markup, same corner of the same bar. Only the labels
+  // tell them apart, and a Diff segment on a mockup is what matching by
+  // position would produce. spec: DIFF
+  setBody(artefactPane({ segments: ['Desktop', 'Tablet', 'Mobile'] }))
+  assert.equal(anchors.artefactToggle(), null)
+})
+
+test('the artefact toggle still resolves once the extension has added a segment', () => {
+  setBody(artefactPane())
+  const toggle = anchors.artefactToggle()!
+  const injected = document.createElement('button')
+  injected.type = 'button'
+  injected.textContent = 'Diff'
+  injected.setAttribute('data-whp', '')
+  toggle.appendChild(injected)
+
+  assert.equal(anchors.artefactToggle(), toggle)
+  // The app's own segments are what the feature reads, and its own is not one.
+  assert.deepEqual(
+    anchors.artefactToggleSegments().map((node) => node.textContent),
+    ['File', 'Changes'],
+  )
+})
+
+test('the header bar is the ancestor holding both the toggle and the file stepper', () => {
+  setBody(artefactPane())
+  const bar = anchors.artefactHeaderBar()
+  assert.ok(bar)
+  assert.ok(bar.contains(anchors.artefactToggle()))
+  assert.ok(bar.querySelector('button[title="Previous file"]'))
+  // Not the whole column: the artefact view is a sibling of the bar, not inside it.
+  assert.equal(bar.querySelector('.artifact-view'), null)
+})
+
+test('the artefact view is the bar next sibling', () => {
+  setBody(artefactPane())
+  const view = anchors.artefactView()
+  assert.equal(view?.className, 'artifact-view')
+})
+
+test('the artefact view skips anything the extension put there', () => {
+  // Without this the panel would resolve as the app's view and hide itself.
+  setBody(artefactPane())
+  const bar = anchors.artefactHeaderBar()!
+  const panel = document.createElement('div')
+  panel.setAttribute('data-whp', '')
+  bar.after(panel)
+
+  assert.equal(anchors.artefactView()?.className, 'artifact-view')
+})
+
+test('the artefact anchors resolve to nothing off an artefact page', () => {
+  setBody(composerArea())
+  assert.equal(anchors.artefactToggle(), null)
+  assert.equal(anchors.artefactHeaderBar(), null)
+  assert.equal(anchors.artefactView(), null)
 })

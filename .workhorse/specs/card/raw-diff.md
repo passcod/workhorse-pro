@@ -18,7 +18,7 @@ Finding what moved in one otherwise costs a scroll through everything that did n
 - [ ] The segment is part of the app's own toggle rather than a second control beside it, and takes the same selected and unselected treatment the app gives its own segments
 - [ ] Exactly one segment reads as selected, so choosing Diff deselects whichever was selected before, and choosing File or Changes deselects Diff
 - [ ] Selecting Diff puts the unified diff where the app's own artefact view was, and selecting File or Changes gives that view back
-- [ ] The segment appears on every markdown artefact the toggle itself appears on — specs, plans, breakdowns, test cases and working docs alike
+- [ ] The segment appears on every markdown artefact the toggle itself appears on — specs, plans, breakdowns, test cases and working docs alike, and equally a markdown file from the repository itself rather than the workhorse tree
 - [ ] Where the app renders no toggle, none is added, so an artefact the app excludes is excluded here too
 - [ ] A mockup is never given the segment, because the toggle above one selects a device rather than a view
 

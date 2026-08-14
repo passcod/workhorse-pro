@@ -109,6 +109,79 @@ export const anchors = {
     return disclosureContent(this.reviewRow())
   },
 
+  /**
+   * The toggle above an open artefact, offering File and Changes.
+   *
+   * Identified by the segments in it rather than by where it sits. The app
+   * builds the device toggle above a mockup from the same component, with the
+   * same markup, in the same corner of the same bar — so anything positional
+   * would find that one too and put a Diff segment on a mockup. spec: DIFF
+   *
+   * The extension's own segment is skipped when reading the labels, so the
+   * anchor still resolves once the segment has been injected.
+   */
+  artefactToggle(): HTMLElement | null {
+    const hooked = document.querySelector<HTMLElement>('[data-wh-artefact-toggle]')
+    if (hooked) return hooked
+    for (const button of document.querySelectorAll('button[type="button"]')) {
+      if (button.hasAttribute(MARK)) continue
+      if ((button.textContent?.trim() ?? '') !== 'File') continue
+      const wrapper = button.parentElement
+      if (!wrapper) continue
+      const labels = [...wrapper.children]
+        .filter((child) => !child.hasAttribute(MARK))
+        .map((child) => child.textContent?.trim() ?? '')
+      if (labels.length === 2 && labels[0] === 'File' && labels[1] === 'Changes') {
+        return wrapper as HTMLElement
+      }
+    }
+    return null
+  },
+
+  /** The app's own segments in that toggle, in the order it renders them. */
+  artefactToggleSegments(): HTMLElement[] {
+    const toggle = this.artefactToggle()
+    if (!toggle) return []
+    return [...toggle.children].filter(
+      (child): child is HTMLElement => child instanceof HTMLElement && !child.hasAttribute(MARK),
+    )
+  },
+
+  /**
+   * The bar the artefact toggle sits in.
+   *
+   * Fallback: the bar always carries the control that steps to the previous
+   * file, so the bar is the nearest ancestor of the toggle holding both. Its
+   * own markup offers nothing else to go on, and climbing a fixed number of
+   * levels would break on any change to how the bar is laid out.
+   */
+  artefactHeaderBar(): HTMLElement | null {
+    const hooked = document.querySelector<HTMLElement>('[data-wh-artefact-header]')
+    if (hooked) return hooked
+    const toggle = this.artefactToggle()
+    if (!toggle) return null
+    let candidate = toggle.parentElement
+    while (candidate) {
+      if (candidate.querySelector('button[title="Previous file"]')) return candidate
+      candidate = candidate.parentElement
+    }
+    return null
+  },
+
+  /**
+   * What the app renders the open artefact into: the bar's next sibling.
+   *
+   * Anything the extension put there is skipped, so this cannot return the
+   * extension's own diff panel and have it hide itself.
+   */
+  artefactView(): HTMLElement | null {
+    const bar = this.artefactHeaderBar()
+    if (!bar) return null
+    let sibling = bar.nextElementSibling
+    while (sibling && sibling.hasAttribute(MARK)) sibling = sibling.nextElementSibling
+    return sibling as HTMLElement | null
+  },
+
   /** The sidebar's Conversations header row. */
   conversationsHeader(): Element | null {
     const hooked = document.querySelector('[data-wh-conversations]')

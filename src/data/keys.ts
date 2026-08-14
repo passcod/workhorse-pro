@@ -18,6 +18,19 @@ export function recentSessionsKey(limit: number, workspace: string | null): stri
   return `sessions-recent:${limit}:${workspace ?? ''}`
 }
 
+export function cardFilesKey(workspace: string, card: string): string {
+  return `card-files:${workspace}:${card}`
+}
+
+export function cardDetailKey(workspace: string, card: string): string {
+  return `card-detail:${workspace}:${card}`
+}
+
+/** Keyed by the card's own id, which is what the endpoint takes. */
+export function baseFileKey(cardId: string, filePath: string): string {
+  return `base-file:${cardId}:${filePath}`
+}
+
 export function checkRunsKey(owner: string, repo: string, ref: string): string {
   return `check-runs:${owner}/${repo}@${ref}`
 }
@@ -31,6 +44,9 @@ export const OBSERVED_PATHS = [
   '/api/card-branch-status',
   '/api/sidebar-data',
   '/api/sessions',
+  '/api/card-files',
+  '/api/card-detail',
+  '/api/base-file',
 ] as const
 
 /**
@@ -58,6 +74,28 @@ export function keyForUrl(url: string, base: string): string | null {
     }
     case '/api/sidebar-data':
       return SIDEBAR_DATA_KEY
+    case '/api/card-files': {
+      const card = parsed.searchParams.get('cardId')
+      const workspace = parsed.searchParams.get('workspace')
+      if (!card || !workspace) return null
+      return cardFilesKey(workspace, card)
+    }
+    case '/api/card-detail': {
+      const card = parsed.searchParams.get('cardId')
+      const workspace = parsed.searchParams.get('workspace')
+      if (!card || !workspace) return null
+      return cardDetailKey(workspace, card)
+    }
+    case '/api/base-file': {
+      const card = parsed.searchParams.get('cardId')
+      const filePath = parsed.searchParams.get('filePath')
+      if (!card || !filePath) return null
+      // A peeked read compares against the peeked pull request instead of the
+      // base branch. Filing it under this key would put that answer where the
+      // base-branch one is read from, so it is left alone.
+      if (parsed.searchParams.get('prNumber') !== null) return null
+      return baseFileKey(card, filePath)
+    }
     case '/api/sessions': {
       if (parsed.searchParams.get('recent') !== 'true') return null
       const limit = Number(parsed.searchParams.get('limit') ?? '8')

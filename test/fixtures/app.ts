@@ -175,6 +175,47 @@ export function workspaceSwitcher(
   `
 }
 
+/**
+ * The artefact column: the header bar over the view the artefact renders into.
+ *
+ * Shape reproduced from `SpecHeaderBar` and the artifact column around it. The
+ * parts the anchors depend on:
+ *
+ * - The toggle is a wrapper of `button[type="button"]`, carrying no attribute
+ *   of its own. Only its segment labels distinguish it, which is why the
+ *   mockup variant below matters: it is the same component, in the same corner
+ *   of the same bar, with `Desktop/Tablet/Mobile` in it.
+ * - The bar always renders the file-stepping controls, and
+ *   `button[title="Previous file"]` is what identifies it.
+ * - The artefact renders into the bar's next sibling.
+ *
+ * spec: DIFF
+ */
+export function artefactPane(
+  options: { segments?: string[]; selected?: string } = {},
+): string {
+  const { segments = ['File', 'Changes'], selected = segments[0] } = options
+  const buttons = segments
+    .map(
+      (label) =>
+        `<button type="button" class="${label === selected ? 'bg-[var(--bg-surface)]' : 'text-[var(--text-muted)]'}">${label}</button>`,
+    )
+    .join('')
+
+  return `
+    <div class="artifact-column">
+      <div class="header-bar">
+        <button type="button" title="Previous file">^</button>
+        <button type="button" title="Next file">v</button>
+        <span class="file-name">overview.md</span>
+        <div class="segmented mr-1">${buttons}</div>
+        <button type="button" title="Expand">[]</button>
+      </div>
+      <div class="artifact-view"><p>rendered artefact</p></div>
+    </div>
+  `
+}
+
 export function composerArea(): string {
   return `
     <div class="composer">

@@ -26,7 +26,7 @@ function makeRowsClickable(): void {
 function reconcile(overrides: Partial<typeof PREF_DEFAULTS> = {}): void {
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS, ...overrides },
-    route: { workspace: 'workhorse', card: 'WH-078' },
+    route: { workspace: 'workhorse', card: 'WH-078', filePath: null, view: null },
     schedule: () => {},
   })
 }
@@ -89,7 +89,7 @@ test('a collapse on one card does not suppress expansion on another', () => {
   makeRowsClickable()
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS },
-    route: { workspace: 'workhorse', card: 'WH-099' },
+    route: { workspace: 'workhorse', card: 'WH-099', filePath: null, view: null },
     schedule: () => {},
   })
   assert.equal(anchors.branchDropdown()?.getAttribute('aria-expanded'), 'true')

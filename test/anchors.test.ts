@@ -24,15 +24,20 @@ test('the composer resolves', () => {
 test('the pull request detail toggle resolves before a PR exists', () => {
   setBody(prSection({ hasPr: false }))
   const toggle = anchors.prDetailToggle()
-  assert.equal(toggle?.getAttribute('title'), 'Branch details')
+  assert.equal(toggle?.tagName, 'BUTTON')
+  // The title row, reached through its chevron — not the Create button beside it.
+  assert.ok(toggle?.querySelector('[data-testid="pr-create-chevron"]'))
+  assert.notEqual(toggle?.textContent?.trim(), 'Create PR')
 })
 
 test('the pull request detail toggle resolves once a PR exists', () => {
   setBody(prSection({ hasPr: true }))
   const toggle = anchors.prDetailToggle()
   assert.equal(toggle?.tagName, 'BUTTON')
-  // The bar's own button, not the GitHub link beside it.
+  // The bar's own title row, not the kebab beside it: no title of its own, and
+  // its chevron inside.
   assert.equal(toggle?.getAttribute('title'), null)
+  assert.ok(toggle?.querySelector('[data-testid="pr-detail-chevron"]'))
 })
 
 test('the expanded state reads from the branch controls that only exist when open', () => {

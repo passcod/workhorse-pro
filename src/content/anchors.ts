@@ -59,13 +59,16 @@ export const anchors = {
   prDetailToggle(): HTMLElement | null {
     const hooked = document.querySelector<HTMLElement>('[data-wh-pr-toggle]')
     if (hooked) return hooked
-    // Fallback, before a PR exists: the chevron beside Create PR.
-    const prePr = document.querySelector<HTMLElement>('button[title="Branch details"]')
-    if (prePr) return prePr
-    // Fallback, once a PR exists: the collapsed bar's own button, identified
-    // by the GitHub link that sits in the same row.
-    const link = document.querySelector('a[title="Open on GitHub"]')
-    return link?.parentElement?.querySelector<HTMLElement>('button') ?? null
+    // Fallback: the bar's title row is the toggle. It carries no title of its
+    // own, but its chevron carries the app's own test id — `pr-create-chevron`
+    // before a PR exists, `pr-detail-chevron` once one does. Resolving through
+    // the chevron and climbing to its button keeps the whole title row as the
+    // hit area, and never returns the Create button or the kebab beside it.
+    const chevron = document.querySelector(
+      '[data-testid="pr-detail-chevron"], [data-testid="pr-create-chevron"]',
+    )
+    const button = chevron?.closest('button')
+    return button instanceof HTMLElement ? button : null
   },
 
   /**

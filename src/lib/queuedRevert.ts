@@ -1,21 +1,9 @@
 /**
  * Reverting a queued message into the composer.
  *
- * The pure parts of the feature: the rule for folding the message's text in
- * above any draft already in the composer, and pulling that text back out of
- * the rendered message. spec: QRV
+ * The pure part of the feature: pulling the message's text back out of the
+ * markup the app rendered it into. spec: QRV
  */
-
-/**
- * Fold reverted text into the composer above whatever it already holds.
- *
- * Matches the app's own behaviour when a Stop returns undelivered queued text
- * to the composer: the returned text goes above the existing draft, separated
- * by a blank line, so a draft in progress is not lost.
- */
-export function foldReturnedText(existing: string, returned: string): string {
-  return existing.trim() ? `${returned}\n\n${existing}` : returned
-}
 
 /**
  * The text of a rendered queued message, close to what the user typed.

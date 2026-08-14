@@ -18,11 +18,20 @@ Beside that control sits a revert control that takes the message back into the c
 ## Reverting
 
 - [ ] Reverting puts the message's text into the composer and removes the message from the queue
-- [ ] The text is folded in above whatever the composer already holds, separated by a blank line, so a draft in progress is not lost
 - [ ] The composer takes focus with the caret at the end of its text
 - [ ] The message leaves the queue through the app's own discard, so the remaining queued messages keep their order
+- [ ] A message whose text reads as empty is left in the queue, because discarding it without the text safely in the composer would lose it
 
 The message is rendered from markdown, so the reverted text is the message's prose rather than its exact source.
+
+## Keeping the draft
+
+A revert takes the composer over, so a draft already sitting there is parked on the stash rather than written over or folded in around the reverted message — see `stash.md`.
+
+- [ ] A draft in the composer is pushed onto the stash, leaving the composer holding the reverted message alone
+- [ ] An empty composer stashes nothing
+- [ ] Reverting while recalling parks the text held aside rather than the recalled message, which is in history already
+- [ ] The stash indicator shows a draft parked this way even when stashing by key is turned off, so the draft is always recoverable
 
 ## Preference
 

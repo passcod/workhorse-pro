@@ -7,17 +7,24 @@ const dom = installDom()
 installExtStub()
 
 const { queuedRevert } = await import('../src/features/queuedRevert.ts')
-const { foldReturnedText, renderedMessageText } = await import('../src/lib/queuedRevert.ts')
+const { composerFeature } = await import('../src/features/composer.ts')
+const { renderedMessageText } = await import('../src/lib/queuedRevert.ts')
 const { PREF_DEFAULTS } = await import('../src/prefs.ts')
+const local = await import('../src/localData.ts')
 
 const feature = queuedRevert()
+// The revert writes through the composer feature, which has to have seen the
+// composer for that to work — the same pairing as on a real page.
+const composerFeat = composerFeature()
 
 function reconcile(overrides: Record<string, unknown> = {}): void {
-  feature.reconcile({
+  const context = {
     prefs: { ...PREF_DEFAULTS, ...overrides },
     route: { workspace: 'workhorse', card: 'WH-078', filePath: null, view: null },
     schedule: () => {},
-  })
+  }
+  composerFeat.reconcile(context)
+  feature.reconcile(context)
 }
 
 /** Wire each discard control to drop its whole message, as the app's does. */
@@ -37,12 +44,21 @@ function composer(): HTMLTextAreaElement {
   return document.querySelector('textarea')!
 }
 
-beforeEach(() => setBody(''))
+/** Type into the composer as a user would, so the composer feature sees it. */
+function type(element: HTMLTextAreaElement, text: string): void {
+  element.value = text
+  element.setSelectionRange(text.length, text.length)
+  element.dispatchEvent(new dom.window.Event('input', { bubbles: true }))
+}
 
-test('foldReturnedText puts returned text above an existing draft', () => {
-  assert.equal(foldReturnedText('', 'reverted'), 'reverted')
-  assert.equal(foldReturnedText('   ', 'reverted'), 'reverted')
-  assert.equal(foldReturnedText('my draft', 'reverted'), 'reverted\n\nmy draft')
+function click(element: Element): void {
+  element.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
+}
+
+beforeEach(async () => {
+  setBody('')
+  await local.clearHistory()
+  await local.clearStash()
 })
 
 test('renderedMessageText joins paragraphs with a blank line', () => {
@@ -81,26 +97,98 @@ test('the message container is marked so the control reveals on hover', () => {
   assert.ok(document.querySelector('.group[data-whp-queued]'))
 })
 
-test('reverting folds the message into the composer and drops it from the queue', () => {
+test('reverting stashes the draft, takes the composer, and drops the message', () => {
   setBody(queuedMessages([{ content: '<p>queued prompt</p>' }]))
   wireDiscards()
   reconcile()
 
-  composer().value = 'a draft I was writing'
-  reverts()[0]!.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
+  type(composer(), 'a draft I was writing')
+  click(reverts()[0]!)
 
-  assert.equal(composer().value, 'queued prompt\n\na draft I was writing')
+  // The composer holds the reverted message alone — the draft is on the stash,
+  // not folded in above it.
+  assert.equal(composer().value, 'queued prompt')
+  assert.deepEqual([...local.getStash()], ['a draft I was writing'])
   // The message left the queue through the app's own discard.
   assert.equal(document.querySelector('.group'), null)
 })
 
-test('reverting into an empty composer is just the message', () => {
+test('reverting into an empty composer stashes nothing', () => {
   setBody(queuedMessages([{ content: '<p>queued prompt</p>' }]))
   wireDiscards()
   reconcile()
 
-  reverts()[0]!.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
+  click(reverts()[0]!)
   assert.equal(composer().value, 'queued prompt')
+  assert.deepEqual([...local.getStash()], [])
+})
+
+test('the stashed draft comes back through the badge', () => {
+  // The parked draft has to be recoverable, which is the badge's whole job.
+  setBody(queuedMessages([{ content: '<p>queued prompt</p>' }]))
+  wireDiscards()
+  reconcile()
+
+  type(composer(), 'my draft')
+  click(reverts()[0]!)
+  reconcile()
+
+  const badge = document.querySelector<HTMLElement>('[data-whp-id="stash-badge"]')
+  assert.equal(badge?.textContent, '1 stashed')
+  click(badge!)
+  // Popping into a composer holding the reverted message exchanges the two.
+  assert.equal(composer().value, 'my draft')
+  assert.deepEqual([...local.getStash()], ['queued prompt'])
+})
+
+test('the badge shows a revert-parked draft even with stashing by key off', () => {
+  // Otherwise a revert would swallow the draft with no way back to it.
+  setBody(queuedMessages([{ content: '<p>queued prompt</p>' }]))
+  wireDiscards()
+  reconcile({ composerStash: false })
+
+  type(composer(), 'my draft')
+  click(reverts()[0]!)
+  reconcile({ composerStash: false })
+
+  assert.equal(
+    document.querySelector('[data-whp-id="stash-badge"]')?.textContent,
+    '1 stashed',
+  )
+})
+
+test('reverting during recall parks the held draft, not the recalled message', () => {
+  // Recall shows an old message while the user's own text is held aside. The
+  // held text is what a stash is for; the recalled message is in history.
+  setBody(queuedMessages([{ content: '<p>queued prompt</p>' }]))
+  wireDiscards()
+  reconcile()
+  local.recordSent('an old message')
+
+  type(composer(), 'my real draft')
+  composer().dispatchEvent(
+    new dom.window.KeyboardEvent('keydown', {
+      key: 'ArrowUp',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    }),
+  )
+  assert.equal(composer().value, 'an old message')
+
+  click(reverts()[0]!)
+  assert.equal(composer().value, 'queued prompt')
+  assert.deepEqual([...local.getStash()], ['my real draft'])
+})
+
+test('a message that reads as empty is not discarded', () => {
+  // Discarding without the text safely in the composer would lose it outright.
+  setBody(queuedMessages([{ content: '' }]))
+  wireDiscards()
+  reconcile()
+
+  click(reverts()[0]!)
+  assert.ok(document.querySelector('.group'), 'the message should still be queued')
 })
 
 test('turning the feature off injects nothing', () => {

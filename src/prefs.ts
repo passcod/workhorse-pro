@@ -126,7 +126,7 @@ export const SWITCHES: SwitchInfo[] = [
     label: 'Revert queued messages',
     detail:
       'Add a control beside a queued message’s discard button that puts the message back into ' +
-      'the composer instead of dropping it. The text folds in above any draft you have started.',
+      'the composer instead of dropping it. Any draft already there is parked on the stash.',
   },
   {
     key: 'crossWorkspaceConversations',

@@ -1,5 +1,5 @@
 import { anchors } from '../content/anchors.ts'
-import { ensureAfter, el, remove, writeComposer } from '../content/dom.ts'
+import { ensureAfter, el, remove } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { stepHistory } from '../lib/history.ts'
 import { matchesBinding } from '../lib/keys.ts'
@@ -18,6 +18,12 @@ import type { Prefs } from '../prefs.ts'
 /** The app's own draft store, which recall has to be careful not to cost. */
 const DRAFTS_KEY = 'workhorse:chat-drafts'
 const BADGE = 'stash-badge'
+
+/** Writing through this makes React's own change handler run. */
+const nativeValue = Object.getOwnPropertyDescriptor(
+  HTMLTextAreaElement.prototype,
+  'value',
+)?.set
 
 let composer: HTMLTextAreaElement | null = null
 let prefs: Prefs | null = null
@@ -48,13 +54,18 @@ function writeDrafts(value: string): void {
 }
 
 /**
- * Write to the composer, guarding the write with `applying` so this module's
- * own input handler ignores the event it triggers.
+ * Put text in the composer as though the user had typed it, so the app's
+ * change handler runs and its draft retention and auto-resize behave normally.
  */
 function setValue(element: HTMLTextAreaElement, text: string): void {
   applying = true
   try {
-    writeComposer(element, text)
+    nativeValue?.call(element, text)
+    element.dispatchEvent(new Event('input', { bubbles: true }))
+    element.style.height = 'auto'
+    element.style.height = `${element.scrollHeight}px`
+    element.setSelectionRange(text.length, text.length)
+    element.focus()
   } finally {
     applying = false
   }
@@ -123,6 +134,33 @@ function pop(element: HTMLTextAreaElement): void {
   setStash(result.stack)
   setValue(element, result.composer)
   endRecall(false)
+}
+
+/**
+ * Put text in the composer, parking the draft it holds on the stash.
+ *
+ * The revert control's way in: a queued message coming back must not cost the
+ * user the draft sitting in the composer, and the stash is already where a
+ * draft is parked. Lives here rather than in the revert feature because the
+ * draft it has to park is this module's — during recall the composer shows a
+ * recalled message while the user's own text is held aside, and only this
+ * module can see that. Returns false when there is no composer to write to.
+ * spec: QRV
+ */
+export function stashDraftAndWrite(text: string): boolean {
+  const element = composer
+  if (!element) return false
+
+  // The recalled message is in history already, so the held draft is the thing
+  // a stash is for — the same rule pushing uses. spec: STSH
+  const draft = historyIndex !== null ? (heldDraft ?? '') : element.value
+  const result = pushStash(getStash(), draft, text)
+  if (result.changed) setStash(result.stack)
+
+  setValue(element, text)
+  // The draft is on the stash now, so the snapshot must not be written back.
+  endRecall(false)
+  return true
 }
 
 function onKeyDown(event: KeyboardEvent): void {
@@ -233,7 +271,10 @@ export function composerFeature(): Feature {
       if (composer !== element) attach(element)
 
       const depth = getStash().length
-      if (current.composerStash && depth > 0) {
+      // Shown for the revert control too, not just for stashing by key: the
+      // badge is the only way back to a parked draft, so anything that can park
+      // one has to guarantee it appears. spec: QRV
+      if ((current.composerStash || current.queuedRevert) && depth > 0) {
         // The count doubles as the control: a stash whose only way back is a
         // binding is one the user has to remember, and the depth is already
         // sitting there saying there is something to bring back.

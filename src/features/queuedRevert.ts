@@ -1,17 +1,18 @@
 import { anchors } from '../content/anchors.ts'
-import { writeComposer } from '../content/dom.ts'
 import { cornerDownLeftIcon } from '../content/icons.ts'
 import { marked, type Context, type Feature } from '../content/reconcile.ts'
-import { foldReturnedText, renderedMessageText } from '../lib/queuedRevert.ts'
+import { stashDraftAndWrite } from './composer.ts'
+import { renderedMessageText } from '../lib/queuedRevert.ts'
 
 /**
  * A control on each queued message that reverts it into the composer.
  *
  * While a turn runs, messages typed into the composer are queued and delivered
  * when it ends. The app reveals a discard control on each; this sits a revert
- * control beside it, which folds the message's text back into the composer and
- * then drops the message from the queue through the app's own discard — so the
- * queue heals exactly as it would from a plain discard. spec: QRV
+ * control beside it, which puts the message's text back in the composer —
+ * parking any draft already there on the stash — and then drops the message
+ * from the queue through the app's own discard, so the queue heals exactly as
+ * it would from a plain discard. spec: QRV
  */
 
 const ID = 'data-whp-id'
@@ -31,7 +32,7 @@ function bodyFor(discard: Element): Element | null {
   return discard.nextElementSibling ?? discard.parentElement?.nextElementSibling ?? null
 }
 
-function createButton(grouped: boolean): HTMLButtonElement {
+function createButton(grouped: boolean, schedule: () => void): HTMLButtonElement {
   const button = document.createElement('button')
   button.type = 'button'
   button.className = grouped ? 'whp-queued-revert whp-queued-revert-grouped' : 'whp-queued-revert'
@@ -48,14 +49,15 @@ function createButton(grouped: boolean): HTMLButtonElement {
     // so a re-render that replaced it does not leave a stale handle behind.
     const discard = button.nextElementSibling
     if (!discard) return
-    const composer = anchors.composer()
     const body = bodyFor(discard)
-    if (composer && body) {
-      const text = renderedMessageText(body)
-      if (text) writeComposer(composer, foldReturnedText(composer.value, text))
-    }
+    const text = body ? renderedMessageText(body) : ''
+    // Nothing is discarded unless the text is safely in the composer: dropping
+    // the message first and failing to write would lose it outright.
+    if (!text || !stashDraftAndWrite(text)) return
     // Leave the queue through the app's own discard, keeping the others' order.
     ;(discard as HTMLElement).click()
+    // The stash has gained the parked draft, so its badge needs re-rendering.
+    schedule()
   })
 
   return button
@@ -64,7 +66,7 @@ function createButton(grouped: boolean): HTMLButtonElement {
 export function queuedRevert(): Feature {
   return {
     name: 'queuedRevert',
-    reconcile({ prefs }: Context) {
+    reconcile({ prefs, schedule }: Context) {
       const discards = prefs.queuedRevert ? anchors.queuedDiscards() : []
       const live = new Set(discards)
 
@@ -85,7 +87,7 @@ export function queuedRevert(): Feature {
         const previous = discard.previousElementSibling
         if (previous?.getAttribute(ID) === REVERT) continue
         // Grouped when the body follows the discard directly (no header row).
-        discard.before(createButton(discard.nextElementSibling !== null))
+        discard.before(createButton(discard.nextElementSibling !== null, schedule))
       }
 
       // Clear the hover mark from any container that no longer holds a control.

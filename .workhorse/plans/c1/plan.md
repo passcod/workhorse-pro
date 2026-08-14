@@ -4,14 +4,16 @@ A queued message (one typed while the agent is working, waiting to be delivered)
 
 ## Approach
 
-The app renders each queued message's discard control as `button[aria-label="Discard queued message"]`. The extension anchors on that button, injects a revert button as its preceding sibling, and on click reads the message text, folds it into the composer, then triggers the app's own discard so the queue heals the same way it would from a plain discard.
+The app renders each queued message's discard control as `button[aria-label="Discard queued message"]`. The extension anchors on that button, injects a revert button as its preceding sibling, and on click reads the message text, writes it into the composer, then triggers the app's own discard so the queue heals the same way it would from a plain discard.
 
-The composer write reuses the native-value-setter path already in the composer feature, lifted into a shared `writeComposer` helper. The fold rule (text above any existing draft, blank line between) mirrors the app's own "Stop returns queued text to the composer" behaviour.
+A draft already in the composer is parked on the stash rather than folded in around the reverted message: the reverted message arrives alone, and the draft comes back through the stash badge. The write therefore lives in `features/composer.ts` as `stashDraftAndWrite`, not in the revert feature — during recall the draft worth parking is the text held aside, which only that module can see.
+
+Because the badge is the only way back to a parked draft, it now shows whenever either the stash or the revert control is on. Without that, a revert with the stash switch off would swallow the draft silently.
 
 ## Checklist
 
-- [x] Lift the composer's native-setter write into `content/dom.ts` as `writeComposer`, and point the composer feature at it
-- [x] Pure helpers in `lib/queuedRevert.ts`: `foldReturnedText` and `renderedMessageText`
+- [x] `stashDraftAndWrite` in `features/composer.ts`, and widen the badge's gate
+- [x] Pure helper in `lib/queuedRevert.ts`: `renderedMessageText`
 - [x] `queuedDiscards()` anchor
 - [x] `cornerDownLeftIcon` in `content/icons.ts`
 - [x] `queuedRevert` feature + registration

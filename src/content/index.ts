@@ -8,6 +8,7 @@ import { statRows } from '../features/statRows.ts'
 import { namedChecks } from '../features/namedChecks.ts'
 import { composerFeature } from '../features/composer.ts'
 import { conversationScope } from '../features/conversationScope.ts'
+import { workspaceOrder } from '../features/workspaceOrder.ts'
 import { reportOnce } from '../log.ts'
 
 /**
@@ -42,6 +43,7 @@ async function main(): Promise<void> {
   reconciler.register(namedChecks())
   reconciler.register(composerFeature())
   reconciler.register(conversationScope())
+  reconciler.register(workspaceOrder())
 
   applyObservation(prefs)
   // Data landing means a pass can now render something it could not before.

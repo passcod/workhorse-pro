@@ -154,6 +154,54 @@ export const anchors = {
    * then hides *that*, leaving the widened list invisible and no way to get it
    * back, since nothing clears the style it was given.
    */
+  /**
+   * The workspace switcher's open menu, or null while it is closed.
+   *
+   * The menu is unmounted when the switcher closes, so "closed" and "not on
+   * this page" resolve the same way — and an ordering the extension applied is
+   * gone the next time the app builds it. spec: WSRT
+   */
+  workspaceSwitcherMenu(): HTMLElement | null {
+    const hooked = document.querySelector<HTMLElement>('[data-wh-workspace-switcher]')
+    if (hooked) return hooked
+    // Fallback: the menu ends with the control that opens the add-workspace
+    // dialog, and that label appears nowhere else in the app.
+    for (const button of document.querySelectorAll('button')) {
+      const label = button.textContent?.trim() ?? ''
+      if (label === 'Add workspace…' || label === 'Add workspace...') {
+        return button.parentElement
+      }
+    }
+    return null
+  },
+
+  /**
+   * The workspace rows in that menu, in the order they currently sit.
+   *
+   * Each row is a link to the workspace. The menu's other children — the
+   * divider and the add-workspace control — are not rows and are left out, so
+   * a caller reordering rows cannot move them. spec: WSRT
+   */
+  workspaceSwitcherRows(): HTMLElement[] {
+    const menu = this.workspaceSwitcherMenu()
+    if (!menu) return []
+    return [...menu.children].filter(
+      (child): child is HTMLElement => child.tagName === 'A' && !child.hasAttribute(MARK),
+    )
+  },
+
+  /**
+   * The workspace name a row shows.
+   *
+   * The name is the row's first child element; the row can carry an unread
+   * count after it, so the row's whole text is not the name. Falling back to
+   * that whole text keeps a row with no child element sortable rather than
+   * sorting it as the empty string. spec: WSRT
+   */
+  workspaceRowName(row: Element): string {
+    return labelOf(row) || (row.textContent?.trim() ?? '')
+  },
+
   conversationsList(): HTMLElement | null {
     const hooked = document.querySelector<HTMLElement>('[data-wh-conversations-list]')
     if (hooked) return hooked

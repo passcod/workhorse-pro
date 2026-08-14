@@ -19,6 +19,7 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 - [ ] Input history
 - [ ] Composer stash
 - [ ] Cross-workspace conversations
+- [ ] Alphabetical workspace switcher
 - [ ] Named checks, alongside where the GitHub token is entered and a reading of whether it currently works
 - [ ] Reading responses the app has already fetched
 
@@ -43,6 +44,7 @@ Removal is not a separate mechanism.
 A feature that is off has nothing as its desired state, and the reconcile pass that follows removes its rows for the same reason it adds them when the feature is on.
 
 - [ ] Turning off automatic expansion stops further expansion without collapsing anything already open, since expansion is an action rather than something rendered
+- [ ] Turning off an ordering stops further ordering, and the app's own order returns as soon as the app next renders the thing that was ordered
 
 ## Bindings
 

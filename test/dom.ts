@@ -23,6 +23,7 @@ export function installDom(body = ''): JSDOM {
   globals.Element = dom.window.Element
   globals.HTMLElement = dom.window.HTMLElement
   globals.HTMLTextAreaElement = dom.window.HTMLTextAreaElement
+  globals.HTMLAnchorElement = dom.window.HTMLAnchorElement
   globals.MutationObserver = dom.window.MutationObserver
   globals.Event = dom.window.Event
   globals.CSS = dom.window.CSS

@@ -66,6 +66,52 @@ export function ensureOrdered<T extends HTMLElement>(
 }
 
 /**
+ * Find or create a node that hangs beneath `reference`, keeping the extension's
+ * own children of that parent contiguous and in a fixed order among themselves,
+ * immediately after the reference.
+ *
+ * Used where several readings sit beneath a row the app renders flat — the
+ * Checks row is not a disclosure and has no content block of its own, so the
+ * breakdown and the named jobs stack after it rather than inside it. Ordering
+ * keeps a reading that is removed and re-added from returning below its
+ * neighbour, and the after-reference placement keeps the group beneath the row
+ * even as the app re-inserts its own rows around it.
+ */
+export function ensureAfterOrdered<T extends HTMLElement>(
+  reference: Element,
+  id: string,
+  order: number,
+  create: () => T,
+): T {
+  const parent = reference.parentElement
+  if (!parent) throw new Error(`ensureAfterOrdered: ${id} has no parent to sit in`)
+  let element = parent.querySelector<T>(`:scope > [${ID}="${CSS.escape(id)}"]`)
+  if (!element) {
+    element = create()
+    element.setAttribute(ID, id)
+    marked(element)
+    reference.after(element)
+  }
+  element.dataset.whpOrder = String(order)
+
+  const ours = [...parent.children].filter(
+    (child): child is HTMLElement =>
+      child instanceof HTMLElement && child.dataset.whpOrder !== undefined,
+  )
+  const desired = [...ours].sort(
+    (a, b) => Number(a.dataset.whpOrder) - Number(b.dataset.whpOrder),
+  )
+  // Only touch the DOM when something is out of place: a move is a mutation,
+  // and a mutation schedules another pass.
+  let previous: Element = reference
+  for (const node of desired) {
+    if (previous.nextElementSibling !== node) previous.after(node)
+    previous = node
+  }
+  return element
+}
+
+/**
  * Find or create a node placed immediately after `reference`.
  *
  * Used where a row hangs beneath a specific sibling rather than inside a

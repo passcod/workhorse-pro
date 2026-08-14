@@ -24,7 +24,7 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 - [ ] Reading responses the app has already fetched
 
 - [ ] Every switch starts on
-- [ ] Switch settings follow the user across devices, and stored credentials do not
+- [ ] Switch settings and the GitHub token follow the user across devices wherever browser sync is enabled
 
 ## Taking effect
 
@@ -39,6 +39,10 @@ A feature that is off has nothing as its desired state, and the reconcile pass t
 ## Stored data
 
 - [ ] The preferences page reports what the extension has stored and can clear the recorded input history, the stash, and the GitHub token independently
+- [ ] Recorded input history and stashed drafts stay on the device that wrote them
+
+History and stashed drafts are working state at a scale that synced settings storage is not sized for, and they are tied to what the user was doing on that machine.
+Settings and the token are small and are the same wherever the user works, so they follow.
 
 ## Access to a paired device
 

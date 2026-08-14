@@ -11,6 +11,7 @@ Firefox is the primary target; Chrome builds from the same source with the diffe
 
 - [ ] One source tree produces both builds, with no browser conditionals outside the manifest
 - [ ] The Firefox manifest declares a background script and a Gecko application id; the Chrome manifest declares a background service worker instead
+- [ ] The Gecko application id is required rather than cosmetic, because settings that follow the user across devices are keyed by it
 - [ ] Firefox builds are verified before release; Chrome builds ship unverified unless verification is asked for
 
 ## Permissions

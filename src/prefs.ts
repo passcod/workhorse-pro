@@ -14,9 +14,10 @@ import { reportOnce } from './log.ts'
 export interface Prefs {
   autoExpandPrDetail: boolean
   autoExpandBranchDropdown: boolean
+  /** Open the Checks and Review Hero rows, where the extension's readings sit. */
+  autoExpandRows: boolean
   checksBreakdown: boolean
   reviewStats: boolean
-  effectiveBaseBranch: boolean
   namedChecks: boolean
   inputHistory: boolean
   composerStash: boolean
@@ -32,9 +33,11 @@ export interface Prefs {
 export const PREF_DEFAULTS: Prefs = {
   autoExpandPrDetail: true,
   autoExpandBranchDropdown: true,
+  // Off by default: it opens two rows the app leaves closed, which is a
+  // stronger change to the section's shape than the other two.
+  autoExpandRows: false,
   checksBreakdown: true,
   reviewStats: true,
-  effectiveBaseBranch: true,
   namedChecks: true,
   inputHistory: true,
   composerStash: true,
@@ -45,8 +48,16 @@ export const PREF_DEFAULTS: Prefs = {
   scopeWide: false,
 }
 
+export interface SwitchInfo {
+  key: keyof Prefs
+  label: string
+  detail: string
+  /** Does nothing without a working GitHub token, so the page says so. */
+  needsToken?: boolean
+}
+
 /** The switches the preferences page renders, in the order it renders them. */
-export const SWITCHES: { key: keyof Prefs; label: string; detail: string }[] = [
+export const SWITCHES: SwitchInfo[] = [
   {
     key: 'autoExpandPrDetail',
     label: 'Auto-expand pull request detail',
@@ -58,49 +69,68 @@ export const SWITCHES: { key: keyof Prefs; label: string; detail: string }[] = [
     detail: 'Open the branch diagnostics when a card is shown.',
   },
   {
+    key: 'autoExpandRows',
+    label: 'Auto-expand Checks and Review Hero',
+    detail:
+      'Open both rows when a card is shown, so the readings below sit in view without a click.',
+  },
+  {
     key: 'checksBreakdown',
     label: 'Check breakdown',
-    detail: 'Passed, failed, running and skipped counts under the Checks row.',
+    detail:
+      'Passed, failed, running and skipped counts under the Checks row. Shown when that row is open.',
   },
   {
     key: 'namedChecks',
     label: 'Named checks',
-    detail: 'List failing and running checks by name. Needs a GitHub token.',
+    detail:
+      'List the checks that failed or are still running, by name, with links to their logs.',
+    needsToken: true,
   },
   {
     key: 'reviewStats',
     label: 'Review run stats',
-    detail: 'Run count and last run findings under the Review Hero row.',
-  },
-  {
-    key: 'effectiveBaseBranch',
-    label: 'Effective base branch',
-    detail: 'The branch a card is really cut from, when it differs from its label.',
+    detail:
+      'Run count and last run findings under the Review Hero row. Shown when that row is open.',
   },
   {
     key: 'inputHistory',
     label: 'Input history',
-    detail: 'Recall previously sent messages with the arrow keys.',
+    detail:
+      'Recall messages you have sent, across every conversation: Up for older, Down for newer. ' +
+      'Recall starts when the caret is on the composer’s first line, so arrow keys still move ' +
+      'the caret inside a multi-line draft. Your unsent text is held aside and comes back when ' +
+      'you step past the newest message.',
   },
   {
     key: 'composerStash',
     label: 'Composer stash',
-    detail: 'Park drafts on a stack and bring them back later.',
+    detail:
+      'Park drafts on a stack and bring them back later, across any conversation. ' +
+      'Alt+Down stashes what is in the composer and clears it; Alt+Up brings the last one back. ' +
+      'Popping into a composer that already has text swaps the two, so nothing is lost.',
   },
   {
     key: 'crossWorkspaceConversations',
     label: 'Cross-workspace conversations',
-    detail: 'Widen the sidebar list past the active workspace.',
+    detail:
+      'Add a control to the sidebar’s Conversations header that widens the list to every ' +
+      'workspace you can see. Each row’s card code takes its workspace’s colour.',
   },
   {
     key: 'deviceOverlay',
     label: 'Live device state',
-    detail: 'Show the paired device’s view of conversations it is running.',
+    detail:
+      'In the widened conversations list, show your paired device’s own view of rows whose card ' +
+      'is checked out to it — those lag the shared record until a turn ends. Does nothing ' +
+      'without a paired device, and needs the access granted below.',
   },
   {
     key: 'observeFetches',
     label: 'Reuse the app’s own responses',
-    detail: 'Read data the app has already fetched instead of fetching it again.',
+    detail:
+      'Read data the app has already fetched instead of fetching it again. Turning this off ' +
+      'changes nothing you can see; the extension just makes its own requests.',
   },
 ]
 

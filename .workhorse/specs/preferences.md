@@ -13,9 +13,9 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 
 - [ ] Auto-expanded pull request detail
 - [ ] Auto-expanded branch dropdown
+- [ ] Auto-expanded Checks and Review Hero rows
 - [ ] Check breakdown
 - [ ] Review run stats
-- [ ] Effective base branch
 - [ ] Input history
 - [ ] Composer stash
 - [ ] Cross-workspace conversations
@@ -23,8 +23,17 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 - [ ] Live device state, alongside the control that grants access to the device and a reading of whether access is currently held
 - [ ] Reading responses the app has already fetched
 
-- [ ] Every switch starts on
+- [ ] Every switch starts on, except opening the Checks and Review Hero rows
 - [ ] Switch settings and the GitHub token follow the user across devices wherever browser sync is enabled
+
+Each switch says what turning it on does, in enough detail to be acted on — including any keys it binds, so a feature driven entirely by a keystroke is not left undiscoverable.
+
+## What a switch needs
+
+- [ ] A switch that cannot do anything without a GitHub token reads as unavailable until one is supplied, and says which
+- [ ] A switch whose token GitHub has refused reads the same way, because it cannot work until the token is replaced
+- [ ] A token that has been supplied but not yet used leaves its switch available, since refusing it would prevent the very request that would verify it
+- [ ] The page notices a token being verified while it is open, rather than reporting it as unverified until reopened
 
 ## Taking effect
 

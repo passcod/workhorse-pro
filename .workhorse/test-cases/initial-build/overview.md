@@ -29,10 +29,16 @@ The fixture the suite runs against is hand-written from a reading of the app's c
 ## Auto-expand (AEXP)
 
 - [ ] Opening a card with collapsed pull request detail expands it
+- [x] Opening a card with a collapsed branch dropdown expands it (against a fixture)
 - [ ] Opening a card with a collapsed branch dropdown expands it
-- [ ] Collapsing a section by hand leaves it collapsed for that card until reload
-- [ ] Collapsing a section by hand on one card does not suppress expansion on another
-- [ ] Turning off either switch stops expansion and leaves open sections open
+- [x] Collapsing a section by hand leaves it collapsed for that card until reload
+- [x] Collapsing a section by hand on one card does not suppress expansion on another
+- [x] Turning off a switch stops expansion and leaves open sections open
+- [x] An already-open section is left alone
+- [x] Re-opening a section by hand lets the extension resume expanding it
+- [ ] With the rows switch on, the Checks and Review Hero rows open when a card is shown
+- [ ] The rows switch is off unless turned on
+- [x] Closing one of those rows by hand keeps it closed, without affecting the other
 - [ ] A card whose conflicts cause the app to force a section open is not fought by the extension
 
 ## Check breakdown (STAT)
@@ -53,11 +59,6 @@ The fixture the suite runs against is hand-written from a reading of the app's c
 - [x] A completed review with no findings reads as no issues
 - [x] A completed review with findings shows the total and the critical count, critical coloured
 - [ ] No completed review means no last-run row
-
-## Effective base branch (STAT)
-
-- [ ] A card whose resolved base differs from its base label shows the resolved branch in mono
-- [ ] A card whose resolved base matches its label shows nothing
 
 ## Named checks (GHUB, STAT)
 
@@ -166,7 +167,12 @@ The fixture the suite runs against is hand-written from a reading of the app's c
 
 ## Preferences (PREF)
 
-- [ ] Every switch defaults on
+- [ ] Every switch defaults on, except opening the Checks and Review Hero rows
+- [ ] A switch needing a GitHub token reads as unavailable until one is supplied
+- [ ] A switch whose token was refused reads as unavailable
+- [ ] A supplied but unverified token leaves its switch available
+- [ ] The page notices a token being verified while it is open
+- [ ] Each switch's description says what it does, including any keys it binds
 - [x] Turning a switch off removes what its feature added, on the open page, without a reload
 - [x] Turning a switch back on restores it without a reload
 - [ ] Turning off auto-expansion leaves already-open sections open

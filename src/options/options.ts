@@ -18,17 +18,33 @@ function byId<T extends HTMLElement>(id: string): T {
   return element as T
 }
 
-function renderSwitches(prefs: Prefs): void {
+/**
+ * Why a token-gated switch cannot do anything yet, or null when it can.
+ *
+ * A rejected token is treated as blocking because the feature genuinely cannot
+ * work until it is replaced. A token that has simply not been used yet is not:
+ * greying that out would prevent the very request that would verify it.
+ */
+function tokenBlocker(prefs: Prefs, status: TokenStatus): string | null {
+  if (!prefs.githubToken) return 'Needs a GitHub token — add one below.'
+  if (status === 'rejected') return 'GitHub rejected the token below.'
+  return null
+}
+
+function renderSwitches(prefs: Prefs, status: TokenStatus): void {
   const host = byId('switches')
   host.replaceChildren(
-    ...SWITCHES.map(({ key, label, detail }) => {
+    ...SWITCHES.map(({ key, label, detail, needsToken }) => {
+      const blocker = needsToken ? tokenBlocker(prefs, status) : null
+
       const row = document.createElement('div')
-      row.className = 'switch'
+      row.className = blocker ? 'switch switch-blocked' : 'switch'
 
       const input = document.createElement('input')
       input.type = 'checkbox'
       input.id = `switch-${key}`
       input.checked = prefs[key] === true
+      input.disabled = blocker !== null
       input.addEventListener('change', () => {
         void setPref(key, input.checked as Prefs[typeof key])
       })
@@ -41,6 +57,13 @@ function renderSwitches(prefs: Prefs): void {
       description.className = 'detail'
       description.textContent = detail
       text.append(name, description)
+
+      if (blocker) {
+        const note = document.createElement('div')
+        note.className = 'detail blocked-note'
+        note.textContent = blocker
+        text.append(note)
+      }
 
       row.append(input, text)
       return row
@@ -65,8 +88,17 @@ function describeToken(token: string, status: TokenStatus): string {
   return 'Saved. Not used yet.'
 }
 
-async function refreshTokenStatus(prefs: Prefs): Promise<void> {
+/**
+ * Re-read everything and repaint.
+ *
+ * The token's verdict is written by the content script the first time it calls
+ * GitHub, so this page has to be able to catch up while it is open — otherwise
+ * a token pasted here reads as unverified until the page is reopened.
+ */
+async function refresh(): Promise<void> {
+  const prefs = await loadPrefs()
   const status = await tokenStatus()
+  renderSwitches(prefs, status)
   const element = byId('token-status')
   element.textContent = describeToken(prefs.githubToken, status)
   element.dataset.state = prefs.githubToken ? status : 'unknown'
@@ -89,22 +121,24 @@ function describeData(): string {
 
 async function main(): Promise<void> {
   await loadLocalData()
-  let prefs = await loadPrefs()
+  const prefs = await loadPrefs()
 
-  renderSwitches(prefs)
   byId('data-status').textContent = describeData()
 
   const token = byId<HTMLInputElement>('token')
   token.value = prefs.githubToken
-  await refreshTokenStatus(prefs)
+  await refresh()
+
+  // The content script records the token's verdict as it uses it, and the
+  // switches follow from that, so repaint when either area changes.
+  ext.storage.onChanged.addListener(() => void refresh())
 
   byId('save-token').addEventListener('click', () => {
     void (async () => {
       await setPref('githubToken', token.value.trim())
       // A new token has not been tried yet, so any previous verdict is stale.
       await ext.storage.local.set({ [TOKEN_STATUS_KEY]: 'unknown' })
-      prefs = await loadPrefs()
-      await refreshTokenStatus(prefs)
+      await refresh()
     })()
   })
 
@@ -113,8 +147,7 @@ async function main(): Promise<void> {
       token.value = ''
       await setPref('githubToken', '')
       await ext.storage.local.set({ [TOKEN_STATUS_KEY]: 'unknown' })
-      prefs = await loadPrefs()
-      await refreshTokenStatus(prefs)
+      await refresh()
     })()
   })
 

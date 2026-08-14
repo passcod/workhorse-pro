@@ -42,27 +42,6 @@
   font-weight: 500;
 }
 
-.whp-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-weight: 500;
-  max-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* The resolved base branch, hanging under the Based on row. */
-.whp-base-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  padding: 0 4px;
-  margin-top: -4px;
-  font-size: 11px;
-  color: var(--text-muted, #776f6a);
-}
-
 /* A named check under the breakdown. */
 .whp-check {
   display: flex;

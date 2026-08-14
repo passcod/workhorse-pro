@@ -65,6 +65,17 @@
         color: var(--muted);
         font-size: 12px;
       }
+      /* A switch that cannot do anything yet, because it needs a token that
+         has not been supplied or that GitHub refused. */
+      .switch-blocked label,
+      .switch-blocked .detail {
+        opacity: 0.55;
+      }
+      .switch-blocked .blocked-note {
+        opacity: 1;
+        margin-top: 2px;
+        color: var(--accent);
+      }
       input[type='text'],
       input[type='password'] {
         width: 100%;

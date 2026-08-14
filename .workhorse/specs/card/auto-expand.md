@@ -10,6 +10,8 @@ The pull request section and its branch dropdown open on their own when a card i
 
 - [ ] When a card is shown with its pull request detail collapsed, the extension opens it
 - [ ] When a card is shown with its branch dropdown collapsed, the extension opens it
+- [ ] When a card is shown, the Checks and Review Hero rows can be opened too — the readings the extension adds sit inside them, so opening them is what puts those readings in view without a click
+- [ ] Opening those two rows is off unless asked for, because it changes the shape of the section more than opening the section itself does
 - [ ] Each is governed by its own switch
 
 ## Never fighting the user

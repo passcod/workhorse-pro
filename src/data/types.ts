@@ -29,12 +29,6 @@ export interface BranchStatusData {
   prNumber: number | null
   ci: CheckStatus | null
   branch: { name: string | null } | null
-  /**
-   * Present only when the card's base resolves to something other than what
-   * its label implies — a card stacked on a merged parent inherits the
-   * parent's own base.
-   */
-  effectiveBaseBranch?: string | null
   loop: { active: boolean; round: number; paused: boolean }
   lastReview: {
     round: number

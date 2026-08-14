@@ -107,16 +107,6 @@ export const anchors = {
     return disclosureContent(this.reviewRow())
   },
 
-  /** The Based-on row, beneath which the resolved base branch hangs. */
-  basedOnRow(): Element | null {
-    const hooked = document.querySelector('[data-wh-pr-row="based-on"]')
-    if (hooked) return hooked
-    for (const span of document.querySelectorAll('span')) {
-      if (span.textContent?.trim() === 'Based on') return span.parentElement
-    }
-    return null
-  },
-
   /** The sidebar's Conversations header row. */
   conversationsHeader(): Element | null {
     const hooked = document.querySelector('[data-wh-conversations]')

@@ -4,7 +4,7 @@ id: STAT
 
 # Pull request stat rows
 
-Three readings hang beneath the rows they belong to in the pull request section, each showing the detail behind that row's own verdict.
+Two readings hang beneath the rows they belong to in the pull request section, each showing the detail behind that row's own verdict.
 They are supplementary: the row above already carries the answer everyone needs, and these say how it was arrived at.
 
 Each row has its own switch, and each is rendered from the branch status the extension holds for the card on screen.
@@ -49,9 +49,3 @@ See `platform/github.md` for how that access is supplied and what it costs.
 - [ ] A completed review with no findings reads as having found no issues
 - [ ] A completed review with findings reads as a total, followed by the critical count when there is one, with the critical count coloured
 
-## Effective base branch
-
-A card stacked on a merged parent inherits the parent's own base, so the branch it is really cut from can differ from what the base row names.
-
-- [ ] The resolved base branch hangs beneath the base row, in mono
-- [ ] It appears only when the resolved branch differs from what the base row implies

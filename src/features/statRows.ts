@@ -1,5 +1,5 @@
 import { anchors } from '../content/anchors.ts'
-import { ensure, ensureAfter, el, remove, statRow } from '../content/dom.ts'
+import { ensure, el, remove, statRow } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { branchStatus } from '../data/workhorse.ts'
 import { breakdownIsEmpty, checkBreakdown, formatReviewCounts } from '../lib/checks.ts'
@@ -13,7 +13,6 @@ import { breakdownIsEmpty, checkBreakdown, formatReviewCounts } from '../lib/che
 const BREAKDOWN = 'checks-breakdown'
 const RUNS = 'review-runs'
 const LAST_RUN = 'review-last-run'
-const BASE = 'effective-base'
 
 /** Comma-separated parts, with the failure count carrying the row's colour. */
 function breakdownNodes(counts: {
@@ -44,7 +43,6 @@ export function statRows(): Feature {
         remove(BREAKDOWN)
         remove(RUNS)
         remove(LAST_RUN)
-        remove(BASE)
         return
       }
 
@@ -93,22 +91,6 @@ export function statRows(): Feature {
         value.replaceChildren(...nodes)
       } else {
         remove(LAST_RUN)
-      }
-
-      // ── Effective base branch ──────────────────────────────────────────
-      const basedOn = anchors.basedOnRow()
-      const effective = status?.effectiveBaseBranch ?? null
-      if (prefs.effectiveBaseBranch && basedOn && effective) {
-        const row = ensureAfter(basedOn, BASE, () => {
-          const node = el('div', 'whp-base-row')
-          node.title = 'Effective base branch'
-          node.appendChild(el('span', undefined, '↳'))
-          node.appendChild(el('span', 'whp-mono'))
-          return node
-        })
-        row.querySelector('.whp-mono')!.textContent = effective
-      } else {
-        remove(BASE)
       }
     },
   }

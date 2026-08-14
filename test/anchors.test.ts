@@ -12,7 +12,6 @@ test('an anchor that resolves to nothing returns nothing rather than throwing', 
   // The normal state on a page the feature does not apply to. spec: INJ
   assert.equal(anchors.composer(), null)
   assert.equal(anchors.checksRow(), null)
-  assert.equal(anchors.basedOnRow(), null)
   assert.equal(anchors.conversationsHeader(), null)
   assert.equal(anchors.prDetailExpanded(), false)
 })
@@ -73,13 +72,6 @@ test('each disclosure resolves its own content, not a neighbour’s', () => {
   assert.ok(checks)
   assert.ok(review)
   assert.notEqual(checks, review)
-})
-
-test('the based-on row resolves to the row, not the label', () => {
-  setBody(prSection({ detailExpanded: true }))
-  const row = anchors.basedOnRow()
-  assert.equal(row?.firstElementChild?.textContent, 'Based on')
-  assert.ok(row?.parentElement, 'the row must have a parent to hang a sibling from')
 })
 
 test('the conversations header resolves to the row, not the label link', () => {

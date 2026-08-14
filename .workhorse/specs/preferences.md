@@ -44,6 +44,14 @@ A feature that is off has nothing as its desired state, and the reconcile pass t
 
 - [ ] Turning off automatic expansion stops further expansion without collapsing anything already open, since expansion is an action rather than something rendered
 
+## Bindings
+
+- [ ] The page lists every action that has a keyboard binding, with its current one
+- [ ] A binding is changed by pressing the combination while the page is listening
+- [ ] Listening can be abandoned without changing anything
+- [ ] A binding the extension will not accept is reported with the reason rather than silently ignored
+- [ ] Any action can be unbound
+
 ## Stored data
 
 - [ ] The preferences page reports what the extension has stored and can clear the recorded input history, the stash, and the GitHub token independently

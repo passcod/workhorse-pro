@@ -113,6 +113,40 @@
       .status[data-state='rejected'] {
         color: var(--accent);
       }
+      .binding {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--line);
+        flex-wrap: wrap;
+      }
+      .binding .name {
+        font-weight: 500;
+        min-width: 140px;
+      }
+      .binding .detail {
+        color: var(--muted);
+        font-size: 12px;
+        flex-basis: 100%;
+        order: 3;
+      }
+      .binding-capture {
+        font: inherit;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        min-width: 150px;
+        text-align: left;
+      }
+      .binding-capture[data-recording='true'] {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .binding .problem {
+        color: var(--accent);
+        font-size: 12px;
+        flex-basis: 100%;
+        order: 4;
+      }
       a {
         color: var(--accent);
       }
@@ -124,6 +158,14 @@
 
     <h2>Features</h2>
     <div id="switches"></div>
+
+    <h2>Keys</h2>
+    <p class="lede">
+      Click a binding and press the combination you want. Anything the page can
+      see is fair game — the extension swallows it, so the browser will not act
+      on it while you are in the composer. Leave one empty to unbind it.
+    </p>
+    <div id="bindings"></div>
 
     <h2>GitHub</h2>
     <p class="lede">

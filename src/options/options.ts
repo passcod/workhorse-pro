@@ -1,5 +1,6 @@
 import { ext } from '../ext.ts'
-import { loadPrefs, setPref, SWITCHES, type Prefs } from '../prefs.ts'
+import { BINDINGS, loadPrefs, setPref, SWITCHES, type Prefs } from '../prefs.ts'
+import { bindingFromEvent, bindingProblem, formatBinding, isModifierKey } from '../lib/keys.ts'
 import { clearHistory, clearStash, getHistory, getStash, loadLocalData } from '../localData.ts'
 import { TOKEN_STATUS_KEY, verifyToken, type TokenStatus } from '../data/github.ts'
 
@@ -68,6 +69,85 @@ function renderSwitches(prefs: Prefs, status: TokenStatus): void {
   )
 }
 
+/**
+ * The binding editor: click to record, then press the combination.
+ *
+ * Capturing the press is the only honest way to do this — a text field would
+ * make the user spell a binding in a notation they have to learn, and get
+ * wrong. Escape leaves recording without changing anything, since a user who
+ * opened it by accident needs a way out that is not a binding.
+ */
+function renderBindings(prefs: Prefs): void {
+  const host = byId('bindings')
+  host.replaceChildren(
+    ...BINDINGS.map(({ key, label, detail }) => {
+      const row = document.createElement('div')
+      row.className = 'binding'
+
+      const name = document.createElement('span')
+      name.className = 'name'
+      name.textContent = label
+
+      const capture = document.createElement('button')
+      capture.type = 'button'
+      capture.className = 'binding-capture'
+      capture.textContent = prefs[key] || 'Unbound'
+
+      const problem = document.createElement('div')
+      problem.className = 'problem'
+
+      const stopRecording = () => {
+        capture.dataset.recording = 'false'
+        capture.textContent = prefs[key] || 'Unbound'
+        document.removeEventListener('keydown', onKey, true)
+      }
+
+      function onKey(event: KeyboardEvent) {
+        event.preventDefault()
+        event.stopPropagation()
+        if (event.key === 'Escape') {
+          stopRecording()
+          return
+        }
+        // A modifier on its own is the user still reaching for the key.
+        if (isModifierKey(event.key)) return
+
+        const text = formatBinding(bindingFromEvent(event))
+        const complaint = bindingProblem(text)
+        if (complaint) {
+          problem.textContent = complaint
+          capture.textContent = text
+          return
+        }
+        problem.textContent = ''
+        void setPref(key, text).then(refresh)
+        stopRecording()
+      }
+
+      capture.addEventListener('click', () => {
+        problem.textContent = ''
+        capture.dataset.recording = 'true'
+        capture.textContent = 'Press a combination…'
+        document.addEventListener('keydown', onKey, true)
+      })
+
+      const clear = document.createElement('button')
+      clear.type = 'button'
+      clear.textContent = 'Unbind'
+      clear.addEventListener('click', () => {
+        void setPref(key, '').then(refresh)
+      })
+
+      const description = document.createElement('div')
+      description.className = 'detail'
+      description.textContent = detail
+
+      row.append(name, capture, clear, description, problem)
+      return row
+    }),
+  )
+}
+
 async function tokenStatus(): Promise<TokenStatus> {
   try {
     const stored = await ext.storage.local.get(TOKEN_STATUS_KEY)
@@ -96,6 +176,7 @@ async function refresh(): Promise<void> {
   const prefs = await loadPrefs()
   const status = await tokenStatus()
   renderSwitches(prefs, status)
+  renderBindings(prefs)
   const element = byId('token-status')
   element.textContent = describeToken(prefs.githubToken, status)
   element.dataset.state = prefs.githubToken ? status : 'unknown'

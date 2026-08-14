@@ -34,14 +34,22 @@ During recall the composer was holding the user's own draft before the recalled 
 
 - [ ] The composer shows how many drafts are stashed, and shows nothing when the stack is empty
 - [ ] The indicator is unobtrusive enough to sit in the app's composer without competing with it
+- [ ] The count is also how a draft is restored, so the stash can be used without remembering a binding
+- [ ] It names the binding that does the same thing, so the binding is learned from using it
 
 ## Keys
 
-- [ ] Stashing is bound to the save gesture, and restoring to the same gesture with shift
-- [ ] Both are swallowed, so the browser's own save dialog does not open over the app
-- [ ] The bindings do not collide with recall, which keeps the unmodified arrow keys
+Every binding worth having is one something else already claims — a browser, a desktop, another editor — so the bindings are the user's to set rather than the extension's to insist on.
 
-Parking a draft is a save, so it takes the save keys — and those are the ones already in the user's hands from the tools they work in.
+- [ ] Stashing and restoring each have a binding the user can change
+- [ ] A binding is set by pressing the combination, not by writing it out
+- [ ] A binding is shown in one spelling however it was pressed
+- [ ] Either action can be left unbound
+- [ ] A binding without a modifier is refused, because it would swallow ordinary typing
+- [ ] Both bindings are swallowed when they fire, so whatever else they would have done does not happen over the app
+- [ ] The bindings cannot take the unmodified arrow keys, which belong to recall
+
+Out of the box, stashing is the save gesture — parking a draft is a save — and restoring takes a key that no one presses on a Workhorse page for its usual purpose.
 
 ## Preferences
 

@@ -210,7 +210,7 @@ test('popping brings it back', () => {
   const composer = reconcile()
   type(composer, 'park me')
   key(composer, { key: 's', ctrlKey: true })
-  key(composer, { key: 's', ctrlKey: true, shiftKey: true })
+  key(composer, { key: 'p', ctrlKey: true })
   assert.equal(composer.value, 'park me')
   assert.deepEqual([...local.getStash()], [])
 })
@@ -221,7 +221,7 @@ test('popping into a composer with text exchanges the two', () => {
   key(composer, { key: 's', ctrlKey: true })
   type(composer, 'second')
 
-  key(composer, { key: 's', ctrlKey: true, shiftKey: true })
+  key(composer, { key: 'p', ctrlKey: true })
   assert.equal(composer.value, 'first')
   assert.deepEqual([...local.getStash()], ['second'])
 })
@@ -246,21 +246,62 @@ test('the stash keys do not collide with recall', () => {
   type(composer, 'draft')
 
   // Ctrl+S is the stash; the bare arrows stay with recall.
-  key(composer, { key: 's', ctrlKey: true, shiftKey: true })
+  key(composer, { key: 'p', ctrlKey: true })
   assert.equal(composer.value, 'draft', 'a pop from an empty stack should do nothing')
 
   key(composer, { key: 'ArrowUp' })
   assert.equal(composer.value, 'history entry')
 })
 
-test('the stash keys are prevented, so the browser does not try to save', () => {
+test('the stash keys are prevented, so the browser does not act on them', () => {
   const composer = reconcile()
   type(composer, 'park me')
   assert.equal(key(composer, { key: 's', ctrlKey: true }), true)
-  assert.equal(key(composer, { key: 's', ctrlKey: true, shiftKey: true }), true)
+  assert.equal(key(composer, { key: 'p', ctrlKey: true }), true)
 })
 
-test('an uppercase S from the shifted binding still reaches the stash', () => {
+test('an unbound action does nothing', () => {
+  // Leaving a binding empty is a legitimate choice, not a broken setting.
+  setBody(composerArea())
+  const composer = document.querySelector('textarea')!
+  feature.reconcile({
+    prefs: { ...PREF_DEFAULTS, stashPushKey: '' },
+    route: { workspace: 'workhorse', card: 'WH-078' },
+    schedule: () => {},
+  })
+  type(composer, 'park me')
+  assert.equal(key(composer, { key: 's', ctrlKey: true }), false)
+  assert.deepEqual([...local.getStash()], [])
+})
+
+test('a rebound key takes effect without anything being re-attached', () => {
+  setBody(composerArea())
+  const composer = document.querySelector('textarea')!
+  feature.reconcile({
+    prefs: { ...PREF_DEFAULTS, stashPushKey: 'Alt+K' },
+    route: { workspace: 'workhorse', card: 'WH-078' },
+    schedule: () => {},
+  })
+  type(composer, 'park me')
+  key(composer, { key: 'k', altKey: true })
+  assert.deepEqual([...local.getStash()], ['park me'])
+})
+
+test('clicking the stash count restores the last draft', () => {
+  // The count is the only visible sign the stash has anything in it, so it is
+  // also the way back that needs no binding remembered.
+  const composer = reconcile()
+  type(composer, 'park me')
+  key(composer, { key: 's', ctrlKey: true })
+  reconcile()
+
+  const badge = document.querySelector<HTMLElement>('[data-whp-id="stash-badge"]')!
+  badge.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
+  assert.equal(composer.value, 'park me')
+  assert.deepEqual([...local.getStash()], [])
+})
+
+test('a binding matches whatever case the key arrives in', () => {
   const composer = reconcile()
   type(composer, 'park me')
   key(composer, { key: 'S', ctrlKey: true })
@@ -276,7 +317,7 @@ test('the stash depth shows while something is held', () => {
   const badge = document.querySelector('[data-whp-id="stash-badge"]')
   assert.equal(badge?.textContent, '1 stashed')
 
-  key(composer, { key: 's', ctrlKey: true, shiftKey: true })
+  key(composer, { key: 'p', ctrlKey: true })
   reconcile()
   assert.equal(document.querySelector('[data-whp-id="stash-badge"]'), null)
 })

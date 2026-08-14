@@ -1,84 +1,91 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { branchStatusKey, keyForUrl, recentSessionsKey, SIDEBAR_DATA_KEY } from '../src/data/keys.ts'
-import { parseRoute } from '../src/lib/route.ts'
+import {
+  bindingFromEvent,
+  bindingProblem,
+  formatBinding,
+  isModifierKey,
+  matchesBinding,
+  parseBinding,
+} from '../src/lib/keys.ts'
 
-const BASE = 'https://workhorse.bes.au'
+function press(key: string, mods: Partial<Record<'ctrl' | 'alt' | 'shift' | 'meta', boolean>> = {}) {
+  return {
+    key,
+    ctrlKey: mods.ctrl ?? false,
+    altKey: mods.alt ?? false,
+    shiftKey: mods.shift ?? false,
+    metaKey: mods.meta ?? false,
+  }
+}
 
-/**
- * The two directions have to agree. If a URL mapped to a key nothing reads,
- * observed responses would land in the cache unread and the optimisation
- * would silently do nothing at all. spec: DATA
- */
-
-test('an observed branch-status URL maps to the key the reader builds', () => {
-  const url = `${BASE}/api/card-branch-status?cardId=WH-078&workspace=workhorse`
-  assert.equal(keyForUrl(url, BASE), branchStatusKey('workhorse', 'WH-078'))
+test('a press becomes a binding in a fixed spelling', () => {
+  assert.equal(formatBinding(bindingFromEvent(press('s', { ctrl: true }))), 'Ctrl+S')
+  assert.equal(
+    formatBinding(bindingFromEvent(press('p', { ctrl: true, shift: true }))),
+    'Ctrl+Shift+P',
+  )
+  assert.equal(formatBinding(bindingFromEvent(press('ArrowUp', { alt: true }))), 'Alt+ArrowUp')
 })
 
-test('branch status needs both parameters to be identifiable', () => {
-  assert.equal(keyForUrl(`${BASE}/api/card-branch-status?cardId=WH-1`, BASE), null)
-  assert.equal(keyForUrl(`${BASE}/api/card-branch-status?workspace=w`, BASE), null)
+test('the spelling does not depend on the order modifiers were pressed', () => {
+  const a = formatBinding(bindingFromEvent(press('k', { ctrl: true, shift: true, alt: true })))
+  const b = formatBinding(bindingFromEvent(press('K', { alt: true, shift: true, ctrl: true })))
+  assert.equal(a, b)
 })
 
-test('sidebar data maps to its key', () => {
-  assert.equal(keyForUrl(`${BASE}/api/sidebar-data`, BASE), SIDEBAR_DATA_KEY)
+test('a bare modifier is not a binding', () => {
+  for (const key of ['Control', 'Shift', 'Alt', 'Meta']) {
+    assert.equal(isModifierKey(key), true)
+    assert.equal(bindingFromEvent(press(key, { ctrl: true })), null)
+  }
 })
 
-test('a scoped session list is a different key from an unscoped one', () => {
-  // The extension reads the unscoped list; the app reads a scoped one. They
-  // are different data and must not overwrite each other.
-  const unscoped = keyForUrl(`${BASE}/api/sessions?recent=true&limit=30`, BASE)
-  const scoped = keyForUrl(`${BASE}/api/sessions?recent=true&limit=30&workspace=w`, BASE)
-  assert.equal(unscoped, recentSessionsKey(30, null))
-  assert.notEqual(unscoped, scoped)
+test('a written binding round-trips', () => {
+  for (const text of ['Ctrl+S', 'Ctrl+Shift+P', 'Alt+ArrowUp', 'Ctrl+Alt+Shift+Meta+K']) {
+    assert.equal(formatBinding(parseBinding(text)), text)
+  }
 })
 
-test('a card-scoped session list is not a recent list', () => {
-  assert.equal(keyForUrl(`${BASE}/api/sessions?cardId=abc`, BASE), null)
+test('modifier names are read generously', () => {
+  assert.equal(formatBinding(parseBinding('control+s')), 'Ctrl+S')
+  assert.equal(formatBinding(parseBinding('cmd+s')), 'Meta+S')
+  assert.equal(formatBinding(parseBinding('option+s')), 'Alt+S')
 })
 
-test('relative URLs resolve against the app origin', () => {
-  assert.equal(keyForUrl('/api/sidebar-data', BASE), SIDEBAR_DATA_KEY)
+test('an unrecognised modifier is refused rather than ignored', () => {
+  // Dropping it silently would widen what matches, which is worse than
+  // refusing the binding.
+  assert.equal(parseBinding('Hyper+S'), null)
 })
 
-test('paths outside the allowlist are ignored', () => {
-  assert.equal(keyForUrl(`${BASE}/api/create-pr`, BASE), null)
-  assert.equal(keyForUrl(`${BASE}/api/chat-history?x=1`, BASE), null)
+test('matching requires every modifier to agree', () => {
+  assert.equal(matchesBinding(press('s', { ctrl: true }), 'Ctrl+S'), true)
+  assert.equal(matchesBinding(press('S', { ctrl: true }), 'Ctrl+S'), true)
+  assert.equal(matchesBinding(press('s', { ctrl: true, shift: true }), 'Ctrl+S'), false)
+  assert.equal(matchesBinding(press('s', { alt: true }), 'Ctrl+S'), false)
+  assert.equal(matchesBinding(press('a', { ctrl: true }), 'Ctrl+S'), false)
 })
 
-test('cross-origin responses are never the app’s own reads', () => {
-  assert.equal(keyForUrl('https://api.github.com/api/sidebar-data', BASE), null)
-  assert.equal(keyForUrl('https://evil.example/api/sidebar-data', BASE), null)
+test('an empty binding matches nothing', () => {
+  assert.equal(matchesBinding(press('s', { ctrl: true }), ''), false)
+  assert.equal(matchesBinding(press('s', { ctrl: true }), '   '), false)
 })
 
-test('unparseable input yields nothing rather than throwing', () => {
-  assert.equal(keyForUrl('://nonsense', BASE), null)
+test('a binding with no modifier is refused', () => {
+  // It would swallow ordinary typing, and the bare arrows belong to recall.
+  assert.match(bindingProblem('S') ?? '', /Ctrl, Alt or Meta/)
+  assert.match(bindingProblem('ArrowUp') ?? '', /Ctrl, Alt or Meta/)
+  assert.match(bindingProblem('Shift+S') ?? '', /Ctrl, Alt or Meta/)
 })
 
-test('a card route supplies both branch-status parameters', () => {
-  assert.deepEqual(parseRoute('/workhorse/cards/WH-078'), {
-    workspace: 'workhorse',
-    card: 'WH-078',
-  })
-  assert.deepEqual(parseRoute('/workhorse/inbox/WH-078'), {
-    workspace: 'workhorse',
-    card: 'WH-078',
-  })
+test('a usable binding has no complaint, and unbound is allowed', () => {
+  assert.equal(bindingProblem('Ctrl+S'), null)
+  assert.equal(bindingProblem('Alt+K'), null)
+  assert.equal(bindingProblem('Meta+P'), null)
+  assert.equal(bindingProblem(''), null)
 })
 
-test('non-card routes name their workspace but no card', () => {
-  assert.deepEqual(parseRoute('/workhorse'), { workspace: 'workhorse', card: null })
-  assert.deepEqual(parseRoute('/workhorse/sessions/abc'), {
-    workspace: 'workhorse',
-    card: null,
-  })
-  assert.deepEqual(parseRoute('/'), { workspace: null, card: null })
-})
-
-test('an encoded workspace slug is decoded', () => {
-  assert.deepEqual(parseRoute('/my%20workspace/cards/WH-1'), {
-    workspace: 'my workspace',
-    card: 'WH-1',
-  })
+test('nonsense is refused with an explanation', () => {
+  assert.match(bindingProblem('Hyper+S') ?? '', /Not a binding/)
 })

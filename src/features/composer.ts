@@ -2,6 +2,7 @@ import { anchors } from '../content/anchors.ts'
 import { ensureAfter, el, remove } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { caretAllowsStep, stepHistory } from '../lib/history.ts'
+import { matchesBinding } from '../lib/keys.ts'
 import { popStash, pushStash } from '../lib/stash.ts'
 import { getHistory, getStash, recordSent, setStash } from '../localData.ts'
 import type { Prefs } from '../prefs.ts'
@@ -145,15 +146,19 @@ function onKeyDown(event: KeyboardEvent): void {
   if (!prefs) return
   const bare = !event.ctrlKey && !event.metaKey && !event.shiftKey
 
-  // Stash on save, restore on save-with-shift. "Save" is what parking a draft
-  // is, and the binding is the one this user's other tools already use.
-  // Both are prevented so the browser's own save dialog does not open.
-  // spec: STSH
-  if (prefs.composerStash && (event.ctrlKey || event.metaKey) && !event.altKey) {
-    if (event.key === 's' || event.key === 'S') {
+  // The stash's bindings are the user's to set, because the good ones are
+  // exactly the ones already taken by something — a browser, a desktop, another
+  // editor. Both are prevented so whatever the binding would otherwise do does
+  // not happen over the app. spec: STSH
+  if (prefs.composerStash) {
+    if (matchesBinding(event, prefs.stashPushKey)) {
       event.preventDefault()
-      if (event.shiftKey) pop(element)
-      else push(element)
+      push(element)
+      return
+    }
+    if (matchesBinding(event, prefs.stashPopKey)) {
+      event.preventDefault()
+      pop(element)
       return
     }
   }
@@ -239,8 +244,23 @@ export function composerFeature(): Feature {
 
       const depth = getStash().length
       if (current.composerStash && depth > 0) {
-        const badge = ensureAfter(element, BADGE, () => el('div', 'whp-stash-badge'))
+        // The count doubles as the control: a stash whose only way back is a
+        // binding is one the user has to remember, and the depth is already
+        // sitting there saying there is something to bring back.
+        const badge = ensureAfter(element, BADGE, () => {
+          const button = el('button', 'whp-stash-badge')
+          button.type = 'button'
+          button.addEventListener('click', (event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            if (composer) pop(composer)
+          })
+          return button
+        })
         badge.textContent = `${depth} stashed`
+        badge.title = current.stashPopKey
+          ? `Restore the last stashed draft (${current.stashPopKey})`
+          : 'Restore the last stashed draft'
       } else {
         remove(BADGE)
       }

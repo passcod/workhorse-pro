@@ -27,6 +27,9 @@ export interface Prefs {
   githubToken: string
   /** Whether the conversations list is currently widened past the active workspace. */
   scopeWide: boolean
+  /** Written as `Ctrl+S`. Empty leaves the action unbound. */
+  stashPushKey: string
+  stashPopKey: string
 }
 
 export const PREF_DEFAULTS: Prefs = {
@@ -44,6 +47,11 @@ export const PREF_DEFAULTS: Prefs = {
   observeFetches: true,
   githubToken: '',
   scopeWide: false,
+  // Parking a draft is a save. Restoring takes Ctrl+P rather than the shifted
+  // save, which collides with a common screenshot binding — and nobody prints
+  // a Workhorse page.
+  stashPushKey: 'Ctrl+S',
+  stashPopKey: 'Ctrl+P',
 }
 
 export interface SwitchInfo {
@@ -105,7 +113,7 @@ export const SWITCHES: SwitchInfo[] = [
     label: 'Composer stash',
     detail:
       'Park drafts on a stack and bring them back later, across any conversation. ' +
-      'Ctrl+S stashes what is in the composer and clears it; Ctrl+Shift+S brings the last one back. ' +
+      'The keys are set below and can be changed. ' +
       'Popping into a composer that already has text swaps the two, so nothing is lost.',
   },
   {
@@ -121,6 +129,26 @@ export const SWITCHES: SwitchInfo[] = [
     detail:
       'Read data the app has already fetched instead of fetching it again. Turning this off ' +
       'changes nothing you can see; the extension just makes its own requests.',
+  },
+]
+
+export interface BindingInfo {
+  key: 'stashPushKey' | 'stashPopKey'
+  label: string
+  detail: string
+}
+
+/** The bindings the preferences page lets the user change. */
+export const BINDINGS: BindingInfo[] = [
+  {
+    key: 'stashPushKey',
+    label: 'Stash the draft',
+    detail: 'Put what is in the composer on the stack and clear it.',
+  },
+  {
+    key: 'stashPopKey',
+    label: 'Restore a draft',
+    detail: 'Bring the last stashed draft back into the composer.',
   },
 ]
 

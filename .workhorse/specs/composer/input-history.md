@@ -50,6 +50,4 @@ Recall is a way of looking at what was said before, so it must not cost the user
 
 The result is that the composer shows history while the user's own work survives every exit from recall.
 
-## Discoverability
-
-- [ ] The preferences page can clear the recorded history, since it is the only data the extension accumulates about what the user has written
+Recorded history is cleared from the preferences page — see `preferences.md`.

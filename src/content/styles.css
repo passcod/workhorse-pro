@@ -42,10 +42,15 @@
   font-weight: 500;
 }
 
-/* A named check under the breakdown. */
+/* The jobs behind the breakdown: name on the left, how long on the right. */
+.whp-checks {
+  display: flex;
+  flex-direction: column;
+}
+
 .whp-check {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px;
   padding: 0 4px 0 6px;
@@ -58,6 +63,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+}
+
+.whp-check-right {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.whp-check-time {
+  font-variant-numeric: tabular-nums;
+}
+
+.whp-check-more {
+  font-style: italic;
+  opacity: 0.75;
 }
 
 .whp-check a {

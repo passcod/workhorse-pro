@@ -106,6 +106,9 @@ export interface CheckRun {
     | 'skipped'
     | null
   html_url: string | null
+  /** When the job began, and when it settled. Absent before it starts. */
+  started_at: string | null
+  completed_at: string | null
 }
 
 export interface CheckRunsResponse {

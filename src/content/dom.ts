@@ -26,6 +26,46 @@ export function ensure<T extends HTMLElement>(
 }
 
 /**
+ * Find or create a child, keeping the extension's own children of that parent
+ * in a fixed order among themselves.
+ *
+ * Appending alone leaves the order to whichever feature happened to inject
+ * first — and a row that is removed and re-added lands at the end, so the same
+ * two rows can appear either way round depending on what the data did. The
+ * app's own children are left exactly where they are.
+ */
+export function ensureOrdered<T extends HTMLElement>(
+  parent: Element,
+  id: string,
+  order: number,
+  create: () => T,
+): T {
+  const element = ensure(parent, id, create)
+  element.dataset.whpOrder = String(order)
+
+  const ours = [...parent.children].filter(
+    (child): child is HTMLElement =>
+      child instanceof HTMLElement && child.dataset.whpOrder !== undefined,
+  )
+  const desired = [...ours].sort(
+    (a, b) => Number(a.dataset.whpOrder) - Number(b.dataset.whpOrder),
+  )
+  // Only touch the DOM when something is actually out of place: a move is a
+  // mutation, and a mutation schedules another pass.
+  if (ours.every((node, index) => node === desired[index])) return element
+
+  const first = ours[0]!
+  const lead = desired[0]!
+  if (lead !== first) first.before(lead)
+  let previous: Element = lead
+  for (const node of desired.slice(1)) {
+    if (previous.nextElementSibling !== node) previous.after(node)
+    previous = node
+  }
+  return element
+}
+
+/**
  * Find or create a node placed immediately after `reference`.
  *
  * Used where a row hangs beneath a specific sibling rather than inside a

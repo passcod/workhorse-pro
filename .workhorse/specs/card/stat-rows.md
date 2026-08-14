@@ -9,6 +9,8 @@ They are supplementary: the row above already carries the answer everyone needs,
 
 Each row has its own switch, and each is rendered from the branch status the extension holds for the card on screen.
 
+Where two of these sit under the same row, they keep a fixed order — one that is removed and added back does not return below its neighbour.
+
 ## Check breakdown
 
 The checks row reports a verdict.
@@ -26,15 +28,21 @@ The counts must agree with the row above them for the same head, which constrain
 - [ ] When the overall status reports failure, the failed count is at least one, and when it reports work in progress, the running count is at least one
 - [ ] The passed count is whatever remains after the other three, and never falls below zero
 
-### Named checks
+### Named jobs
 
-A count says a job failed; it does not say which one.
-When the extension can read the checks themselves, it names the ones that are not passing.
+A count says something failed; it does not say which, or how long the rest have been going.
 
-- [ ] Individual checks are listed beneath the breakdown, showing each check's name
-- [ ] Only checks that have failed or are still running are listed, since those are the ones worth acting on and a full suite would bury them
-- [ ] A failed check links to its own logs
-- [ ] A failed check takes the same colouring as the failed count above it
+These are jobs, where the breakdown above counts workflows — a handful of running workflows can be a hundred running jobs.
+The two are named rather than left stacked for the reader to reconcile.
+
+- [ ] The jobs are listed beneath the breakdown, under a count of their own that names them as jobs
+- [ ] Only jobs that have failed or are still running are listed, since those are the ones worth acting on and a full suite would bury them
+- [ ] Each job shows how long it has been going, or how long it ran before it settled
+- [ ] A job that has not started yet says so, rather than reporting no time at all
+- [ ] Failed jobs are listed first, and the rest longest-running first, so the list reports both that work is happening and which of it has been happening too long
+- [ ] The list is capped, and says how many jobs it left out — some repositories run over a hundred, and the section does not scroll
+- [ ] A failed job links to its own logs
+- [ ] A failed job takes the same colouring as the failed count above it
 - [ ] The list appears only while the checks row is expanded, so a collapsed row reads nothing from GitHub
 - [ ] Without GitHub access the breakdown shows its counts alone, which is a loss of detail rather than of function
 

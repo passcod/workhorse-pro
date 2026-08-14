@@ -4,7 +4,7 @@ import { installDom, setBody } from './dom.ts'
 
 const dom = installDom()
 const { Reconciler, marked } = await import('../src/content/reconcile.ts')
-const { ensure, el, remove } = await import('../src/content/dom.ts')
+const { ensure, ensureOrdered, el, remove } = await import('../src/content/dom.ts')
 const { PREF_DEFAULTS } = await import('../src/prefs.ts')
 const { resetReported } = await import('../src/log.ts')
 
@@ -148,6 +148,35 @@ test("a change the app makes does schedule a pass", async () => {
 
   assert.ok(passes > before, 'the extension ignored a change it did not make')
   reconciler.stop()
+})
+
+test('ordered injections keep their order however they arrive', () => {
+  // Appending alone leaves the order to whichever feature injected first, so a
+  // row removed and re-added comes back below its neighbour.
+  ensureOrdered(host(), 'second', 20, () => el('div', undefined, 'B'))
+  ensureOrdered(host(), 'first', 10, () => el('div', undefined, 'A'))
+  assert.equal(host().textContent, 'AB')
+
+  remove('first', host())
+  assert.equal(host().textContent, 'B')
+
+  ensureOrdered(host(), 'first', 10, () => el('div', undefined, 'A'))
+  assert.equal(host().textContent, 'AB', 'the re-added row came back in the wrong place')
+})
+
+test('ordering leaves the app’s own children where they are', () => {
+  host().appendChild(el('div', undefined, 'app'))
+  ensureOrdered(host(), 'ours', 10, () => el('div', undefined, 'X'))
+  assert.equal(host().textContent, 'appX')
+})
+
+test('an already-ordered set is not rearranged', () => {
+  const a = ensureOrdered(host(), 'first', 10, () => el('div', undefined, 'A'))
+  ensureOrdered(host(), 'second', 20, () => el('div', undefined, 'B'))
+  const before = host().innerHTML
+  ensureOrdered(host(), 'first', 10, () => el('div', undefined, 'A'))
+  assert.equal(host().innerHTML, before)
+  assert.equal(host().firstElementChild, a, 'the node was replaced rather than kept')
 })
 
 test('marked nodes are recognised as the extension’s own', () => {

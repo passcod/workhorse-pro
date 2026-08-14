@@ -62,9 +62,15 @@ The fixture the suite runs against is hand-written from a reading of the app's c
 
 ## Named checks (GHUB, STAT)
 
-- [ ] With a token, a failing suite lists the failing checks by name with links to their logs
-- [ ] With a token, running checks are listed by name
-- [ ] Passed and skipped checks are not listed
+- [ ] With a token, a failing suite lists the failing jobs by name with links to their logs
+- [ ] With a token, running jobs are listed by name
+- [x] Passed and skipped jobs are not listed
+- [x] Each job shows how long it has been going, or ran for
+- [x] A job that has not started says so rather than showing a duration
+- [x] Failed jobs sort first, then the longest running
+- [x] The list is capped and says how many it left out
+- [ ] The job count is labelled as jobs, distinctly from the workflow counts above
+- [x] Rows under one disclosure keep a fixed order however they are added
 - [ ] Without a token, the breakdown shows counts alone
 - [ ] A collapsed checks row issues no GitHub request
 - [ ] A card with no GitHub link yet shows counts alone

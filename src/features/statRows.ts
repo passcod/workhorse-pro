@@ -1,5 +1,5 @@
 import { anchors } from '../content/anchors.ts'
-import { ensure, el, remove, statRow } from '../content/dom.ts'
+import { ensureOrdered, el, remove, statRow } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { branchStatus } from '../data/workhorse.ts'
 import { breakdownIsEmpty, checkBreakdown, formatReviewCounts } from '../lib/checks.ts'
@@ -13,6 +13,12 @@ import { breakdownIsEmpty, checkBreakdown, formatReviewCounts } from '../lib/che
 const BREAKDOWN = 'checks-breakdown'
 const RUNS = 'review-runs'
 const LAST_RUN = 'review-last-run'
+
+/** Injection order within each disclosure, so a row that is removed and
+ *  re-added does not come back below its neighbour. */
+const BREAKDOWN_ORDER = 10
+const RUNS_ORDER = 10
+const LAST_RUN_ORDER = 20
 
 /** Comma-separated parts, with the failure count carrying the row's colour. */
 function breakdownNodes(counts: {
@@ -55,7 +61,7 @@ export function statRows(): Feature {
       const checksContent = anchors.checksContent()
       const counts = status?.ci ? checkBreakdown(status.ci) : null
       if (prefs.checksBreakdown && checksContent && counts && !breakdownIsEmpty(counts)) {
-        const row = ensure(checksContent, BREAKDOWN, () => statRow('Latest run').root)
+        const row = ensureOrdered(checksContent, BREAKDOWN, BREAKDOWN_ORDER, () => statRow('Latest run').root)
         const value = row.querySelector('.whp-stat-value')!
         value.replaceChildren(...breakdownNodes(counts))
       } else {
@@ -72,7 +78,7 @@ export function statRows(): Feature {
           : (status.lastReview?.round ?? 0)
         : 0
       if (prefs.reviewStats && reviewContent && runs > 0) {
-        const row = ensure(reviewContent, RUNS, () => statRow('Runs').root)
+        const row = ensureOrdered(reviewContent, RUNS, RUNS_ORDER, () => statRow('Runs').root)
         row.querySelector('.whp-stat-value')!.textContent = String(runs)
       } else {
         remove(RUNS)
@@ -80,7 +86,7 @@ export function statRows(): Feature {
 
       const lastReview = status?.lastReview ?? null
       if (prefs.reviewStats && reviewContent && lastReview) {
-        const row = ensure(reviewContent, LAST_RUN, () => statRow('Last run').root)
+        const row = ensureOrdered(reviewContent, LAST_RUN, LAST_RUN_ORDER, () => statRow('Last run').root)
         const value = row.querySelector('.whp-stat-value')!
         const summary = formatReviewCounts(lastReview.counts)
         const nodes: Node[] = [document.createTextNode(summary.text)]

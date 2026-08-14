@@ -41,6 +41,9 @@ A row usually stands for a card rather than a conversation, so it carries the ca
 - [ ] A running agent suppresses both, because the pulsing glyph already carries the state
 - [ ] The call to action clears on the row the user is looking at
 - [ ] Opening a row opens the card with that conversation selected, or the project's home, or the conversation on its own where it belongs to neither
+- [ ] Opening a row moves within the application rather than reloading it, where that is possible
+- [ ] A row that cannot be opened that way still opens, by reloading
+- [ ] Opening a row in a new tab or window still works, so a modified click is left to the browser
 
 ## Dismissing a row
 

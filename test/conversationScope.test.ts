@@ -230,6 +230,63 @@ test('rendering twice changes nothing', async () => {
   assert.equal(before, 1)
 })
 
+function clickRow(row: Element): MouseEvent {
+  const event = new dom.window.MouseEvent('click', {
+    bubbles: true,
+    cancelable: true,
+    button: 0,
+  })
+  row.querySelector('.whp-row-link')!.dispatchEvent(event)
+  return event as unknown as MouseEvent
+}
+
+test('a row click is handed to the page world when it is listening', async () => {
+  document.documentElement.dataset.whpPage = '1'
+  const posted: unknown[] = []
+  const original = dom.window.postMessage
+  ;(dom.window as unknown as Record<string, unknown>).postMessage = (data: unknown) => {
+    posted.push(data)
+  }
+  try {
+    await render(true)
+    const event = clickRow(rows()[0]!)
+    assert.equal(event.defaultPrevented, true, 'the browser was left to navigate')
+    assert.equal((posted[0] as { source: string }).source, 'workhorse-pro:navigate')
+    assert.match((posted[0] as { href: string }).href, /\/workhorse\/cards\/WH-078/)
+  } finally {
+    ;(dom.window as unknown as Record<string, unknown>).postMessage = original
+    delete document.documentElement.dataset.whpPage
+  }
+})
+
+test('a row click is left alone when the page world is absent', async () => {
+  // Swallowing a click nothing is listening for would be worse than a slow
+  // navigation, so the link is allowed to behave as a link.
+  delete document.documentElement.dataset.whpPage
+  await render(true)
+  assert.equal(clickRow(rows()[0]!).defaultPrevented, false)
+})
+
+test('a modified click is left alone, so it can open a tab', async () => {
+  document.documentElement.dataset.whpPage = '1'
+  try {
+    await render(true)
+    const link = rows()[0]!.querySelector('.whp-row-link')!
+    for (const mod of ['ctrlKey', 'metaKey', 'shiftKey']) {
+      const event = new dom.window.MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        [mod]: true,
+      })
+      link.dispatchEvent(event)
+      assert.equal(event.defaultPrevented, false, `${mod} was swallowed`)
+    }
+  } finally {
+    delete document.documentElement.dataset.whpPage
+  }
+})
+
 test('the toggle flips both ways, not just on', async () => {
   // Its click handler is built once, so reading the scope from the pass that
   // built it would pin the control to widening and never back.

@@ -40,6 +40,17 @@ All coupling to the app's markup is confined to one place, so that the app chang
 
 Anchors are needed for the composer, the pull request detail toggle and its expanded state, the branch dropdown, the checks row, the review row, the base row, the conversations header, and the conversations list.
 
+## Reaching the application
+
+Some things the extension needs are only reachable from the application's own
+context: its `fetch`, and the router that moves between pages without a reload.
+
+- [ ] Work needing the application's context runs in a script declared to run there, and talks to the rest of the extension by message
+- [ ] That script announces itself on the document, because the two contexts share the DOM and nothing else
+- [ ] The extension only diverts an interaction when that script has announced itself, so an interaction is never swallowed by something that is not listening
+- [ ] Messages it accepts are same-origin and shape-checked before they are acted on
+- [ ] Where it reaches into the application's internals it prefers a handle the application offers, and falls back to behaviour that needs no reaching at all
+
 ## Styling
 
 - [ ] Injected markup is styled by the extension's own stylesheet, using its own class names

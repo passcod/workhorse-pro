@@ -21,6 +21,7 @@ import {
 } from '../lib/conversations.ts'
 import { WIDENED_FETCH, WIDENED_ROWS } from '../lib/conversationScope.ts'
 import { setPref, type Prefs } from '../prefs.ts'
+import { NAVIGATE_MESSAGE, PAGE_WORLD_FLAG } from '../lib/messages.ts'
 import type { RecentSession } from '../data/types.ts'
 
 /**
@@ -156,12 +157,29 @@ function indicatorFor(model: RowModel): SVGSVGElement {
   }
 }
 
+/**
+ * Hand a row's navigation to the page world, which can route without a reload.
+ *
+ * Only when the page-world script has announced itself: swallowing a click
+ * nothing is listening for would be worse than a slow navigation. Modified
+ * clicks are left entirely alone so opening a row in a new tab still works.
+ */
+function routeThroughPageWorld(event: MouseEvent, href: string): void {
+  if (event.defaultPrevented) return
+  if (event.button !== 0) return
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  if (document.documentElement.dataset[PAGE_WORLD_FLAG] !== '1') return
+  event.preventDefault()
+  window.postMessage({ source: NAVIGATE_MESSAGE, href }, window.location.origin)
+}
+
 function buildRow(model: RowModel, onDismiss: (id: string) => void): HTMLElement {
   const row = el('div', 'whp-row')
   if (model.active) row.classList.add('whp-row-active')
 
   const link = el('a', 'whp-row-link')
   link.href = model.href
+  link.addEventListener('click', (event) => routeThroughPageWorld(event, model.href))
 
   const indicator = el('span', 'whp-row-indicator')
   if (model.streaming) indicator.classList.add('whp-streaming')

@@ -8,7 +8,7 @@ const watch = process.argv.includes('--watch')
 // module content scripts, so each must be one self-contained file.
 const ENTRIES = {
   content: 'src/content/index.ts',
-  page: 'src/page/observe.ts',
+  page: 'src/page/index.ts',
   options: 'src/options/options.ts',
 }
 

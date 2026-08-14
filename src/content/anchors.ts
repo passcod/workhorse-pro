@@ -13,6 +13,8 @@
  * spec: INJ
  */
 
+import { MARK } from './reconcile.ts'
+
 /** Text content of an element's first child element, trimmed. */
 function labelOf(element: Element): string {
   return element.firstElementChild?.textContent?.trim() ?? ''
@@ -140,15 +142,29 @@ export const anchors = {
     return add?.parentElement ?? null
   },
 
-  /** The app's own conversations list, hidden while the scope is widened. */
+  /**
+   * The app's own conversations list, hidden while the scope is widened.
+   *
+   * Null when the app is rendering no list at all, which it does when the
+   * scoped list has nothing in it.
+   *
+   * The extension's own list sits in the same place, so this has to skip
+   * anything the extension put there. Without that check it returns the
+   * extension's container whenever the app's list is absent — and the caller
+   * then hides *that*, leaving the widened list invisible and no way to get it
+   * back, since nothing clears the style it was given.
+   */
   conversationsList(): HTMLElement | null {
     const hooked = document.querySelector<HTMLElement>('[data-wh-conversations-list]')
     if (hooked) return hooked
     const header = this.conversationsHeader()
     if (!header) return null
     let sibling = header.nextElementSibling
-    // Skip the error paragraph the header can render before the list.
-    while (sibling && sibling.tagName === 'P') sibling = sibling.nextElementSibling
+    // Skip the error paragraph the header can render before the list, and
+    // anything of the extension's own.
+    while (sibling && (sibling.tagName === 'P' || sibling.hasAttribute(MARK))) {
+      sibling = sibling.nextElementSibling
+    }
     return sibling as HTMLElement | null
   },
 }

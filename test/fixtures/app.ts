@@ -90,7 +90,8 @@ export function prSection(options: PrSectionOptions = {}): string {
  * that cluster — anywhere else and it either inherits the label's layout or,
  * inside the label's link, navigates instead of toggling.
  */
-export function sidebar(): string {
+export function sidebar(options: { withList?: boolean } = {}): string {
+  const { withList = true } = options
   return `
     <aside>
       <nav>
@@ -104,10 +105,14 @@ export function sidebar(): string {
               <button type="button" title="New">+</button>
             </div>
           </div>
-          <div class="conversations-list">
+          ${
+            withList
+              ? `<div class="conversations-list">
             <div class="row"><a href="/workhorse/cards/WH-1?session=one">One</a></div>
             <div class="row"><a href="/workhorse/cards/WH-2?session=two">Two</a></div>
-          </div>
+          </div>`
+              : ''
+          }
         </div>
       </nav>
     </aside>

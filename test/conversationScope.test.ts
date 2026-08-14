@@ -108,6 +108,15 @@ function rows(): Element[] {
   return [...document.querySelectorAll('.whp-row')]
 }
 
+/** One further pass, with everything already in place from a previous one. */
+function pass(scopeWide: boolean): void {
+  feature.reconcile({
+    prefs: { ...PREF_DEFAULTS, scopeWide },
+    route: { workspace: 'workhorse', card: null },
+    schedule: () => {},
+  })
+}
+
 beforeEach(() => {
   setBody(sidebar())
   store.reset()
@@ -285,6 +294,55 @@ test('a modified click is left alone, so it can open a tab', async () => {
   } finally {
     delete document.documentElement.dataset.whpPage
   }
+})
+
+test('the widened list renders when the app is rendering no list at all', async () => {
+  // The app renders nothing when its scoped list is empty, which leaves the
+  // extension's own container as the header's next sibling.
+  setBody(sidebar({ withList: false }))
+  await render(true)
+  // The pass that matters is the one after the container exists: that is when
+  // it becomes the header's next sibling and can be mistaken for the app's.
+  pass(true)
+  const list = document.querySelector<HTMLElement>('.whp-list')
+  assert.ok(list, 'no widened list rendered')
+  assert.equal(list.style.display, '', 'the widened list was hidden')
+  assert.ok(rows().length > 0)
+})
+
+test('the widened list survives the app’s list coming and going', async () => {
+  // What navigating between cards does: the sidebar re-renders, and for a beat
+  // the app's list is absent. Hiding the wrong node there used to be permanent,
+  // because nothing ever cleared it.
+  await render(true)
+  assert.ok(rows().length > 0)
+
+  setBody(sidebar({ withList: false }))
+  await render(true)
+  pass(true)
+  assert.ok(rows().length > 0, 'the list vanished while the app rendered none')
+  assert.equal(document.querySelector<HTMLElement>('.whp-list')?.style.display, '')
+
+  setBody(sidebar())
+  await render(true)
+  const list = document.querySelector<HTMLElement>('.whp-list')
+  assert.equal(list?.style.display, '', 'the widened list came back hidden')
+  assert.equal(
+    document.querySelector<HTMLElement>('.conversations-list')?.style.display,
+    'none',
+    'the app’s list was left showing alongside the widened one',
+  )
+})
+
+test('toggling still works after the app has rendered no list', async () => {
+  setBody(sidebar({ withList: false }))
+  await render(true)
+  await render(false)
+  assert.equal(rows().length, 0)
+
+  await render(true)
+  assert.ok(rows().length > 0, 'the widened list never came back')
+  assert.equal(document.querySelector<HTMLElement>('.whp-list')?.style.display, '')
 })
 
 test('the toggle flips both ways, not just on', async () => {

@@ -86,6 +86,34 @@ test('the conversations list resolves as the header’s sibling', () => {
   assert.equal(anchors.conversationsList()?.className, 'conversations-list')
 })
 
+test('the app rendering no list at all resolves to nothing', () => {
+  setBody(sidebar({ withList: false }))
+  assert.equal(anchors.conversationsList(), null)
+})
+
+test('the extension’s own list is never mistaken for the app’s', () => {
+  // It sits in the same place, so without this the feature hides its own list
+  // — and nothing clears that, so the widened list never comes back.
+  setBody(sidebar({ withList: false }))
+  const header = anchors.conversationsHeader()!
+  const ours = document.createElement('div')
+  ours.setAttribute('data-whp', '')
+  ours.className = 'whp-list'
+  header.after(ours)
+
+  assert.equal(anchors.conversationsList(), null)
+})
+
+test('the app’s list is still found past the extension’s own', () => {
+  setBody(sidebar())
+  const header = anchors.conversationsHeader()!
+  const ours = document.createElement('div')
+  ours.setAttribute('data-whp', '')
+  header.after(ours)
+
+  assert.equal(anchors.conversationsList()?.className, 'conversations-list')
+})
+
 test('the header’s control cluster resolves, so the scope control has a home', () => {
   // Placement is not cosmetic: injected outside the cluster the control either
   // takes the label's layout or sits inside its link, where a click navigates

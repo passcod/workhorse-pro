@@ -119,6 +119,10 @@ The fixture the suite runs against is hand-written from a reading of the app's c
 - [x] The scope control can be pressed again to narrow the list, without a reload
 - [x] Narrow scope leaves the app's sidebar untouched
 - [x] Wide scope hides the app's list and shows conversations from every workspace
+- [x] The widened list renders when the app is rendering no list at all
+- [x] The widened list survives the app's list appearing and disappearing
+- [x] Toggling still works after the app has rendered no list
+- [x] An anchor never resolves to something the extension injected
 - [x] Returning to narrow scope restores the app's own list intact
 - [x] Two conversations on one card render as a single row
 - [ ] Two conversations on one project render as a single row

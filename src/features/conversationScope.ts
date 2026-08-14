@@ -369,6 +369,10 @@ export function conversationScope(): Feature {
       }
 
       const container = ensureAfter(appList ?? header, LIST, () => el('div', 'whp-list'))
+      // The extension never hides its own list, so any display it is carrying
+      // was a mistake — and one that would otherwise be permanent, since
+      // nothing else clears it.
+      if (container.style.display) container.style.display = ''
       const models = visible.map((session) =>
         rowModel(session, { colours, activeSessionId: active, streaming: running }),
       )

@@ -22,6 +22,7 @@ The widened list is the app's list made wider, not a different list. It is the s
 
 - [ ] While the scope is wide, the app's own conversations list is hidden and the extension's list takes its place
 - [ ] The app's list is hidden rather than removed, so turning the scope back to narrow restores it intact
+- [ ] The widened list survives the app's own list appearing and disappearing, which it does as the sidebar re-renders and whenever the scoped list is empty
 - [ ] The widened list holds conversations from every workspace the user can see, most recently active first
 - [ ] Conversations on the same card collapse to one row, showing the most recent, and conversations on the same project likewise
 - [ ] A standalone conversation keeps a row of its own

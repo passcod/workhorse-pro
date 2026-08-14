@@ -31,6 +31,9 @@ There are no page loads to hook, and subtrees are re-created on state changes th
 
 ## Anchors
 
+An anchor names something the application rendered. Nothing the extension put on the page is ever one, however alike it looks — the extension's own injections sit in the same places as the markup they sit beside, so an anchor that could return one would have the extension acting on itself.
+
+
 All coupling to the app's markup is confined to one place, so that the app changing shape has one blast radius rather than many.
 
 - [ ] Every handle onto the app's markup is a named anchor resolved in a single module

@@ -16,6 +16,9 @@ Every feature that uses it works without it, in a less detailed form, so a user 
 - [ ] The token is entered on the preferences page and held in extension storage
 - [ ] The token follows the user across devices wherever they have browser sync enabled, so it is entered once rather than per browser
 - [ ] The preferences page explains the narrowest access that works — a fine-grained token, read-only, limited to checks on the repositories the user works in
+- [ ] A token is checked against GitHub as it is saved, so whether it works is settled there rather than on the next card opened
+- [ ] The check asks only whether the credential is valid, which needs no permission on the token itself
+- [ ] A token that cannot be checked because GitHub is unreachable reads as unchecked, not as refused
 - [ ] The preferences page can clear the token, and clearing it returns every feature to its tokenless form
 - [ ] The token is sent only to GitHub's API, and to nothing else
 

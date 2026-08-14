@@ -31,8 +31,8 @@ Each switch says what turning it on does, in enough detail to be acted on — in
 
 - [ ] A switch that cannot do anything without a GitHub token reads as unavailable until one is supplied, and says which
 - [ ] A switch whose token GitHub has refused reads the same way, because it cannot work until the token is replaced
-- [ ] A token that has been supplied but not yet used leaves its switch available, since refusing it would prevent the very request that would verify it
-- [ ] The page notices a token being verified while it is open, rather than reporting it as unverified until reopened
+- [ ] A switch stays unavailable until its token has been checked and found to work
+- [ ] The page checks a token as it is saved, so a switch becomes available without leaving the page
 
 ## Taking effect
 

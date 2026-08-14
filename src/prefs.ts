@@ -105,7 +105,7 @@ export const SWITCHES: SwitchInfo[] = [
     label: 'Composer stash',
     detail:
       'Park drafts on a stack and bring them back later, across any conversation. ' +
-      'Alt+Down stashes what is in the composer and clears it; Alt+Up brings the last one back. ' +
+      'Ctrl+S stashes what is in the composer and clears it; Ctrl+Shift+S brings the last one back. ' +
       'Popping into a composer that already has text swaps the two, so nothing is lost.',
   },
   {

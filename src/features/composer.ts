@@ -145,22 +145,21 @@ function onKeyDown(event: KeyboardEvent): void {
   if (!prefs) return
   const bare = !event.ctrlKey && !event.metaKey && !event.shiftKey
 
-  // Stash keys share the arrow axis history uses, with a modifier, so the two
-  // read as the same gesture family without colliding. spec: STSH
-  if (prefs.composerStash && event.altKey && bare) {
-    if (event.key === 'ArrowDown') {
-      push(element)
+  // Stash on save, restore on save-with-shift. "Save" is what parking a draft
+  // is, and the binding is the one this user's other tools already use.
+  // Both are prevented so the browser's own save dialog does not open.
+  // spec: STSH
+  if (prefs.composerStash && (event.ctrlKey || event.metaKey) && !event.altKey) {
+    if (event.key === 's' || event.key === 'S') {
       event.preventDefault()
-      return
-    }
-    if (event.key === 'ArrowUp') {
-      pop(element)
-      event.preventDefault()
+      if (event.shiftKey) pop(element)
+      else push(element)
       return
     }
   }
 
   if (prefs.inputHistory && !event.altKey && bare) {
+    // Recall keeps the bare arrows; the stash no longer uses them at all.
     if (event.key === 'ArrowUp' && step(element, 'older')) {
       event.preventDefault()
       return

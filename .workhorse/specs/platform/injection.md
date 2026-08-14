@@ -12,7 +12,11 @@ Everything the extension puts on the page is therefore expressed as a desired st
 - [ ] A single observer watches the document for structural changes and schedules at most one reconcile pass per animation frame
 - [ ] A pass hands each enabled feature the current page and asks it to make its injections match the desired state — adding what is missing, updating what is stale, and removing what should no longer be there
 - [ ] Passes are idempotent: running one repeatedly against an unchanged page produces no further changes
+- [ ] A pass that finds nothing to change leaves the existing nodes in place rather than replacing them with equivalents
 - [ ] Nothing in the extension needs to detect that a route changed, a card was swapped, or a disclosure opened — each of those produces a page the next pass reconciles against
+
+Replacing a node with an identical one is not a no-op.
+Hover, focus and a click in progress are all held by the node itself, and a pass runs on every change the app makes anywhere — so rebuilding on each pass makes rows impossible to click and hovers impossible to hold.
 
 This is what makes the extension viable against an application that soft-navigates.
 There are no page loads to hook, and subtrees are re-created on state changes the extension cannot see, so a design that responded to particular mutations would accumulate special cases without end.

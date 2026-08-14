@@ -24,7 +24,7 @@ function reconcile(): HTMLTextAreaElement {
 
 function key(
   element: Element,
-  init: { key: string; altKey?: boolean; shiftKey?: boolean },
+  init: { key: string; altKey?: boolean; shiftKey?: boolean; ctrlKey?: boolean },
 ): boolean {
   const event = new dom.window.KeyboardEvent('keydown', {
     bubbles: true,
@@ -201,7 +201,7 @@ test('pushing parks the draft and empties the composer', () => {
   const composer = reconcile()
   type(composer, 'park me')
 
-  assert.equal(key(composer, { key: 'ArrowDown', altKey: true }), true)
+  assert.equal(key(composer, { key: 's', ctrlKey: true }), true)
   assert.equal(composer.value, '')
   assert.deepEqual([...local.getStash()], ['park me'])
 })
@@ -209,8 +209,8 @@ test('pushing parks the draft and empties the composer', () => {
 test('popping brings it back', () => {
   const composer = reconcile()
   type(composer, 'park me')
-  key(composer, { key: 'ArrowDown', altKey: true })
-  key(composer, { key: 'ArrowUp', altKey: true })
+  key(composer, { key: 's', ctrlKey: true })
+  key(composer, { key: 's', ctrlKey: true, shiftKey: true })
   assert.equal(composer.value, 'park me')
   assert.deepEqual([...local.getStash()], [])
 })
@@ -218,10 +218,10 @@ test('popping brings it back', () => {
 test('popping into a composer with text exchanges the two', () => {
   const composer = reconcile()
   type(composer, 'first')
-  key(composer, { key: 'ArrowDown', altKey: true })
+  key(composer, { key: 's', ctrlKey: true })
   type(composer, 'second')
 
-  key(composer, { key: 'ArrowUp', altKey: true })
+  key(composer, { key: 's', ctrlKey: true, shiftKey: true })
   assert.equal(composer.value, 'first')
   assert.deepEqual([...local.getStash()], ['second'])
 })
@@ -235,7 +235,7 @@ test('pushing during recall stashes the old message and hands the draft back', (
   key(composer, { key: 'ArrowUp' })
   assert.equal(composer.value, 'an old message')
 
-  key(composer, { key: 'ArrowDown', altKey: true })
+  key(composer, { key: 's', ctrlKey: true })
   assert.deepEqual([...local.getStash()], ['an old message'])
   assert.equal(composer.value, 'my unsent draft')
 })
@@ -245,24 +245,38 @@ test('the stash keys do not collide with recall', () => {
   const composer = reconcile()
   type(composer, 'draft')
 
-  // Alt held: the stash. Alt free: recall.
-  key(composer, { key: 'ArrowUp', altKey: true })
+  // Ctrl+S is the stash; the bare arrows stay with recall.
+  key(composer, { key: 's', ctrlKey: true, shiftKey: true })
   assert.equal(composer.value, 'draft', 'a pop from an empty stack should do nothing')
 
   key(composer, { key: 'ArrowUp' })
   assert.equal(composer.value, 'history entry')
 })
 
+test('the stash keys are prevented, so the browser does not try to save', () => {
+  const composer = reconcile()
+  type(composer, 'park me')
+  assert.equal(key(composer, { key: 's', ctrlKey: true }), true)
+  assert.equal(key(composer, { key: 's', ctrlKey: true, shiftKey: true }), true)
+})
+
+test('an uppercase S from the shifted binding still reaches the stash', () => {
+  const composer = reconcile()
+  type(composer, 'park me')
+  key(composer, { key: 'S', ctrlKey: true })
+  assert.deepEqual([...local.getStash()], ['park me'])
+})
+
 test('the stash depth shows while something is held', () => {
   const composer = reconcile()
   type(composer, 'park me')
-  key(composer, { key: 'ArrowDown', altKey: true })
+  key(composer, { key: 's', ctrlKey: true })
   reconcile()
 
   const badge = document.querySelector('[data-whp-id="stash-badge"]')
   assert.equal(badge?.textContent, '1 stashed')
 
-  key(composer, { key: 'ArrowUp', altKey: true })
+  key(composer, { key: 's', ctrlKey: true, shiftKey: true })
   reconcile()
   assert.equal(document.querySelector('[data-whp-id="stash-badge"]'), null)
 })

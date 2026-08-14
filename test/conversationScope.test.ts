@@ -4,7 +4,7 @@ import { installDom, installExtStub, setBody } from './dom.ts'
 import { sidebar } from './fixtures/app.ts'
 
 const dom = installDom()
-installExtStub()
+const ext = installExtStub()
 
 // The feature opens an event stream; jsdom has no EventSource.
 ;(globalThis as unknown as Record<string, unknown>).EventSource = class {
@@ -228,4 +228,42 @@ test('rendering twice changes nothing', async () => {
   await render(true)
   assert.equal(document.querySelectorAll('.whp-scope').length, before)
   assert.equal(before, 1)
+})
+
+test('the toggle flips both ways, not just on', async () => {
+  // Its click handler is built once, so reading the scope from the pass that
+  // built it would pin the control to widening and never back.
+  await render(false)
+  const toggle = document.querySelector<HTMLElement>('.whp-scope')!
+  toggle.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
+  await tick()
+  assert.equal(ext.sync.get('scopeWide'), true)
+
+  await render(true)
+  document
+    .querySelector<HTMLElement>('.whp-scope')!
+    .dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
+  await tick()
+  assert.equal(ext.sync.get('scopeWide'), false, 'the toggle only ever widened')
+})
+
+test('a pass that changes nothing leaves the rows themselves alone', async () => {
+  // Node identity is what carries hover, focus and a click in progress. A pass
+  // runs on every DOM change the app makes anywhere, so rebuilding
+  // unconditionally means rows are replaced out from under the pointer.
+  await render(true)
+  const before = rows()[0]!
+  await render(true)
+  assert.equal(rows()[0], before, 'the row was rebuilt despite nothing changing')
+})
+
+test('a row that does change is rebuilt', async () => {
+  await render(true)
+  const before = rows()[0]!
+  sessions[0]!.cardTitle = 'A different title'
+  store.reset()
+  await render(true)
+  assert.notEqual(rows()[0], before)
+  assert.equal(rows()[0]?.querySelector('.whp-row-label')?.textContent, 'A different title')
+  sessions[0]!.cardTitle = 'Replace the PR bar with a section'
 })

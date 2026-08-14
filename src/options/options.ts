@@ -1,7 +1,7 @@
 import { ext } from '../ext.ts'
 import { loadPrefs, setPref, SWITCHES, type Prefs } from '../prefs.ts'
 import { clearHistory, clearStash, getHistory, getStash, loadLocalData } from '../localData.ts'
-import { TOKEN_STATUS_KEY, type TokenStatus } from '../data/github.ts'
+import { TOKEN_STATUS_KEY, verifyToken, type TokenStatus } from '../data/github.ts'
 
 /**
  * The preferences page. spec: PREF
@@ -16,13 +16,15 @@ function byId<T extends HTMLElement>(id: string): T {
 /**
  * Why a token-gated switch cannot do anything yet, or null when it can.
  *
- * A rejected token is treated as blocking because the feature genuinely cannot
- * work until it is replaced. A token that has simply not been used yet is not:
- * greying that out would prevent the very request that would verify it.
+ * The page verifies a token against GitHub as it is saved, so "verified" is
+ * settled here rather than waiting on the feature to run — which means a
+ * switch can be held closed until the token is known to work without that
+ * being circular.
  */
 function tokenBlocker(prefs: Prefs, status: TokenStatus): string | null {
   if (!prefs.githubToken) return 'Needs a GitHub token — add one below.'
-  if (status === 'rejected') return 'GitHub rejected the token below.'
+  if (status === 'rejected') return 'GitHub refused the token below.'
+  if (status !== 'ok') return 'Token not verified — save it again to retry.'
   return null
 }
 
@@ -78,9 +80,9 @@ async function tokenStatus(): Promise<TokenStatus> {
 
 function describeToken(token: string, status: TokenStatus): string {
   if (!token) return 'No token set — checks show counts only.'
-  if (status === 'rejected') return 'GitHub rejected this token.'
-  if (status === 'ok') return 'Working.'
-  return 'Saved. Not used yet.'
+  if (status === 'rejected') return 'GitHub refused this token.'
+  if (status === 'ok') return 'Verified.'
+  return 'Could not reach GitHub to check this token.'
 }
 
 /**
@@ -119,9 +121,14 @@ async function main(): Promise<void> {
 
   byId('save-token').addEventListener('click', () => {
     void (async () => {
-      await setPref('githubToken', token.value.trim())
-      // A new token has not been tried yet, so any previous verdict is stale.
-      await ext.storage.local.set({ [TOKEN_STATUS_KEY]: 'unknown' })
+      const value = token.value.trim()
+      const status = byId('token-status')
+      status.textContent = value ? 'Checking…' : ''
+      status.dataset.state = 'unknown'
+      await setPref('githubToken', value)
+      // Settle the verdict here rather than leaving it to the first card the
+      // user opens.
+      await ext.storage.local.set({ [TOKEN_STATUS_KEY]: await verifyToken(value) })
       await refresh()
     })()
   })

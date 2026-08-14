@@ -20,7 +20,7 @@ import {
   type RowModel,
 } from '../lib/conversations.ts'
 import { WIDENED_FETCH, WIDENED_ROWS } from '../lib/conversationScope.ts'
-import { setPref } from '../prefs.ts'
+import { setPref, type Prefs } from '../prefs.ts'
 import type { RecentSession } from '../data/types.ts'
 
 /**
@@ -47,6 +47,16 @@ let nextCursor: string | null = null
 let expanded = false
 let loading = false
 let loadError = false
+
+/**
+ * The preferences as of the last pass.
+ *
+ * The toggle's click handler is built once — `ensure` only calls its factory
+ * when the element is absent — so closing over that pass's preferences would
+ * pin it to the state it was created in, and the control would only ever
+ * widen. It reads from here instead.
+ */
+let latestPrefs: Prefs | null = null
 
 function activeSessionId(): string | null {
   const url = new URL(location.href)
@@ -243,6 +253,7 @@ export function conversationScope(): Feature {
   return {
     name: 'conversationScope',
     reconcile({ prefs, schedule }: Context) {
+      latestPrefs = prefs
       const header = anchors.conversationsHeader()
       const controls = anchors.conversationsControls()
       const appList = anchors.conversationsList()
@@ -268,7 +279,7 @@ export function conversationScope(): Feature {
         button.addEventListener('click', (event) => {
           event.preventDefault()
           event.stopPropagation()
-          void setPref('scopeWide', !prefs.scopeWide)
+          void setPref('scopeWide', !(latestPrefs?.scopeWide ?? false))
         })
         return button
       })
@@ -280,7 +291,11 @@ export function conversationScope(): Feature {
       // Coloured while widened, plain otherwise — the control reads as a
       // miniature of the colouring it turns on.
       const glyphColours = prefs.scopeWide ? scopeGlyphColours([...colours.values()]) : []
-      toggle.replaceChildren(workspaceScopeIcon(glyphColours))
+      const glyphSignature = glyphColours.join(',')
+      if (toggle.dataset.whpGlyph !== glyphSignature) {
+        toggle.dataset.whpGlyph = glyphSignature
+        toggle.replaceChildren(workspaceScopeIcon(glyphColours))
+      }
 
       if (!prefs.scopeWide) {
         remove(LIST)
@@ -336,44 +351,77 @@ export function conversationScope(): Feature {
       }
 
       const container = ensureAfter(appList ?? header, LIST, () => el('div', 'whp-list'))
-      const children: Node[] = visible.map((session) =>
-        buildRow(rowModel(session, { colours, activeSessionId: active, streaming: running }), onDismiss),
+      const models = visible.map((session) =>
+        rowModel(session, { colours, activeSessionId: active, streaming: running }),
       )
 
-      if (
-        mayHaveOlder({
-          expanded,
-          dedupedCount: deduped.length,
-          fetchedCount: fetched.length,
-          rowCount: WIDENED_ROWS,
-          fetchLimit: WIDENED_FETCH,
-        })
-      ) {
-        children.push(
-          moreButton(loading ? 'Loading…' : 'Older', () => {
-            expanded = true
-            const last = fetched[fetched.length - 1]
-            if (last) void loadPage(last.id, schedule)
-            else schedule()
-          }),
-        )
-      } else if (expanded && nextCursor) {
-        const cursor = nextCursor
-        children.push(
-          moreButton(loading ? 'Loading…' : 'Load more', () => void loadPage(cursor, schedule)),
-        )
-      }
-      if (loadError) {
-        children.push(
-          moreButton('Failed to load — retry', () => {
-            const cursor = nextCursor ?? fetched[fetched.length - 1]?.id
-            if (cursor) void loadPage(cursor, schedule)
-          }),
-        )
-      }
+      const showOlder = mayHaveOlder({
+        expanded,
+        dedupedCount: deduped.length,
+        fetchedCount: fetched.length,
+        rowCount: WIDENED_ROWS,
+        fetchLimit: WIDENED_FETCH,
+      })
+      const showMore = !showOlder && expanded && nextCursor !== null
 
-      container.replaceChildren(...children)
+      // Rebuilding on every pass produces the same markup but destroys node
+      // identity — and a pass runs on every DOM change the app makes anywhere.
+      // Rows replaced between pressing and releasing never become a click, a
+      // hover is lost the instant it starts, and the list flickers. So the
+      // rebuild is gated on the rendered state actually differing.
+      const signature = JSON.stringify([
+        models.map((model) => [
+          model.id,
+          model.href,
+          model.label,
+          model.slotText,
+          model.slotColour,
+          model.indicator,
+          model.statusIconStyle,
+          model.statusColour,
+          model.streaming,
+          model.active,
+          model.tooltip.state?.label ?? null,
+        ]),
+        showOlder,
+        showMore,
+        loading,
+        loadError,
+      ])
 
+      if (container.dataset.whpRows !== signature) {
+        container.dataset.whpRows = signature
+        // A row the user was hovering may be about to go; its card would
+        // otherwise outlive it, since `pointerleave` never fires on a node
+        // that has been removed.
+        hideTooltip()
+
+        const children: Node[] = models.map((model) => buildRow(model, onDismiss))
+        if (showOlder) {
+          children.push(
+            moreButton(loading ? 'Loading…' : 'Older', () => {
+              expanded = true
+              const last = fetched[fetched.length - 1]
+              if (last) void loadPage(last.id, schedule)
+              else schedule()
+            }),
+          )
+        } else if (showMore && nextCursor) {
+          const cursor = nextCursor
+          children.push(
+            moreButton(loading ? 'Loading…' : 'Load more', () => void loadPage(cursor, schedule)),
+          )
+        }
+        if (loadError) {
+          children.push(
+            moreButton('Failed to load — retry', () => {
+              const cursor = nextCursor ?? fetched[fetched.length - 1]?.id
+              if (cursor) void loadPage(cursor, schedule)
+            }),
+          )
+        }
+        container.replaceChildren(...children)
+      }
     },
   }
 }
@@ -386,4 +434,5 @@ export function resetConversationScope(): void {
   expanded = false
   loading = false
   loadError = false
+  latestPrefs = null
 }

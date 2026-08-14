@@ -27,6 +27,35 @@ export type TokenStatus = 'unknown' | 'ok' | 'rejected'
  */
 let pausedUntil = 0
 
+/**
+ * Check a token against GitHub without needing any permission on it.
+ *
+ * `/rate_limit` answers for any valid credential and refuses an invalid one,
+ * so it verifies the token itself rather than what it can reach. That lets the
+ * preferences page settle the verdict the moment a token is saved, instead of
+ * waiting for a card to be opened — which is what would otherwise make
+ * "verified" and "usable" circular.
+ */
+export async function verifyToken(token: string): Promise<TokenStatus> {
+  if (!token) return 'unknown'
+  try {
+    const response = await fetch(`${API}/rate_limit`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      credentials: 'omit',
+    })
+    if (response.status === 401 || response.status === 403) return 'rejected'
+    if (!response.ok) return 'unknown'
+    return 'ok'
+  } catch {
+    // Unreachable is not the same as refused, and must not read as one.
+    return 'unknown'
+  }
+}
+
 async function recordStatus(status: TokenStatus): Promise<void> {
   try {
     await ext.storage.local.set({ [TOKEN_STATUS_KEY]: status })

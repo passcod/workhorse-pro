@@ -51,12 +51,14 @@ function isOurs(node: Node): boolean {
  */
 function onlyOurs(records: MutationRecord[]): boolean {
   for (const record of records) {
+    // The target is the authority. Removed nodes are already detached by the
+    // time this runs, so asking whether *they* are ours reads false for the
+    // extension's own removals — which made every rebuild schedule another
+    // pass.
+    if (isOurs(record.target)) continue
     for (const node of record.addedNodes) if (!isOurs(node)) return false
     for (const node of record.removedNodes) if (!isOurs(node)) return false
-    // A record whose target is ours with no node changes is ours too.
-    if (record.addedNodes.length === 0 && record.removedNodes.length === 0) {
-      if (!isOurs(record.target)) return false
-    }
+    if (record.addedNodes.length === 0 && record.removedNodes.length === 0) return false
   }
   return true
 }

@@ -37,8 +37,11 @@ During recall the composer was holding the user's own draft before the recalled 
 
 ## Keys
 
-- [ ] Pushing and popping are bound to the arrow keys with a modifier, matching the axis input history already uses
-- [ ] The bindings do not collide with recall, which uses those arrow keys unmodified
+- [ ] Stashing is bound to the save gesture, and restoring to the same gesture with shift
+- [ ] Both are swallowed, so the browser's own save dialog does not open over the app
+- [ ] The bindings do not collide with recall, which keeps the unmodified arrow keys
+
+Parking a draft is a save, so it takes the save keys — and those are the ones already in the user's hands from the tools they work in.
 
 ## Preferences
 

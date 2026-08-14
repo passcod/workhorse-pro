@@ -1,5 +1,5 @@
 import { anchors } from '../content/anchors.ts'
-import { ensureOrdered, el, remove, statRow } from '../content/dom.ts'
+import { ensureAfterOrdered, ensureOrdered, el, remove, statRow } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { branchStatus } from '../data/workhorse.ts'
 import { breakdownIsEmpty, checkBreakdown, formatReviewCounts } from '../lib/checks.ts'
@@ -8,14 +8,18 @@ import { breakdownIsEmpty, checkBreakdown, formatReviewCounts } from '../lib/che
  * The three readings that hang beneath the rows they belong to in the pull
  * request section, each rendered from the branch status the extension holds
  * for the card on screen. spec: STAT
+ *
+ * The breakdown hangs beneath the Checks row, which the app renders flat, so it
+ * sits as a sibling after that row. The review readings hang inside the Review
+ * Hero disclosure, which is a genuine content block.
  */
 
 const BREAKDOWN = 'checks-breakdown'
 const RUNS = 'review-runs'
 const LAST_RUN = 'review-last-run'
 
-/** Injection order within each disclosure, so a row that is removed and
- *  re-added does not come back below its neighbour. */
+/** Injection order among the extension's readings beneath a row, so one that is
+ *  removed and re-added does not come back below its neighbour. */
 const BREAKDOWN_ORDER = 10
 const RUNS_ORDER = 10
 const LAST_RUN_ORDER = 20
@@ -58,10 +62,13 @@ export function statRows(): Feature {
       const status = branchStatus(route.workspace, route.card)
 
       // ── Check breakdown ────────────────────────────────────────────────
-      const checksContent = anchors.checksContent()
+      // The Checks row is flat, so the breakdown hangs beneath it as a sibling
+      // rather than inside a content block. It shows whenever the row is on
+      // screen and there are checks to count. spec: STAT
+      const checksRow = anchors.checksRow()
       const counts = status?.ci ? checkBreakdown(status.ci) : null
-      if (prefs.checksBreakdown && checksContent && counts && !breakdownIsEmpty(counts)) {
-        const row = ensureOrdered(checksContent, BREAKDOWN, BREAKDOWN_ORDER, () => statRow('Latest run').root)
+      if (prefs.checksBreakdown && checksRow && counts && !breakdownIsEmpty(counts)) {
+        const row = ensureAfterOrdered(checksRow, BREAKDOWN, BREAKDOWN_ORDER, () => statRow('Latest run').root)
         const value = row.querySelector('.whp-stat-value')!
         value.replaceChildren(...breakdownNodes(counts))
       } else {

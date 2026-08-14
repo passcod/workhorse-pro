@@ -105,32 +105,39 @@ test('turning the switch off stops expansion and leaves open sections open', () 
   assert.equal(anchors.branchDropdown()?.getAttribute('aria-expanded'), 'false')
 })
 
-// ── Checks and Review Hero ───────────────────────────────────────────────
+// ── Review Hero ──────────────────────────────────────────────────────────
+//
+// The Checks row is flat, so autoExpand does not touch it — its breakdown and
+// named jobs are in view whenever the row is. Only Review Hero is a disclosure
+// the extension opens, so its run stats come into view without a click.
 
-test('the Checks and Review Hero rows stay closed by default', () => {
+test('the Review Hero row stays closed by default', () => {
   reconcile()
-  assert.equal(anchors.checksRow()?.getAttribute('aria-expanded'), 'false')
   assert.equal(anchors.reviewRow()?.getAttribute('aria-expanded'), 'false')
 })
 
-test('with the switch on, both rows open', () => {
-  // The breakdown and the run stats live inside these rows, so this is what
-  // puts them in view without a click. spec: AEXP
+test('with the switch on, the Review Hero row opens', () => {
+  // The run stats live inside it, so this is what puts them in view without a
+  // click. spec: AEXP
   reconcile({ autoExpandRows: true })
-  assert.equal(anchors.checksRow()?.getAttribute('aria-expanded'), 'true')
   assert.equal(anchors.reviewRow()?.getAttribute('aria-expanded'), 'true')
 })
 
-test('closing one of them by hand keeps it closed', () => {
+test('closing it by hand keeps it closed', () => {
   reconcile({ autoExpandRows: true })
-  const checks = anchors.checksRow()!
-  clickRow(checks)
-  assert.equal(checks.getAttribute('aria-expanded'), 'false')
+  const review = anchors.reviewRow()!
+  clickRow(review)
+  assert.equal(review.getAttribute('aria-expanded'), 'false')
 
   reconcile({ autoExpandRows: true })
-  assert.equal(checks.getAttribute('aria-expanded'), 'false')
-  // The other row is unaffected by its neighbour's dismissal.
-  assert.equal(anchors.reviewRow()?.getAttribute('aria-expanded'), 'true')
+  assert.equal(review.getAttribute('aria-expanded'), 'false')
+})
+
+test('the flat Checks row is left alone', () => {
+  // It carries no aria-expanded, so there is nothing to open and no synthetic
+  // click is spent on it.
+  reconcile({ autoExpandRows: true })
+  assert.equal(anchors.checksRow()?.hasAttribute('aria-expanded'), false)
 })
 
 test('a section with nothing to expand is not an error', () => {

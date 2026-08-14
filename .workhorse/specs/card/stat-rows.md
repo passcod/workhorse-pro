@@ -16,7 +16,7 @@ Where two of these sit under the same row, they keep a fixed order — one that 
 The checks row reports a verdict.
 The breakdown reports the counts behind it.
 
-- [ ] The breakdown hangs beneath the checks row, visible when that row is expanded
+- [ ] The breakdown hangs beneath the checks row, shown whenever that row is on screen
 - [ ] Runs are counted into passed, failed, running, and skipped
 - [ ] Only non-zero counts appear, so an ordinary clean run reads as a passed count alone rather than padding three zeroes around it
 - [ ] Only the failed count is coloured, taking the same treatment the checks row gives its own failure verdict
@@ -46,7 +46,7 @@ The two are named rather than left stacked for the reader to reconcile.
 - [ ] The list is capped, and says how many jobs it left out — some repositories run over a hundred, and the section does not scroll
 - [ ] Every job links to its own page on GitHub — for a failure to see why, and for a long-running one to see what it is stuck on
 - [ ] A failed job takes the same colouring as the failed count above it
-- [ ] The list appears only while the checks row is expanded, so a collapsed row reads nothing from GitHub
+- [ ] The list is read from GitHub only when the checks row is on screen, so a pull request detail left collapsed reads nothing from GitHub
 - [ ] Without GitHub access the breakdown shows its counts alone, which is a loss of detail rather than of function
 
 See `platform/github.md` for how that access is supplied and what it costs.

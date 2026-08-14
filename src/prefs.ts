@@ -14,7 +14,7 @@ import { reportOnce } from './log.ts'
 export interface Prefs {
   autoExpandPrDetail: boolean
   autoExpandBranchDropdown: boolean
-  /** Open the Checks and Review Hero rows, where the extension's readings sit. */
+  /** Open the Review Hero row, where the review run stats sit. */
   autoExpandRows: boolean
   checksBreakdown: boolean
   reviewStats: boolean
@@ -37,8 +37,8 @@ export interface Prefs {
 export const PREF_DEFAULTS: Prefs = {
   autoExpandPrDetail: true,
   autoExpandBranchDropdown: true,
-  // Off by default: it opens two rows the app leaves closed, which is a
-  // stronger change to the section's shape than the other two.
+  // Off by default: it opens a row the app leaves closed, which is a stronger
+  // change to the section's shape than the other two.
   autoExpandRows: false,
   checksBreakdown: true,
   reviewStats: true,
@@ -80,15 +80,14 @@ export const SWITCHES: SwitchInfo[] = [
   },
   {
     key: 'autoExpandRows',
-    label: 'Auto-expand Checks and Review Hero',
+    label: 'Auto-expand Review Hero',
     detail:
-      'Open both rows when a card is shown, so the readings below sit in view without a click.',
+      'Open the Review Hero row when a card is shown, so the run stats sit in view without a click.',
   },
   {
     key: 'checksBreakdown',
     label: 'Check breakdown',
-    detail:
-      'Passed, failed, running and skipped counts under the Checks row. Shown when that row is open.',
+    detail: 'Passed, failed, running and skipped counts beneath the Checks row.',
   },
   {
     key: 'namedChecks',

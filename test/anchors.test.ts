@@ -54,7 +54,7 @@ test('the branch dropdown resolves with its own expanded state', () => {
   assert.equal(anchors.branchDropdown()?.getAttribute('aria-expanded'), 'true')
 })
 
-test('disclosure rows resolve by their visible label, not by position', () => {
+test('rows resolve by their visible label, not by position', () => {
   setBody(prSection({ detailExpanded: true }))
   assert.equal(anchors.checksRow()?.firstElementChild?.textContent, 'Checks')
   assert.equal(anchors.reviewRow()?.firstElementChild?.textContent, 'Review Hero')
@@ -63,20 +63,20 @@ test('disclosure rows resolve by their visible label, not by position', () => {
   assert.notEqual(anchors.checksRow(), anchors.branchDropdown())
 })
 
-test('disclosure content exists only while its row is open', () => {
-  setBody(prSection({ detailExpanded: true, checksOpen: false }))
-  assert.equal(anchors.checksContent(), null)
-  setBody(prSection({ detailExpanded: true, checksOpen: true }))
-  assert.ok(anchors.checksContent())
+test('the Checks row is flat, not a disclosure', () => {
+  // The app renders it without aria-expanded, so it must resolve on structure
+  // and label rather than as a disclosure — the failure this card fixes.
+  setBody(prSection({ detailExpanded: true }))
+  const checks = anchors.checksRow()
+  assert.ok(checks)
+  assert.equal(checks.hasAttribute('aria-expanded'), false)
 })
 
-test('each disclosure resolves its own content, not a neighbour’s', () => {
-  setBody(prSection({ detailExpanded: true, checksOpen: true, reviewOpen: true }))
-  const checks = anchors.checksContent()
-  const review = anchors.reviewContent()
-  assert.ok(checks)
-  assert.ok(review)
-  assert.notEqual(checks, review)
+test('the Review Hero content exists only while its row is open', () => {
+  setBody(prSection({ detailExpanded: true, reviewOpen: false }))
+  assert.equal(anchors.reviewContent(), null)
+  setBody(prSection({ detailExpanded: true, reviewOpen: true }))
+  assert.ok(anchors.reviewContent())
 })
 
 test('the conversations header resolves to the row, not the label link', () => {

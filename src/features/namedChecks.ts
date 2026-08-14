@@ -1,5 +1,5 @@
 import { anchors } from '../content/anchors.ts'
-import { ensureOrdered, el, remove, statRow } from '../content/dom.ts'
+import { ensureAfterOrdered, el, remove, statRow } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { branchStatus } from '../data/workhorse.ts'
 import { checkRuns, workflowNames } from '../data/github.ts'
@@ -31,10 +31,18 @@ export function namedChecks(): Feature {
   return {
     name: 'namedChecks',
     reconcile({ prefs, route }: Context) {
-      const content = anchors.checksContent()
-      // Reading only while the row is expanded is what keeps a collapsed row
-      // free: no anchor, no GitHub request. spec: GHUB
-      if (!prefs.namedChecks || !prefs.githubToken || !content || !route.card || !route.workspace) {
+      const checksRow = anchors.checksRow()
+      // The Checks row is on screen only while the pull request detail is
+      // expanded, so a collapsed detail resolves no row: no anchor, no GitHub
+      // request. That expansion is what keeps a section not on screen free.
+      // spec: GHUB
+      if (
+        !prefs.namedChecks ||
+        !prefs.githubToken ||
+        !checksRow ||
+        !route.card ||
+        !route.workspace
+      ) {
         remove(CONTAINER)
         return
       }
@@ -58,7 +66,7 @@ export function namedChecks(): Feature {
         return
       }
 
-      const container = ensureOrdered(content, CONTAINER, ORDER, () => el('div', 'whp-checks'))
+      const container = ensureAfterOrdered(checksRow, CONTAINER, ORDER, () => el('div', 'whp-checks'))
 
       // Name the unit, so the workflow counts above and the job rows below
       // cannot be read as the same thing disagreeing.

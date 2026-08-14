@@ -16,7 +16,10 @@
  * The shapes reproduced here:
  *
  * - A disclosure row is a header carrying `aria-expanded` whose first child is
- *   the label, followed by a content div when open.
+ *   the label, followed by a content div when open. Review Hero is one.
+ * - The Checks row is flat: a div whose first child is the label and whose
+ *   second is the verdict, with no `aria-expanded`, no toggle and no content
+ *   block. It sits as a sibling of the Review Hero disclosure.
  * - The branch dropdown carries `aria-expanded` and `title="Advanced branch
  *   controls"`, and renders only inside the expanded detail.
  * - The detail is opened by the bar's title row: a button carrying no title of
@@ -38,6 +41,17 @@ function disclosure(label: string, open: boolean, right = ''): string {
   `
 }
 
+/** A flat stat row: a label and a verdict, no disclosure. The Checks row is
+ *  one — the extension's readings hang beneath it as siblings. */
+function flatRow(label: string, value = ''): string {
+  return `
+    <div class="stat-row">
+      <span>${label}</span>
+      <span>${value}</span>
+    </div>
+  `
+}
+
 /** The bar's expand toggle: a button wrapping the title and a chevron that
  *  carries the app's own test id. */
 function barTitleRow(chevronTestId: string, inner: string): string {
@@ -56,7 +70,6 @@ export interface PrSectionOptions {
   hasPr?: boolean
   detailExpanded?: boolean
   branchDropdownOpen?: boolean
-  checksOpen?: boolean
   reviewOpen?: boolean
 }
 
@@ -65,7 +78,6 @@ export function prSection(options: PrSectionOptions = {}): string {
     hasPr = true,
     detailExpanded = false,
     branchDropdownOpen = false,
-    checksOpen = false,
     reviewOpen = false,
   } = options
 
@@ -83,7 +95,7 @@ export function prSection(options: PrSectionOptions = {}): string {
   const detail = detailExpanded
     ? `<div class="detail">
          ${disclosure('Review Hero', reviewOpen, 'Run')}
-         ${disclosure('Checks', checksOpen, 'Passing')}
+         ${flatRow('Checks', 'Passing')}
          <div tabindex="0" aria-expanded="${branchDropdownOpen}" title="Advanced branch controls">
            <span>wh-078-add-the-thing</span>
          </div>

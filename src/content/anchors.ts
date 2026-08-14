@@ -33,6 +33,22 @@ function disclosureByLabel(label: string, root: ParentNode = document): Element 
   return null
 }
 
+/**
+ * A row in the pull request section found by its visible label, whether or not
+ * it is a disclosure.
+ *
+ * The app renders each stat row as a div whose first child is the label. The
+ * Checks row is flat — no `aria-expanded`, no toggle, no content block — so it
+ * is found this way rather than as a disclosure, and the extension's readings
+ * hang beneath it as siblings rather than inside a block it does not have.
+ */
+function rowByLabel(label: string, root: ParentNode = document): Element | null {
+  for (const candidate of root.querySelectorAll('div')) {
+    if (labelOf(candidate) === label) return candidate
+  }
+  return null
+}
+
 /** The content block a disclosure row reveals, or null when it is closed. */
 function disclosureContent(row: Element | null): Element | null {
   if (!row) return null
@@ -91,14 +107,13 @@ export const anchors = {
     )
   },
 
+  /**
+   * The Checks row, which the app renders flat: a label and a verdict, no
+   * disclosure. The extension's breakdown and named jobs hang beneath it as
+   * siblings.
+   */
   checksRow(): Element | null {
-    return (
-      document.querySelector('[data-wh-pr-row="checks"]') ?? disclosureByLabel('Checks')
-    )
-  },
-
-  checksContent(): Element | null {
-    return disclosureContent(this.checksRow())
+    return document.querySelector('[data-wh-pr-row="checks"]') ?? rowByLabel('Checks')
   },
 
   reviewRow(): Element | null {

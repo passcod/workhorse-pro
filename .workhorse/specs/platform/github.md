@@ -26,7 +26,7 @@ Every feature that uses it works without it, in a less detailed form, so a user 
 
 - [ ] The repository and branch a request needs are derived from the GitHub links the app already renders, so no additional Workhorse endpoint is required
 - [ ] A card with no such link yet shows the tokenless form, the same as a card read without a token
-- [ ] GitHub is read only for detail that is currently on screen, so a collapsed row costs nothing
+- [ ] GitHub is read only for detail that is currently on screen, so a section not on screen costs nothing
 - [ ] Where naming something needs a second read, that read is cached and shared the same way, and its absence costs the name rather than the row
 - [ ] Responses are cached the same way Workhorse responses are, and shared between rows that need the same data
 

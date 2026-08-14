@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Workhorse Pro",
   "version": "0.1.0",
-  "description": "Adds density to the Workhorse web app: expanded pull request detail, check and review stats, composer history and stash, and cross-workspace conversations.",
+  "description": "Experiments and poweruser stuff for Workhorse.",
   "browser_specific_settings": {
     "gecko": {
       "id": "workhorse-pro@bes.au",

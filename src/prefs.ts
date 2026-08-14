@@ -22,6 +22,7 @@ export interface Prefs {
   inputHistory: boolean
   composerStash: boolean
   crossWorkspaceConversations: boolean
+  sortWorkspaces: boolean
   observeFetches: boolean
   /** Read-only, checks-scoped. Empty when the user has not supplied one. */
   githubToken: string
@@ -44,6 +45,7 @@ export const PREF_DEFAULTS: Prefs = {
   inputHistory: true,
   composerStash: true,
   crossWorkspaceConversations: true,
+  sortWorkspaces: true,
   observeFetches: true,
   githubToken: '',
   scopeWide: false,
@@ -122,6 +124,12 @@ export const SWITCHES: SwitchInfo[] = [
     detail:
       'Add a control to the sidebar’s Conversations header that widens the list to every ' +
       'workspace you can see. Each row’s card code takes its workspace’s colour.',
+  },
+  {
+    key: 'sortWorkspaces',
+    label: 'Alphabetical workspace switcher',
+    detail:
+      'Order the sidebar’s workspace menu by name instead of the order it arrives in.',
   },
   {
     key: 'observeFetches',

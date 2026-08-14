@@ -61,6 +61,7 @@ in Workhorse can silently stop a row from rendering.
 | `data-wh-conversations` | the Conversations header row | a `span` reading `Conversations`, then its containing div |
 | `data-wh-conversations-controls` | that header's control cluster | the parent of `button[title="New"]` |
 | `data-wh-conversations-list` | the conversations list | the header's next sibling that is not a paragraph |
+| `data-wh-workspace-switcher` | the workspace switcher's open menu | the parent of the button reading `Add workspace…` |
 
 They are useful to Workhorse independently: the same attributes are what UI
 tests would target, for the same reason — a test that finds a row by its label

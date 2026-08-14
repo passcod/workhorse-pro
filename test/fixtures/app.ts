@@ -119,6 +119,62 @@ export function sidebar(options: { withList?: boolean } = {}): string {
   `
 }
 
+/**
+ * The sidebar's workspace switcher.
+ *
+ * Shape reproduced from the header's switcher: a trigger button carrying the
+ * active workspace's name and a chevron, and — only while it is open — an
+ * overlay plus the menu itself. The menu is a row per workspace, each a link
+ * whose first child is the name and which can carry an unread count after it,
+ * then a divider and the add-workspace control.
+ *
+ * The trigger's own label matters: it reads a workspace name too, so a
+ * selector for the rows that reached it would sort the trigger into the menu.
+ *
+ * spec: WSRT
+ */
+export function workspaceSwitcher(
+  options: { open?: boolean; names?: string[]; active?: string; unread?: Record<string, number> } = {},
+): string {
+  const {
+    open = true,
+    names = ['Tupaia', 'Tamanu', 'Workhorse Pro'],
+    active = names[0] ?? '',
+    unread = {},
+  } = options
+
+  const rows = names
+    .map((name) => {
+      const count = unread[name] ?? 0
+      return `<a href="/${encodeURIComponent(name.toLowerCase())}" data-active="${name === active}">
+          <span class="truncate min-w-0">${name}</span>
+          ${count > 0 ? `<span class="badge">${count}</span>` : ''}
+        </a>`
+    })
+    .join('')
+
+  const menu = open
+    ? `<div class="fixed inset-0" data-overlay></div>
+       <div class="menu">
+         ${rows}
+         <div class="divider"></div>
+         <button type="button"><svg class="plus"></svg>Add workspace…</button>
+       </div>`
+    : ''
+
+  return `
+    <div class="sidebar-header">
+      <div class="relative">
+        <button type="button">
+          <span class="truncate">${active}</span>
+          <span><svg class="chevron"></svg></span>
+        </button>
+        ${menu}
+      </div>
+    </div>
+  `
+}
+
 export function composerArea(): string {
   return `
     <div class="composer">

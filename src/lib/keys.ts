@@ -110,8 +110,8 @@ export function matchesBinding(event: KeyEventLike, text: string): boolean {
 /**
  * Why a binding is not usable, or null when it is.
  *
- * A binding with no modifier would swallow ordinary typing — and the bare
- * arrows in particular belong to history recall, which shares this composer.
+ * A binding with no modifier would swallow ordinary typing or caret movement
+ * in the composer it shares.
  */
 export function bindingProblem(text: string): string | null {
   const trimmed = text.trim()

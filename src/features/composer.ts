@@ -1,7 +1,7 @@
 import { anchors } from '../content/anchors.ts'
 import { ensureAfter, el, remove } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
-import { caretAllowsStep, stepHistory } from '../lib/history.ts'
+import { stepHistory } from '../lib/history.ts'
 import { matchesBinding } from '../lib/keys.ts'
 import { popStash, pushStash } from '../lib/stash.ts'
 import { getHistory, getStash, recordSent, setStash } from '../localData.ts'
@@ -99,11 +99,6 @@ function endRecall(restoreDrafts: boolean): void {
 }
 
 function step(element: HTMLTextAreaElement, direction: 'older' | 'newer'): boolean {
-  if (
-    !caretAllowsStep(element.value, element.selectionStart, element.selectionEnd, direction)
-  ) {
-    return false
-  }
   const next = stepHistory(getHistory(), historyIndex, direction)
   if (!next) return false
 
@@ -144,7 +139,6 @@ function pop(element: HTMLTextAreaElement): void {
 function onKeyDown(event: KeyboardEvent): void {
   const element = event.currentTarget as HTMLTextAreaElement
   if (!prefs) return
-  const bare = !event.ctrlKey && !event.metaKey && !event.shiftKey
 
   // The stash's bindings are the user's to set, because the good ones are
   // exactly the ones already taken by something — a browser, a desktop, another
@@ -163,8 +157,15 @@ function onKeyDown(event: KeyboardEvent): void {
     }
   }
 
-  if (prefs.inputHistory && !event.altKey && bare) {
-    // Recall keeps the bare arrows; the stash no longer uses them at all.
+  if (
+    prefs.inputHistory &&
+    event.ctrlKey &&
+    !event.metaKey &&
+    !event.shiftKey &&
+    !event.altKey
+  ) {
+    // Recall is a dedicated Ctrl+arrow chord, so the bare arrows are left to
+    // move the caret as they normally would. spec: HIST
     if (event.key === 'ArrowUp' && step(element, 'older')) {
       event.preventDefault()
       return

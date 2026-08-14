@@ -1,11 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-  appendHistory,
-  caretAllowsStep,
-  migrateLegacyHistory,
-  stepHistory,
-} from '../src/lib/history.ts'
+import { appendHistory, migrateLegacyHistory, stepHistory } from '../src/lib/history.ts'
 
 test('appending records a sent message', () => {
   assert.deepEqual(appendHistory([], 'hello'), ['hello'])
@@ -57,30 +52,6 @@ test('stepping newer past the newest asks for the held draft back', () => {
 test('stepping does nothing when there is nothing to recall', () => {
   assert.equal(stepHistory([], null, 'older'), null)
   assert.equal(stepHistory(['a'], null, 'newer'), null)
-})
-
-test('the caret rule lets up recall only from the first line', () => {
-  const value = 'first\nsecond'
-  assert.equal(caretAllowsStep(value, 3, 3, 'older'), true)
-  assert.equal(caretAllowsStep(value, 8, 8, 'older'), false)
-})
-
-test('the caret rule lets down recall only from the last line', () => {
-  const value = 'first\nsecond'
-  assert.equal(caretAllowsStep(value, 8, 8, 'newer'), true)
-  assert.equal(caretAllowsStep(value, 3, 3, 'newer'), false)
-})
-
-test('recall may be entered from a composer that already has text', () => {
-  // The rule is about the caret, not about the composer being empty — which is
-  // what lets a draft be held aside rather than blocking recall. spec: HIST
-  assert.equal(caretAllowsStep('a draft', 0, 0, 'older'), true)
-  assert.equal(caretAllowsStep('a draft', 7, 7, 'older'), true)
-})
-
-test('a selection suppresses recall', () => {
-  assert.equal(caretAllowsStep('abc', 0, 3, 'older'), false)
-  assert.equal(caretAllowsStep('abc', 0, 3, 'newer'), false)
 })
 
 test("the app's per-conversation history is flattened oldest first", () => {

@@ -7,29 +7,18 @@ on:
 permissions:
   contents: read
 
-jobs:
-  # Keeps a release pull request up to date from conventional commits. Merging
-  # it tags the release, which is what the job below waits for.
-  prepare:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    outputs:
-      released: ${{ steps.release.outputs.release_created }}
-      tag: ${{ steps.release.outputs.tag_name }}
-      version: ${{ steps.release.outputs.version }}
-    steps:
-      - uses: googleapis/release-please-action@v5
-        id: release
-        with:
-          release-type: node
+# A push that lands while a release is running would race it for the same
+# version. Queue instead, and let the second one compute its version after the
+# first has tagged.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
-  # Signs the add-on, attaches it to the release, and republishes the update
-  # manifest Firefox polls.
-  publish:
-    needs: prepare
-    if: needs.prepare.outputs.released == 'true'
+jobs:
+  release:
+    # Any commit releases. Put [skip release] in the message to opt out — for a
+    # change that alters nothing anyone installs.
+    if: ${{ !contains(github.event.head_commit.message, '[skip release]') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -40,6 +29,9 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The version comes from the last tag, so the tags have to be here.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
@@ -48,7 +40,35 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run build
+      # The version lives in the tags rather than in a committed file. A file
+      # would mean the release job pushing a bump back to main, which triggers
+      # itself — and every guard against that is a thing to get wrong later.
+      - name: Work out the version
+        id: version
+        run: |
+          set -euo pipefail
+          latest=$(git tag --list 'v*' --sort=-v:refname | head -n1)
+          if [ -z "$latest" ]; then
+            next=$(node -p "require('./package.json').version")
+            echo "no tags yet; starting at $next from package.json"
+          else
+            next=$(node -e '
+              const [major, minor, patch] = process.argv[1].replace(/^v/, "").split(".").map(Number)
+              if ([major, minor, patch].some((n) => !Number.isInteger(n))) {
+                console.error(`cannot read a version out of ${process.argv[1]}`)
+                process.exit(1)
+              }
+              console.log(`${major}.${minor}.${patch + 1}`)
+            ' "$latest")
+            echo "last release $latest; next $next"
+          fi
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "tag=v$next" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          VERSION: ${{ steps.version.outputs.next }}
+        run: npm run build
 
       # Unlisted: signed by AMO so Firefox will install it, but never listed
       # there — no public page, not searchable, not installable from AMO.
@@ -58,12 +78,12 @@ jobs:
           WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
         run: npx web-ext sign --source-dir dist/firefox --channel unlisted
 
-      # web-ext names the file from the manifest; the update manifest has to
-      # point at an exact URL, so give it a name this workflow decides.
+      # web-ext names the file from the manifest; the update manifest points at
+      # an exact URL, so give it a name this workflow decides.
       - name: Name the artifact
         id: artifact
         env:
-          VERSION: ${{ needs.prepare.outputs.version }}
+          VERSION: ${{ steps.version.outputs.next }}
         run: |
           set -euo pipefail
           signed=$(find web-ext-artifacts -name '*.xpi' -print -quit)
@@ -76,17 +96,24 @@ jobs:
           echo "path=$asset" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "$asset")" >> "$GITHUB_OUTPUT"
 
-      - name: Attach to the release
+      # Tagged only once signing has succeeded. A tag for a version AMO refused
+      # would make the next run skip past a version that was never released.
+      - name: Release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.prepare.outputs.tag }}
+          TAG: ${{ steps.version.outputs.tag }}
           ASSET: ${{ steps.artifact.outputs.path }}
-        run: gh release upload "$TAG" "$ASSET" --clobber
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" "$ASSET" \
+            --title "$TAG" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
 
       - name: Build the update manifest
         env:
-          VERSION: ${{ needs.prepare.outputs.version }}
-          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.next }}
+          TAG: ${{ steps.version.outputs.tag }}
           ASSET_NAME: ${{ steps.artifact.outputs.name }}
           REPO: ${{ github.repository }}
           SERVER: ${{ github.server_url }}

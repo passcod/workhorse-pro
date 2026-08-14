@@ -6,9 +6,11 @@ How Workhorse Pro gets from a green build to an installed add-on that updates it
 
 **Unlisted, self-distributed, signed by AMO.** Signing is not optional: release and beta Firefox refuse unsigned extensions, so the package goes through addons.mozilla.org either way. What listing would add is a public AMO page, full human review, screenshots and a privacy policy — ceremony for an audience of one, and a stored GitHub token would draw a reviewer's attention for no benefit. Unlisted uploads go through automated review and come back signed.
 
-**release-please for versioning.** Conventional commits on `main`; the bot maintains a release pull request carrying the version bump and CHANGELOG; merging it tags and cuts the GitHub Release. Same model as release-plz, which it predates and inspired.
+**A release per push to `main`.** release-please was the first shape tried and does not fit: a versioning strategy decides how much to bump *given parsed commits*, so a commit that is not conventional is not a release trigger at all, and no setting changes that. Requiring conventional commits to get any release out was the wrong trade for one maintainer.
 
-There is exactly one version to bump. `build.mjs` stamps `package.json`'s version into the manifest at build time, so release-please's stock `node` type is enough — no manifest plugin, no second bump script, and no way for the two to drift. Keep it that way.
+So the patch version goes up on every push, `[skip release]` opts out, and the notes come from GitHub's generator rather than from commit parsing.
+
+The version lives in the tags. `build.mjs` takes `VERSION` from the environment and falls back to `package.json`, so there is still one place it is stamped from — and the release job never pushes a bump back to the branch that triggers it, which would otherwise need a loop guard that is one more thing to get wrong.
 
 ## Things that stop being free after the first signed release
 
@@ -21,7 +23,6 @@ There is exactly one version to bump. `build.mjs` stamps `package.json`'s versio
 - [ ] AMO account, and an add-on API key — the JWT issuer and secret from `addons.mozilla.org/developers/addon/api/key/`
 - [ ] Both stored as repository secrets (`AMO_JWT_ISSUER`, `AMO_JWT_SECRET`)
 - [ ] GitHub Pages enabled on the repo, to host the update manifest
-- [ ] Decide the conventional-commit prefixes worth releasing on, and note them in `AGENTS.md` so agents write commits that version correctly
 
 ## 1. Continuous integration
 
@@ -41,8 +42,8 @@ All four already pass locally, so this is wiring rather than work.
 ## 3. Release
 
 - [x] `.github/workflows/release.yml`
-- [x] release-please action maintaining the release pull request from conventional commits
-- [x] On release creation: `npm ci`, `npm run build`
+- [x] Patch version derived from the last tag, so nothing is committed back
+- [x] `npm ci`, `npm run build` with that version stamped in
 - [x] `web-ext sign --source-dir dist/firefox --channel unlisted`, with credentials passed as `WEB_EXT_API_KEY` / `WEB_EXT_API_SECRET` rather than on the command line
 - [x] Attach the signed `.xpi` from `web-ext-artifacts/` to the GitHub Release, under a name the workflow chooses so the update link is predictable
 - [x] Regenerate and publish `updates.json`
@@ -52,7 +53,7 @@ Running `web-ext` directly rather than through a third-party action: Mozilla pub
 ## 4. First release
 
 - [ ] Complete a browser pass first — see `.workhorse/plans/initial-build/plan.md`, which lists what has never been run
-- [ ] Tag `0.1.0` only once the features have actually worked once
+- [ ] Push to `main` once the features have actually worked once — the first release takes its version from `package.json`, since there is no tag to bump from yet
 
 The first signed version should be one that has run. Signing is cheap; an install base on a version that never worked is not.
 

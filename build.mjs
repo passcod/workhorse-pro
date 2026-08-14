@@ -9,7 +9,6 @@ const watch = process.argv.includes('--watch')
 const ENTRIES = {
   content: 'src/content/index.ts',
   page: 'src/page/observe.ts',
-  background: 'src/background.ts',
   options: 'src/options/options.ts',
 }
 

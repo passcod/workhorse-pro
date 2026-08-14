@@ -1,3 +1,83 @@
+# Removed: live paired-device state
+
+Removed in "Remove the paired-device overlay". Kept here so it can be put back
+without rediscovering how it hooked up.
+
+## What it did
+
+A conversation on a card checked out to the user's own device knows more than
+the shared cloud record does until the turn ends — the device updates its own
+session row as it goes and only pushes terminal metadata back. The app corrects
+this in its own sidebar with `useSidebarLocalOverlay`. Because the widened list
+*replaces* the app's list, rows lost that correction, and this restored it.
+
+## Why it went
+
+By the time the widened list was rebuilt from `ConversationsList`, row labels
+came from the card's title rather than the conversation's preview — so the
+overlay's only remaining contribution was one running indicator: marking a row
+as running when the agent was on the user's own device, and only while the list
+was widened. The cloud event stream already covers agents running in the cloud;
+this covered the device-run case alone.
+
+For that it cost `optional_host_permissions: ["*://*/*"]` — the broadest thing
+in the manifest — plus this module, a grant control on the preferences page, an
+in-sidebar prompt, instance-URL plumbing, and the background script (whose only
+job was opening the preferences page for that prompt). None of it was ever run
+in a browser.
+
+## What putting it back requires
+
+- `optional_host_permissions: ["*://*/*"]` in the manifest. It cannot be
+  narrowed: the device's address is only known at runtime.
+- A background script, and `OPEN_OPTIONS_MESSAGE` in `lib/messages.ts`. A
+  content script cannot call `runtime.openOptionsPage`.
+- A `deviceOverlay` switch in `prefs.ts`, and the paired-device section of the
+  preferences page (a grant button, a status line).
+- `setDeviceNotifier(reconciler.schedule)` in `content/index.ts`, so a landed
+  poll schedules a pass.
+- In `features/conversationScope.ts`, before building rows:
+
+```ts
+const held = new Set(sidebar?.myLocalInstance?.cardIds ?? [])
+const localIds = pool
+  .filter((session) => session.cardId !== null && held.has(session.cardId))
+  .map((session) => session.id)
+const overlay = prefs.deviceOverlay
+  ? deviceOverlay(sidebar?.myLocalInstance?.url ?? null, localIds)
+  : new Map<string, SessionSummary>()
+
+const running = new Set(runningSessions())
+for (const [id, summary] of overlay) {
+  if (summary.agentActiveAt != null) running.add(id)
+}
+```
+
+  and, when the permission is wanted but missing, a prompt after the list:
+
+```ts
+const wantsDevice = prefs.deviceOverlay && localIds.length > 0 && devicePermitted() === false
+```
+
+  which messages the background script to open the preferences page.
+
+## The constraint that shaped it
+
+The permission cannot be requested from the content script: content scripts get
+`storage`, `runtime`, `i18n` and part of `extension`, and `permissions` is not
+among them. A background script cannot request it either, because
+`permissions.request()` needs a user gesture. So the grant has to happen on an
+extension page, which has no way to ask the app for the device's address — hence
+the content script leaving it in `storage.local` under `lastKnownInstanceUrl`
+for the preferences page to find.
+
+`deviceToken()` in `data/workhorse.ts` and `SessionSummary` in `data/types.ts`
+were left in place; both are still small and harmless, and are what a
+restoration would build on.
+
+## The module as it was
+
+```ts
 import { ext } from '../ext.ts'
 import { reportOnce } from '../log.ts'
 import { deviceToken } from './workhorse.ts'
@@ -155,3 +235,4 @@ export function resetDevice(): void {
   permissionCheckedFor = null
   rememberedInstance = null
 }
+```

@@ -11,7 +11,6 @@ import {
 } from '../content/icons.ts'
 import { dismissSessions, recentSessions, sidebarData } from '../data/workhorse.ts'
 import { reviseSession, runningSessions, startSessionEvents } from '../data/sse.ts'
-import { deviceOverlay, devicePermitted } from '../data/device.ts'
 import { scopeGlyphColours, workspaceColours } from '../lib/colours.ts'
 import {
   dedupeSessions,
@@ -21,10 +20,8 @@ import {
   type RowModel,
 } from '../lib/conversations.ts'
 import { WIDENED_FETCH, WIDENED_ROWS } from '../lib/conversationScope.ts'
-import { OPEN_OPTIONS_MESSAGE } from '../lib/messages.ts'
-import { ext } from '../ext.ts'
 import { setPref } from '../prefs.ts'
-import type { RecentSession, SessionSummary } from '../data/types.ts'
+import type { RecentSession } from '../data/types.ts'
 
 /**
  * Widen the conversations list past the active workspace.
@@ -38,7 +35,6 @@ import type { RecentSession, SessionSummary } from '../data/types.ts'
 
 const TOGGLE = 'scope-toggle'
 const LIST = 'scope-list'
-const NOTICE = 'device-notice'
 const TOOLTIP_ID = 'row-tooltip'
 const TOOLTIP_WIDTH = 208
 const TOOLTIP_GAP = 8
@@ -254,7 +250,6 @@ export function conversationScope(): Feature {
       const teardown = () => {
         remove(TOGGLE)
         remove(LIST)
-        remove(NOTICE)
         hideTooltip()
         if (appList) appList.style.display = ''
       }
@@ -289,7 +284,6 @@ export function conversationScope(): Feature {
 
       if (!prefs.scopeWide) {
         remove(LIST)
-        remove(NOTICE)
         hideTooltip()
         if (appList) appList.style.display = ''
         // Flipping the scope drops the previous list's extras so they cannot
@@ -319,18 +313,7 @@ export function conversationScope(): Feature {
       const deduped = dedupeSessions(pool)
       const visible = expanded ? deduped : deduped.slice(0, WIDENED_ROWS)
 
-      const held = new Set(sidebar?.myLocalInstance?.cardIds ?? [])
-      const localIds = pool
-        .filter((session) => session.cardId !== null && held.has(session.cardId))
-        .map((session) => session.id)
-      const overlay = prefs.deviceOverlay
-        ? deviceOverlay(sidebar?.myLocalInstance?.url ?? null, localIds)
-        : new Map<string, SessionSummary>()
-
-      const running = new Set(runningSessions())
-      for (const [id, summary] of overlay) {
-        if (summary.agentActiveAt != null) running.add(id)
-      }
+      const running = runningSessions()
 
       const active = activeSessionId()
       const onDismiss = (sessionId: string) => {
@@ -391,22 +374,6 @@ export function conversationScope(): Feature {
 
       container.replaceChildren(...children)
 
-      const wantsDevice = prefs.deviceOverlay && localIds.length > 0 && devicePermitted() === false
-      if (wantsDevice) {
-        ensureAfter(container, NOTICE, () => {
-          const node = el('div', 'whp-notice')
-          node.appendChild(document.createTextNode('Device state unavailable — '))
-          const button = el('button', undefined, 'grant access')
-          button.type = 'button'
-          button.addEventListener('click', () => {
-            void ext.runtime.sendMessage({ type: OPEN_OPTIONS_MESSAGE })
-          })
-          node.appendChild(button)
-          return node
-        })
-      } else {
-        remove(NOTICE)
-      }
     },
   }
 }

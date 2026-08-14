@@ -3,7 +3,6 @@ import { loadLocalData } from '../localData.ts'
 import { Reconciler } from './reconcile.ts'
 import { startObserving } from '../data/observed.ts'
 import { subscribe } from '../data/store.ts'
-import { setDeviceNotifier } from '../data/device.ts'
 import { autoExpand } from '../features/autoExpand.ts'
 import { statRows } from '../features/statRows.ts'
 import { namedChecks } from '../features/namedChecks.ts'
@@ -45,10 +44,8 @@ async function main(): Promise<void> {
   reconciler.register(conversationScope())
 
   applyObservation(prefs)
-  // Data landing and device state changing both mean a pass can now render
-  // something it could not before.
+  // Data landing means a pass can now render something it could not before.
   subscribe(reconciler.schedule)
-  setDeviceNotifier(reconciler.schedule)
   onPrefsChanged((next) => {
     applyObservation(next)
     reconciler.setPrefs(next)

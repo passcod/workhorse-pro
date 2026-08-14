@@ -6,7 +6,7 @@ Scenarios verifying the extension against its specs. Automated where the logic i
 
 - [ ] A clean build produces a Firefox add-on that loads without warnings and a Chrome directory with the service-worker manifest
 - [ ] The Firefox manifest carries a Gecko application id, and settings persist across a browser restart because of it
-- [ ] The extension requests only the Workhorse origins, GitHub's API host, and storage
+- [ ] The extension requests only the Workhorse origins, GitHub's API host, and storage, and asks for nothing at runtime
 - [ ] Visiting a non-Workhorse site produces no injected nodes and no network activity
 
 ## Reconciliation (INJ)
@@ -147,9 +147,6 @@ The fixture the suite runs against is hand-written from a reading of the app's c
 - [ ] A conversation's preview and timestamp update without the list refetching
 - [ ] A dropped event stream leaves rows rendering, losing only the running indicator
 - [ ] A dropped event stream reconnects, and repeated failures lengthen the wait
-- [ ] With device access granted, rows on checked-out cards show the device's view
-- [ ] Without device access, rows show the shared record's values
-- [ ] A failed device read keeps the last known device state
 
 ## Data (DATA)
 
@@ -179,5 +176,4 @@ The fixture the suite runs against is hand-written from a reading of the app's c
 - [ ] Switch settings and the token follow a synced browser profile
 - [ ] Input history and stashed drafts stay on the device that wrote them
 - [ ] The page clears input history, the stash, and the token independently
-- [ ] The page reports whether device access is held and can request it
 - [ ] The page reports whether the GitHub token works

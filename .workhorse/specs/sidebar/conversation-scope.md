@@ -9,13 +9,9 @@ A scope control widens it to every workspace the user can see, for people whose 
 
 ## The control
 
-- [ ] A scope control sits at the conversations header
+- [ ] The scope control sits among the header's own row controls, alongside the button that starts a conversation
 - [ ] Its state persists across sessions and devices
 - [ ] While the scope is narrow, the extension leaves the sidebar entirely alone
-
-## The control
-
-- [ ] The scope control sits among the header's own row controls, alongside the button that starts a conversation
 - [ ] Its glyph carries the workspace colours while the list is widened and is plain otherwise, so the control reads as a miniature of the colouring it turns on
 - [ ] It stays visible while the list is widened, and is revealed on hover like the header's other controls otherwise
 - [ ] The widened list can always be narrowed again from the control, without reloading
@@ -76,17 +72,7 @@ A conversation with a running agent must read as running here exactly as it does
 - [ ] A row's preview and timestamp update as its conversation progresses, without the list being refetched
 - [ ] Rows continue to render from the last read while the event stream is unavailable, losing only the running indicator
 
-## Live device state
-
-A conversation on a card checked out to the user's own device knows more than the shared record does until the turn ends.
-
-- [ ] Rows for conversations on cards held by the user's device show the device's own view of them
-- [ ] This requires access to the device, which is granted from the preferences page
-- [ ] Without that access rows show the shared record's values, which is what the app shows when no device is paired
-- [ ] The extension asks for the access once and does not press the point
-
 ## Preferences
 
 - [ ] The widened scope has its own switch, separate from the scope control's own state
-- [ ] Live device state has its own switch
 - [ ] Turning the feature off restores the app's own list

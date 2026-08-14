@@ -310,23 +310,3 @@ div:hover > div > .whp-scope[aria-pressed='false'],
   color: var(--accent, #c2410c);
 }
 
-/* An unobtrusive offer to open preferences, shown when device access is
-   wanted but not held. */
-.whp-notice {
-  padding: 2px 8px;
-  font-size: 11px;
-  color: var(--text-muted, #776f6a);
-}
-
-.whp-notice button {
-  border: none;
-  background: none;
-  padding: 0;
-  font: inherit;
-  color: var(--accent, #c2410c);
-  cursor: pointer;
-}
-
-.whp-notice button:hover {
-  text-decoration: underline;
-}

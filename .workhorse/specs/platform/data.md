@@ -11,10 +11,9 @@ Detail Workhorse does not carry is read from GitHub instead — see `platform/gi
 
 ## What is read
 
-- [ ] Branch status for the card on screen supplies the check counts, review run state, and resolved base branch
-- [ ] Sidebar data supplies the workspace list and whether the user has a paired device
+- [ ] Branch status for the card on screen supplies the check counts and the review run state
+- [ ] Sidebar data supplies the workspace list the row colours are derived from
 - [ ] The recent-sessions list, requested without a workspace, supplies conversations across every workspace the user can see
-- [ ] A device bearer token is minted from the app when live device state is enabled
 
 Both branch-status parameters are taken from the card route, so the extension never has to discover which card it is looking at by any other means.
 
@@ -57,15 +56,3 @@ That state arrives as a stream rather than by polling.
 - [ ] A dropped stream reconnects with a backoff that lengthens on repeated failure up to a ceiling
 - [ ] While the stream is disconnected, rows still render from the last read and only the running indicator is lost
 
-## Paired-device state
-
-A conversation whose card is checked out to the user's own device lags what the device knows, because the shared record is only updated at turn boundaries.
-The app corrects this by reading from the device directly, and the extension can do the same.
-
-- [ ] Live device state is read from the device's own summary endpoint, using a token minted by the app
-- [ ] The device's address is discovered at runtime rather than configured, which is why reaching it needs an optional host permission
-- [ ] Device state is read only while there is something to overlay, and not at all otherwise
-- [ ] A failed read keeps the last known device state rather than reverting to the shared record's values
-- [ ] Without the permission, or without a paired device, rows show the shared record's values
-
-Live device state is separable from everything else the extension does, so that it can be removed if it does not earn its complexity.

@@ -20,7 +20,6 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 - [ ] Composer stash
 - [ ] Cross-workspace conversations
 - [ ] Named checks, alongside where the GitHub token is entered and a reading of whether it currently works
-- [ ] Live device state, alongside the control that grants access to the device and a reading of whether access is currently held
 - [ ] Reading responses the app has already fetched
 
 - [ ] Every switch starts on, except opening the Checks and Review Hero rows
@@ -53,7 +52,3 @@ A feature that is off has nothing as its desired state, and the reconcile pass t
 History and stashed drafts are working state at a scale that synced settings storage is not sized for, and they are tied to what the user was doing on that machine.
 Settings and the token are small and are the same wherever the user works, so they follow.
 
-## Access to a paired device
-
-- [ ] The preferences page is where access to a paired device is granted, because a permission request has to come from a click on an extension's own page
-- [ ] The page reports whether access is currently held, and can request it when it is not

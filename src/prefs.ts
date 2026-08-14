@@ -22,7 +22,6 @@ export interface Prefs {
   inputHistory: boolean
   composerStash: boolean
   crossWorkspaceConversations: boolean
-  deviceOverlay: boolean
   observeFetches: boolean
   /** Read-only, checks-scoped. Empty when the user has not supplied one. */
   githubToken: string
@@ -42,7 +41,6 @@ export const PREF_DEFAULTS: Prefs = {
   inputHistory: true,
   composerStash: true,
   crossWorkspaceConversations: true,
-  deviceOverlay: true,
   observeFetches: true,
   githubToken: '',
   scopeWide: false,
@@ -116,14 +114,6 @@ export const SWITCHES: SwitchInfo[] = [
     detail:
       'Add a control to the sidebar’s Conversations header that widens the list to every ' +
       'workspace you can see. Each row’s card code takes its workspace’s colour.',
-  },
-  {
-    key: 'deviceOverlay',
-    label: 'Live device state',
-    detail:
-      'In the widened conversations list, show your paired device’s own view of rows whose card ' +
-      'is checked out to it — those lag the shared record until a turn ends. Does nothing ' +
-      'without a paired device, and needs the access granted below.',
   },
   {
     key: 'observeFetches',

@@ -4,7 +4,7 @@ Greenfield build of the extension from the spec set. No prior code, so the seque
 
 ## Tech notes
 
-**Bundle layout.** Four entry points, each bundled to a single IIFE: `content` (isolated world), `page` (MAIN world, fetch observation), `background` (opens the options page), `options`. MV3 forbids module content scripts, hence the bundle.
+**Bundle layout.** Three entry points, each bundled to a single IIFE: `content` (isolated world), `page` (MAIN world, fetch observation), `options`. MV3 forbids module content scripts, hence the bundle.
 
 **Reconcile over reaction.** `content/index.ts` owns one `MutationObserver` and an rAF-coalesced pass. Features expose `reconcile(ctx)` and are pure functions of (DOM, prefs, data). No feature holds a subscription to the DOM.
 
@@ -18,11 +18,11 @@ Greenfield build of the extension from the spec set. No prior code, so the seque
 
 - [x] `package.json` with npm scripts only — build, watch, test, run:firefox, lint via tsc
 - [x] `tsconfig.json` strict, DOM + ES2022 libs, no emit (esbuild does the emit)
-- [x] `build.mjs` — esbuild four entry points, copy the right manifest and static assets into `dist/{firefox,chrome}/`
+- [x] `build.mjs` — esbuild each entry point, copy the right manifest and static assets into `dist/{firefox,chrome}/`
 - [x] `manifest.firefox.json` and `manifest.chrome.json`
 - [x] `.gitignore` for `dist/`, `node_modules/`
 - [x] Verify a clean build validates — `web-ext lint` reports zero errors
-- [ ] Load it in a browser and confirm it runs
+- [x] Load it in a browser and confirm it runs
 
 ## 2. Core machinery
 
@@ -44,15 +44,14 @@ Greenfield build of the extension from the spec set. No prior code, so the seque
 - [x] `data/observed.ts` — isolated-world receiver, origin and shape validation, feeds the store
 - [x] `data/sse.ts` — session event stream, running-session set, revisions, backoff reconnect
 - [x] `data/github.ts` — check runs by head sha, rate-limit backoff, token status
-- [x] `data/device.ts` — bearer token, permission check, sessions-summary overlay
 
 ## 4. Features
 
 - [x] `features/autoExpand.ts` — open PR detail and branch dropdown, synthetic-click flagging, per-card user-collapse memory, click cooldown
-- [x] `features/statRows.ts` — check breakdown with its guards, review run stats, effective base branch
+- [x] `features/statRows.ts` — check breakdown with its guards, review run stats
 - [x] `features/namedChecks.ts` — failing and running checks by name, only while the row is expanded
 - [x] `features/composer.ts` — history and stash together
-- [x] `features/conversationScope.ts` — scope toggle, hide app list, render widened list, liveness, device overlay
+- [x] `features/conversationScope.ts` — scope toggle, hide app list, render widened list, liveness
 
 **Correction after the first browser pass.** The widened conversations list was
 built from the spec's description of a row rather than from `ConversationsList`
@@ -66,6 +65,13 @@ reload. Rewritten from the app's own implementation, with the row model
 extracted to `lib/conversations.ts` and covered by tests. The spec was wrong in
 the same way and has been corrected.
 
+**Removed after review.** The paired-device overlay and the background script
+that served it are gone. Once row labels came from the card's title rather than
+the conversation's preview, the overlay's only remaining contribution was one
+running indicator on device-run agents — for which it cost the broadest
+permission in the manifest. Written up in `docs/removed-device-overlay.md` so
+it can be restored without rediscovering how it hooked up.
+
 **Drift from the plan.** Input history and the stash were built as one module
 rather than two. Pushing while recalling has to stash the recalled message and
 hand back the held draft, which means both features read and write the same
@@ -74,8 +80,7 @@ the other. The specs stay separate; the module does not.
 
 ## 5. Preferences
 
-- [x] `options/options.html` + `options.ts` — switches, GitHub token field with validity readout, device permission grant, stored-data clearing
-- [x] `background.ts` — open options page on message
+- [x] `options/options.html` + `options.ts` — switches with token gating, GitHub token field with validity readout, stored-data clearing
 
 ## 6. Tests
 
@@ -88,20 +93,30 @@ the other. The specs stay separate; the module does not.
 
 ## 7. Verify
 
-- [x] `npm test` green (101 tests), `tsc --noEmit` clean, `web-ext lint` zero errors
-- [ ] Manual `web-ext run` pass against a live Workhorse
+- [x] `npm test` green (159 tests), `tsc --noEmit` clean, `web-ext lint` zero errors
+
+Loading under a sandboxed Firefox needs the packaged zip rather than the
+unpacked directory: the desktop portal hands the picker a handle to
+`manifest.json` alone, so its siblings are unreachable. `npm run package`
+builds it. Granting the sandbox filesystem access to the repo is the
+alternative, and keeps the Reload button working.
+
+## Verified in a browser
+
+- [x] The extension loads and runs against a live Workhorse
+- [x] Auto-expanding the pull request section — synthetic clicks do drive the app's React handlers
+- [x] The preferences page
+- [x] The GitHub token, and named checks against a real suite
+- [x] The check breakdown and review run stats
+- [x] Those anchors resolve against real markup — the rows they hang under were found
 
 ## Outstanding
 
-The unticked boxes above are the honest state: nothing has been run in a
-browser against a real Workhorse. Everything below needs that pass, and none of
-it is covered by the automated suite:
+Not yet run against a real Workhorse, and not covered by the automated suite:
 
-- [ ] Auto-expand end to end — synthetic clicks against the app's real React handlers
 - [ ] The native-setter write path — that the app's draft retention and auto-resize react to it
+- [ ] Input history and the stash end to end
 - [ ] The page-world `fetch` wrapper — that MAIN-world injection works and the app is unaffected
 - [ ] The event stream — connection, running indicators, reconnect
-- [ ] The widened conversations list — hiding the app's list and restoring it intact
-- [ ] The device permission grant from the preferences page, embedded in `about:addons`
-- [ ] Named checks against a real token and a real failing suite
-- [ ] Anchor fallbacks against real markup rather than the hand-written fixture
+- [ ] The widened conversations list, since its rewrite
+- [ ] The sidebar anchors against real markup, since the header and control-cluster selectors changed

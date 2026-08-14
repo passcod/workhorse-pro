@@ -2,14 +2,9 @@ import { ext } from '../ext.ts'
 import { loadPrefs, setPref, SWITCHES, type Prefs } from '../prefs.ts'
 import { clearHistory, clearStash, getHistory, getStash, loadLocalData } from '../localData.ts'
 import { TOKEN_STATUS_KEY, type TokenStatus } from '../data/github.ts'
-import { INSTANCE_URL_KEY, requestDeviceAccess } from '../data/device.ts'
 
 /**
- * The preferences page.
- *
- * Also where host access to a paired device is granted: a permission request
- * must come from a click on an extension's own page, which is the one thing a
- * content script cannot supply. spec: PREF, PKG
+ * The preferences page. spec: PREF
  */
 
 function byId<T extends HTMLElement>(id: string): T {
@@ -104,17 +99,6 @@ async function refresh(): Promise<void> {
   element.dataset.state = prefs.githubToken ? status : 'unknown'
 }
 
-/** The paired device's address, if the app has told us about one. */
-async function pairedInstanceUrl(): Promise<string | null> {
-  try {
-    const stored = await ext.storage.local.get(INSTANCE_URL_KEY)
-    const value = stored[INSTANCE_URL_KEY]
-    return typeof value === 'string' ? value : null
-  } catch {
-    return null
-  }
-}
-
 function describeData(): string {
   return `${getHistory().length} messages, ${getStash().length} stashed`
 }
@@ -148,24 +132,6 @@ async function main(): Promise<void> {
       await setPref('githubToken', '')
       await ext.storage.local.set({ [TOKEN_STATUS_KEY]: 'unknown' })
       await refresh()
-    })()
-  })
-
-  const deviceStatus = byId('device-status')
-  const instanceUrl = await pairedInstanceUrl()
-  deviceStatus.textContent = instanceUrl
-    ? 'A device is paired.'
-    : 'No paired device seen yet — open Workhorse first.'
-
-  byId('grant-device').addEventListener('click', () => {
-    void (async () => {
-      const url = await pairedInstanceUrl()
-      if (!url) {
-        deviceStatus.textContent = 'No paired device seen yet — open Workhorse first.'
-        return
-      }
-      const granted = await requestDeviceAccess(url)
-      deviceStatus.textContent = granted ? 'Access granted.' : 'Access declined.'
     })()
   })
 

@@ -8,7 +8,9 @@
       "id": "workhorse-pro@bes.au",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
-        "required": ["none"]
+        "required": [
+          "none"
+        ]
       }
     }
   },
@@ -16,27 +18,37 @@
     "48": "icon.svg",
     "96": "icon.svg"
   },
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://workhorse.bes.au/*",
     "http://localhost:3000/*",
     "https://api.github.com/*"
   ],
-  "optional_host_permissions": ["*://*/*"],
-  "background": {
-    "scripts": ["background.js"]
-  },
   "content_scripts": [
     {
-      "matches": ["https://workhorse.bes.au/*", "http://localhost:3000/*"],
-      "js": ["page.js"],
+      "matches": [
+        "https://workhorse.bes.au/*",
+        "http://localhost:3000/*"
+      ],
+      "js": [
+        "page.js"
+      ],
       "world": "MAIN",
       "run_at": "document_start"
     },
     {
-      "matches": ["https://workhorse.bes.au/*", "http://localhost:3000/*"],
-      "js": ["content.js"],
-      "css": ["styles.css"],
+      "matches": [
+        "https://workhorse.bes.au/*",
+        "http://localhost:3000/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
       "run_at": "document_idle"
     }
   ],

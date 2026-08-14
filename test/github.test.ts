@@ -1,6 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  checkDisplayName,
+  checkNameParts,
   checkRunState,
   elapsedMs,
   formatDuration,
@@ -66,6 +68,7 @@ function run(overrides: Partial<{
   html_url: string | null
   started_at: string | null
   completed_at: string | null
+  check_suite: { id: number } | null
 }> = {}) {
   return {
     name: 'job',
@@ -74,6 +77,7 @@ function run(overrides: Partial<{
     html_url: null,
     started_at: '2026-08-14T11:59:00.000Z',
     completed_at: null,
+    check_suite: null,
     ...overrides,
   }
 }
@@ -168,4 +172,48 @@ test('nothing to report leaves an empty list rather than a zero row', () => {
   const ranked = rankChecks([run({ status: 'completed', conclusion: 'success' })], NOW)
   assert.equal(ranked.shown.length, 0)
   assert.equal(ranked.hidden, 0)
+})
+
+
+// ── Naming a job ─────────────────────────────────────────────────────────
+
+test('a job is named workflow then job, as GitHub names it', () => {
+  const workflows = new Map([[1, 'CI']])
+  const parts = checkNameParts(run({ name: 'gate', check_suite: { id: 1 } }), workflows)
+  assert.deepEqual(parts, { workflow: 'CI', job: 'gate' })
+  assert.equal(checkDisplayName(run({ name: 'gate', check_suite: { id: 1 } }), workflows), 'CI / gate')
+})
+
+test('jobs sharing a name are told apart by their workflow', () => {
+  // The reason for the prefix: three rows reading `gate` say nothing.
+  const workflows = new Map([
+    [1, 'CI'],
+    [2, 'Release'],
+  ])
+  const names = [
+    run({ name: 'gate', check_suite: { id: 1 } }),
+    run({ name: 'gate', check_suite: { id: 2 } }),
+  ].map((r) => checkDisplayName(r, workflows))
+  assert.deepEqual(names, ['CI / gate', 'Release / gate'])
+})
+
+test('an unknown workflow leaves the job to stand alone', () => {
+  const workflows = new Map([[1, 'CI']])
+  assert.deepEqual(checkNameParts(run({ name: 'gate', check_suite: { id: 9 } }), workflows), {
+    workflow: null,
+    job: 'gate',
+  })
+  assert.deepEqual(checkNameParts(run({ name: 'gate', check_suite: null }), workflows), {
+    workflow: null,
+    job: 'gate',
+  })
+  assert.deepEqual(checkNameParts(run({ name: 'gate' }), new Map()), {
+    workflow: null,
+    job: 'gate',
+  })
+})
+
+test('a workflow named after its only job is not repeated', () => {
+  const workflows = new Map([[1, 'gate']])
+  assert.equal(checkDisplayName(run({ name: 'gate', check_suite: { id: 1 } }), workflows), 'gate')
 })

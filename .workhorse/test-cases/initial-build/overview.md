@@ -70,6 +70,12 @@ The fixture the suite runs against is hand-written from a reading of the app's c
 - [x] Failed jobs sort first, then the longest running
 - [x] The list is capped and says how many it left out
 - [ ] The job count is labelled as jobs, distinctly from the workflow counts above
+- [x] A job is named by its workflow then itself
+- [x] Jobs sharing a name are told apart by their workflow
+- [x] An unknown workflow leaves the job standing alone
+- [x] A workflow named after its only job is not repeated
+- [ ] Each job row links to its page on GitHub
+- [ ] The workflow prefix truncates before the job name does
 - [x] Rows under one disclosure keep a fixed order however they are added
 - [ ] Without a token, the breakdown shows counts alone
 - [ ] A collapsed checks row issues no GitHub request

@@ -2,8 +2,14 @@ import { anchors } from '../content/anchors.ts'
 import { ensureOrdered, el, remove, statRow } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { branchStatus } from '../data/workhorse.ts'
-import { checkRuns } from '../data/github.ts'
-import { formatDuration, parsePrUrl, rankChecks } from '../lib/github.ts'
+import { checkRuns, workflowNames } from '../data/github.ts'
+import {
+  checkDisplayName,
+  checkNameParts,
+  formatDuration,
+  parsePrUrl,
+  rankChecks,
+} from '../lib/github.ts'
 
 /**
  * The jobs that failed or are still going, by name and by how long.
@@ -41,6 +47,11 @@ export function namedChecks(): Feature {
         return
       }
 
+      // Named separately from the runs themselves: a check run carries the
+      // suite it belongs to, but only a workflow run carries the workflow's
+      // name. Empty when it cannot be read, which costs the prefix and nothing
+      // else.
+      const workflows = workflowNames(pr, prefs.githubToken)
       const ranked = rankChecks(runs, Date.now())
       if (ranked.shown.length === 0) {
         remove(CONTAINER)
@@ -60,10 +71,27 @@ export function namedChecks(): Feature {
       const children: Node[] = [summary.root]
 
       for (const { run, state, elapsed } of ranked.shown) {
-        const row = el('div', 'whp-check')
-        row.appendChild(
-          el('span', state === 'failed' ? 'whp-check-name whp-amber' : 'whp-check-name', run.name),
+        // The whole row is the link: every job has a page on GitHub, and
+        // wanting it is the reason to read this list at all — for a failure to
+        // see why, and for a long-running one to see what it is stuck on.
+        const row = run.html_url ? el('a', 'whp-check') : el('div', 'whp-check')
+        if (run.html_url && row instanceof HTMLAnchorElement) {
+          row.href = run.html_url
+          row.target = '_blank'
+          row.rel = 'noopener noreferrer'
+        }
+        const { workflow, job } = checkNameParts(run, workflows)
+        const label = el(
+          'span',
+          state === 'failed' ? 'whp-check-name whp-amber' : 'whp-check-name',
         )
+        // The workflow gives way before the job does: the job is what tells
+        // one row from another, and truncating from the end would take it.
+        if (workflow) label.appendChild(el('span', 'whp-check-workflow', `${workflow} /`))
+        label.appendChild(el('span', 'whp-check-job', job))
+        // Whatever the width takes, the whole name is still readable here.
+        label.title = checkDisplayName(run, workflows)
+        row.appendChild(label)
 
         const right = el('span', 'whp-check-right')
         // A job GitHub has not started has no elapsed time; saying "queued" is
@@ -71,13 +99,6 @@ export function namedChecks(): Feature {
         right.appendChild(
           el('span', 'whp-check-time', elapsed === null ? 'queued' : formatDuration(elapsed)),
         )
-        if (state === 'failed' && run.html_url) {
-          const link = el('a', undefined, 'Logs')
-          link.href = run.html_url
-          link.target = '_blank'
-          link.rel = 'noopener noreferrer'
-          right.appendChild(link)
-        }
         row.appendChild(right)
         children.push(row)
       }

@@ -118,6 +118,38 @@ interface CheckRunLike {
   html_url: string | null
   started_at: string | null
   completed_at: string | null
+  check_suite?: { id: number } | null
+}
+
+/**
+ * How GitHub names a job in its own checks list: the workflow, then the job.
+ *
+ * Without the workflow, the jobs a reusable or matrix workflow produces are
+ * indistinguishable — three rows reading `gate` say nothing about which is
+ * which. The two are returned apart because they are not equally important:
+ * the job is what identifies the row, so in a narrow sidebar the workflow is
+ * what gives way.
+ *
+ * The workflow is null when it is unknown, and when it matches the job's own
+ * name, since `gate / gate` is noise.
+ */
+export function checkNameParts(
+  run: CheckRunLike,
+  workflows: ReadonlyMap<number, string>,
+): { workflow: string | null; job: string } {
+  const suite = run.check_suite?.id
+  const workflow = suite == null ? undefined : workflows.get(suite)
+  if (!workflow || workflow === run.name) return { workflow: null, job: run.name }
+  return { workflow, job: run.name }
+}
+
+/** The whole name on one line, for somewhere with room for it. */
+export function checkDisplayName(
+  run: CheckRunLike,
+  workflows: ReadonlyMap<number, string>,
+): string {
+  const { workflow, job } = checkNameParts(run, workflows)
+  return workflow ? `${workflow} / ${job}` : job
 }
 
 /**

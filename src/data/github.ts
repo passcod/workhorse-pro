@@ -1,6 +1,6 @@
 import { read } from './store.ts'
-import { checkRunsKey } from './keys.ts'
-import type { CheckRun, CheckRunsResponse } from './types.ts'
+import { checkRunsKey, workflowRunsKey } from './keys.ts'
+import type { CheckRun, CheckRunsResponse, WorkflowRunsResponse } from './types.ts'
 import type { PrRef } from '../lib/github.ts'
 import { ext } from '../ext.ts'
 
@@ -135,6 +135,40 @@ export function checkRuns(pr: PrRef | null, token: string): CheckRun[] | null {
     CHECK_RUNS,
   )
   return response?.check_runs ?? null
+}
+
+/**
+ * The workflow each check suite belongs to, by suite id.
+ *
+ * A check run names the job but not the workflow it came from, which is why
+ * three jobs called `gate` read alike. Workflow runs carry both the workflow's
+ * name and the suite id, so one extra read per head commit supplies the
+ * missing half. Empty when it cannot be read — a job then shows its own name
+ * alone, which is what it did before.
+ */
+export function workflowNames(pr: PrRef | null, token: string): ReadonlyMap<number, string> {
+  const empty = new Map<number, string>()
+  if (!pr || !token) return empty
+  const sha = headSha(pr, token)
+  if (!sha) return empty
+
+  const response = read<WorkflowRunsResponse>(
+    workflowRunsKey(pr.owner, pr.repo, sha),
+    () =>
+      apiGet<WorkflowRunsResponse>(
+        `/repos/${pr.owner}/${pr.repo}/actions/runs?head_sha=${sha}&per_page=100`,
+        token,
+      ),
+    CHECK_RUNS,
+  )
+  if (!response) return empty
+
+  const names = new Map<number, string>()
+  for (const run of response.workflow_runs) {
+    if (run.check_suite_id == null || !run.name) continue
+    names.set(run.check_suite_id, run.name)
+  }
+  return names
 }
 
 /** Test seam. */

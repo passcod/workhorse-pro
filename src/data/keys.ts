@@ -22,6 +22,10 @@ export function checkRunsKey(owner: string, repo: string, ref: string): string {
   return `check-runs:${owner}/${repo}@${ref}`
 }
 
+export function workflowRunsKey(owner: string, repo: string, ref: string): string {
+  return `workflow-runs:${owner}/${repo}@${ref}`
+}
+
 /** Paths worth observing. Anything else the app fetches is ignored. */
 export const OBSERVED_PATHS = [
   '/api/card-branch-status',

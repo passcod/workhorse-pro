@@ -109,9 +109,30 @@ export interface CheckRun {
   /** When the job began, and when it settled. Absent before it starts. */
   started_at: string | null
   completed_at: string | null
+  /**
+   * The suite this job belongs to. The only link back to the workflow that
+   * produced it — a check run does not carry the workflow's name.
+   */
+  check_suite: { id: number } | null
 }
 
 export interface CheckRunsResponse {
   total_count: number
   check_runs: CheckRun[]
+}
+
+/**
+ * A workflow run, narrowed to what names a job's workflow.
+ *
+ * `check_suite_id` is what joins these to check runs, which carry the suite but
+ * not the workflow.
+ */
+export interface WorkflowRun {
+  id: number
+  name: string | null
+  check_suite_id: number | null
+}
+
+export interface WorkflowRunsResponse {
+  workflow_runs: WorkflowRun[]
 }

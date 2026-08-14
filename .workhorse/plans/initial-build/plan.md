@@ -54,6 +54,18 @@ Greenfield build of the extension from the spec set. No prior code, so the seque
 - [x] `features/composer.ts` — history and stash together
 - [x] `features/conversationScope.ts` — scope toggle, hide app list, render widened list, liveness, device overlay
 
+**Correction after the first browser pass.** The widened conversations list was
+built from the spec's description of a row rather than from `ConversationsList`
+in the app, and was wrong in most of its particulars: it rendered one row per
+conversation instead of one per card, showed the conversation's title instead
+of the card's, dropped the card code, replaced the card's status glyph with a
+workspace-coloured dot, and had neither the dismiss control nor the hover card.
+The scope control was also injected beside the header's label rather than into
+its control cluster, which left no way to narrow the list again without a
+reload. Rewritten from the app's own implementation, with the row model
+extracted to `lib/conversations.ts` and covered by tests. The spec was wrong in
+the same way and has been corrected.
+
 **Drift from the plan.** Input history and the stash were built as one module
 rather than two. Pushing while recalling has to stash the recalled message and
 hand back the held draft, which means both features read and write the same

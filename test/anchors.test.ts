@@ -82,13 +82,31 @@ test('the based-on row resolves to the row, not the label', () => {
   assert.ok(row?.parentElement, 'the row must have a parent to hang a sibling from')
 })
 
-test('the conversations header and list resolve', () => {
+test('the conversations header resolves to the row, not the label link', () => {
   setBody(sidebar())
   const header = anchors.conversationsHeader()
   assert.ok(header)
-  assert.match(header.textContent ?? '', /Conversations/)
-  const list = anchors.conversationsList()
-  assert.equal(list?.className, 'conversations-list')
+  assert.equal(header.className, 'nav-row group')
+})
+
+test('the conversations list resolves as the header’s sibling', () => {
+  setBody(sidebar())
+  assert.equal(anchors.conversationsList()?.className, 'conversations-list')
+})
+
+test('the header’s control cluster resolves, so the scope control has a home', () => {
+  // Placement is not cosmetic: injected outside the cluster the control either
+  // takes the label's layout or sits inside its link, where a click navigates
+  // instead of toggling — which leaves no way back to the narrow list.
+  setBody(sidebar())
+  const controls = anchors.conversationsControls()
+  assert.equal(controls?.className, 'nav-controls')
+  assert.ok(controls?.querySelector('button[title="New"]'))
+})
+
+test('the control cluster is absent when the header is', () => {
+  setBody('<div></div>')
+  assert.equal(anchors.conversationsControls(), null)
 })
 
 test('a data attribute is preferred over the fallback', () => {

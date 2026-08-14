@@ -81,16 +81,35 @@ export function prSection(options: PrSectionOptions = {}): string {
   return `<div class="pr-section">${collapsedBar}${detail}</div>`
 }
 
+/**
+ * The Conversations section of the sidebar.
+ *
+ * Shape reproduced from `NavRow` and `ConversationsList`: the row is a div
+ * wrapping a label element and a trailing cluster of control buttons, and the
+ * list is the row's *sibling*, not its child. The scope control belongs in
+ * that cluster — anywhere else and it either inherits the label's layout or,
+ * inside the label's link, navigates instead of toggling.
+ */
 export function sidebar(): string {
   return `
     <aside>
-      <div class="nav-section">
-        <a class="nav-row" href="/workhorse/sessions"><span>Conversations</span></a>
-        <div class="conversations-list">
-          <a href="/workhorse/sessions/one">One</a>
-          <a href="/workhorse/sessions/two">Two</a>
+      <nav>
+        <div class="nav-section">
+          <div class="nav-row group">
+            <span class="nav-label">
+              <svg class="icon"></svg>
+              <span class="truncate">Conversations</span>
+            </span>
+            <div class="nav-controls">
+              <button type="button" title="New">+</button>
+            </div>
+          </div>
+          <div class="conversations-list">
+            <div class="row"><a href="/workhorse/cards/WH-1?session=one">One</a></div>
+            <div class="row"><a href="/workhorse/cards/WH-2?session=two">Two</a></div>
+          </div>
         </div>
-      </div>
+      </nav>
     </aside>
   `
 }

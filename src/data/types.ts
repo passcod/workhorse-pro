@@ -42,6 +42,14 @@ export interface BranchStatusData {
   } | null
 }
 
+/**
+ * A row's worth of a recent conversation, as `mapRecentSession` returns it.
+ *
+ * A row is not a conversation: card-bound conversations collapse to one row
+ * per card and project conversations to one per project, so most rows stand
+ * for a card and show the card's identity rather than the conversation's.
+ * spec: SCOP
+ */
 export interface RecentSession {
   id: string
   title: string | null
@@ -49,11 +57,22 @@ export interface RecentSession {
   messageCount: number
   lastMessageAt: string
   cardId: string | null
+  kind: string | null
   waitingOnUser: boolean
+  /** Queued for review or waiting on a scheduled merge. */
+  waitingOnExternal: boolean
+  waitingOnMerge: boolean
   cardIdentifier: string | null
   cardTitle: string | null
+  /** Which status glyph the card's status draws, e.g. `almost-done`. */
+  cardStatusIconStyle: string | null
   cardStatusColour: string | null
   cardStatusLabel: string | null
+  projectId: string | null
+  projectName: string | null
+  projectHash: string | null
+  projectEmoji: string | null
+  projectColour: string | null
   workspaceName: string | null
 }
 

@@ -104,79 +104,146 @@
   pointer-events: none;
 }
 
-/* Scope control at the Conversations header. */
+/* Scope control, sitting in the Conversations header's own control cluster
+   alongside the app's row buttons. Like them it is revealed on row hover —
+   except while the list is widened, when it stays lit so the widened state
+   reads without hovering. */
 .whp-scope {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  margin-left: 6px;
-  padding: 2px 4px;
-  border-radius: var(--radius-sm, 4px);
+  padding: 4px;
   border: none;
+  border-radius: var(--radius-sm, 4px);
   background: transparent;
+  color: var(--text-muted, #776f6a);
   cursor: pointer;
+  transition: color 100ms, opacity 100ms;
 }
 
 .whp-scope:hover {
+  color: var(--text-secondary, #4a4440);
   background: var(--bg-hover, #f5f2ee);
 }
 
-.whp-scope-glyph {
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--text-muted, #776f6a);
+.whp-scope[aria-pressed='false'] {
+  opacity: 0;
 }
 
-.whp-scope[aria-pressed='false'] .whp-scope-glyph {
-  opacity: 0.4;
+/* The cluster's parent row. Scoped through two divs so this cannot reveal the
+   control from an unrelated hover further up the tree. */
+div:hover > div > .whp-scope[aria-pressed='false'],
+.whp-scope:focus-visible {
+  opacity: 1;
 }
 
-/* The widened conversations list. */
+/* The widened conversations list.
+   Row layout: [indicator] [label] [card code]. On hover the code fades and a
+   dismiss X fades in over the same slot; with no code, a gradient masks the
+   truncated label behind the X instead. Mirrors the app's own rows. */
 .whp-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 2px 0;
+  margin-left: 4px;
 }
 
-.whp-conv {
+.whp-row {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: var(--radius-md, 6px);
-  font-size: 12px;
-  color: var(--text-secondary, #4a4440);
-  text-decoration: none;
-  min-width: 0;
 }
 
-.whp-conv:hover {
+.whp-row-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 12px;
+  border-radius: var(--radius-md, 6px);
+  font-size: 12px;
+  text-decoration: none;
+  color: var(--text-muted, #776f6a);
+  transition: color 100ms, background-color 100ms;
+}
+
+.whp-row-link:hover {
+  color: var(--text-secondary, #4a4440);
   background: var(--bg-hover, #f5f2ee);
 }
 
-.whp-conv-glyph {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  flex-shrink: 0;
+.whp-row-active .whp-row-link {
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-primary, #1c1917);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgb(0 0 0 / 0.05));
 }
 
-.whp-conv-title {
+.whp-row-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.whp-row-label {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
-  min-width: 0;
 }
 
-.whp-conv-running {
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--green, #15803d);
+.whp-row-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 500;
   flex-shrink: 0;
+  transition: opacity 100ms;
+}
+
+.whp-row:hover .whp-row-code {
+  opacity: 0;
+}
+
+.whp-row-dismiss {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+  opacity: 0;
+  transition: opacity 100ms;
+}
+
+.whp-row-dismiss-masked {
+  padding-left: 16px;
+  background: linear-gradient(to right, transparent, var(--bg-sidebar, #faf9f7) 40%);
+}
+
+.whp-row:hover .whp-row-dismiss {
+  opacity: 1;
+}
+
+.whp-row-dismiss-button {
+  display: inline-flex;
+  padding: 4px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--text-muted, #776f6a);
+  cursor: pointer;
+}
+
+.whp-row-dismiss-button:hover {
+  color: var(--text-secondary, #4a4440);
+  background: var(--bg-hover, #f5f2ee);
+}
+
+/* An agent running on this row's card. */
+.whp-streaming {
   animation: whp-pulse 1.4s ease-in-out infinite;
 }
 
@@ -186,8 +253,82 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.3;
+    opacity: 0.35;
   }
+}
+
+.whp-more {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 4px 12px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  color: var(--text-muted, #776f6a);
+  cursor: pointer;
+}
+
+.whp-more:hover {
+  color: var(--text-secondary, #4a4440);
+}
+
+/* The row's hover card. Placed on the body because the sidebar scrolls and
+   would clip it. */
+.whp-tooltip {
+  position: fixed;
+  z-index: 50;
+  width: 208px;
+  pointer-events: none;
+  border-radius: var(--radius-md, 6px);
+  border: 1px solid var(--border-default, #ddd8d0);
+  background: var(--bg-surface, #ffffff);
+  box-shadow: var(--shadow-md, 0 4px 12px rgb(0 0 0 / 0.1));
+  padding: 8px 12px;
+}
+
+.whp-tooltip-title {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-primary, #1c1917);
+}
+
+.whp-tooltip-meta,
+.whp-tooltip-state {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted, #776f6a);
+}
+
+.whp-tooltip-ws {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.whp-tooltip-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.whp-tooltip-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.whp-tooltip-state.whp-accent {
+  color: var(--accent, #c2410c);
 }
 
 /* An unobtrusive offer to open preferences, shown when device access is

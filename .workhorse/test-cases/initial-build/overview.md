@@ -114,11 +114,33 @@ The fixture the suite runs against is hand-written from a reading of the app's c
 
 ## Cross-workspace conversations (SCOP)
 
-- [ ] The scope control appears at the conversations header
-- [ ] Narrow scope leaves the app's sidebar untouched
-- [ ] Wide scope hides the app's list and shows conversations from every workspace
-- [ ] Returning to narrow scope restores the app's own list intact
-- [x] Each row carries its workspace's colour, matching the colour the app gives that workspace
+- [x] The scope control appears among the header's own row controls
+- [x] The scope control can be pressed again to narrow the list, without a reload
+- [x] Narrow scope leaves the app's sidebar untouched
+- [x] Wide scope hides the app's list and shows conversations from every workspace
+- [x] Returning to narrow scope restores the app's own list intact
+- [x] Two conversations on one card render as a single row
+- [ ] Two conversations on one project render as a single row
+- [x] A row shows the card's title and the card's code, not the conversation's title
+- [x] A row leads with the card's status glyph
+- [x] A row links to the card with that conversation selected
+- [x] Each row's card code carries its workspace's colour, matching the colour the app gives that workspace
+- [ ] A row with no card code shows the workspace mark in the code's place
+- [ ] A row whose agent is running pulses its glyph
+- [ ] A row awaiting the user shows a call to action in place of its glyph
+- [ ] An ambient wait shows an hourglass, with the merge variant distinguished
+- [ ] A running agent suppresses both indicators
+- [x] Hovering a row shows a hover card with title, workspace, card code and state
+- [x] The hover card is placed outside the sidebar so its scrolling cannot clip it
+- [x] The hover card is removed on leaving the row
+- [ ] The hover card flips to the row's other side when there is no room
+- [x] Hovering a row reveals a dismiss control in the card code's place
+- [x] Dismissing a row dismisses every conversation on its card
+- [ ] A dismissal that fails restores the row
+- [ ] The list bounds its rows and offers older ones
+- [ ] Older pages are fetched unscoped, matching the widened list
+- [ ] A failed page load says so and can be retried
+- [ ] Changing scope discards pages loaded at the previous scope
 - [ ] Scope state survives a reload
 - [ ] A conversation whose agent starts is marked as running, and unmarked when it stops
 - [ ] A conversation's preview and timestamp update without the list refetching

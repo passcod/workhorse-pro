@@ -117,17 +117,37 @@ export const anchors = {
     return null
   },
 
-  /** The sidebar's Conversations header, where the scope control is injected. */
+  /** The sidebar's Conversations header row. */
   conversationsHeader(): Element | null {
     const hooked = document.querySelector('[data-wh-conversations]')
     if (hooked) return hooked
     for (const span of document.querySelectorAll('nav span, aside span')) {
       if (span.textContent?.trim() === 'Conversations') {
-        // The header row is the clickable ancestor carrying the label.
-        return span.closest('a, div') ?? span.parentElement
+        // The row is the div wrapping the label and its controls. Deliberately
+        // not `closest('a, div')`: the label can sit inside a link, and the
+        // link is not the row.
+        return span.closest('div')
       }
     }
     return null
+  },
+
+  /**
+   * The cluster of controls at the right of the Conversations header, where
+   * the app puts its own row buttons and where the scope control belongs.
+   *
+   * Injecting into this cluster rather than beside the header is what keeps
+   * the control reachable: appended anywhere else it inherits the label's
+   * layout, and inside the label's link a click navigates instead of toggling.
+   */
+  conversationsControls(): Element | null {
+    const header = this.conversationsHeader()
+    if (!header) return null
+    const hooked = header.querySelector('[data-wh-conversations-controls]')
+    if (hooked) return hooked
+    // The "New" button is the cluster's stable member; the row always has one.
+    const add = header.querySelector('button[title="New"], button[title="Starting…"]')
+    return add?.parentElement ?? null
   },
 
   /** The app's own conversations list, hidden while the scope is widened. */

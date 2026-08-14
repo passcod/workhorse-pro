@@ -56,26 +56,6 @@ export function stepHistory(
 }
 
 /**
- * Whether an arrow key should step through history rather than move the caret.
- *
- * One rule, applied whether or not recall is already under way: up steps when
- * there is no line break before the caret, down when there is none after it.
- * A selection suppresses recall entirely, so the arrow keys keep their normal
- * meaning while text is selected. spec: HIST
- */
-export function caretAllowsStep(
-  value: string,
-  selectionStart: number,
-  selectionEnd: number,
-  direction: 'older' | 'newer',
-): boolean {
-  if (selectionStart !== selectionEnd) return false
-  return direction === 'older'
-    ? !value.slice(0, selectionStart).includes('\n')
-    : !value.slice(selectionStart).includes('\n')
-}
-
-/**
  * Flatten the app's own per-conversation history into one global list, oldest
  * conversation first, so history recorded before this extension existed is not
  * lost. Malformed input yields an empty list rather than throwing. spec: HIST

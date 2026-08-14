@@ -23,12 +23,10 @@ Recording consecutive duplicates once absorbs this exactly.
 
 ## Recalling
 
-One rule governs whether an arrow key steps through history or moves the caret, and it applies whether or not recall is already in progress.
+Recall is bound to Ctrl with an arrow key, so the arrow keys on their own always move the caret and a multi-line message reads and edits normally. The binding steps whether or not recall is already in progress.
 
-- [ ] Up steps to an older message when there is no line break between the start of the text and the caret
-- [ ] Down steps to a newer message when there is no line break between the caret and the end of the text
-- [ ] Otherwise the arrow key moves the caret as it normally would
-- [ ] A selection suppresses recall entirely
+- [ ] Ctrl+Up steps to an older message
+- [ ] Ctrl+Down steps to a newer message
 - [ ] Recall does nothing when there is nothing to recall
 - [ ] A recalled message arrives with the caret at its end
 

@@ -47,7 +47,6 @@ Every binding worth having is one something else already claims — a browser, a
 - [ ] Either action can be left unbound
 - [ ] A binding without a modifier is refused, because it would swallow ordinary typing
 - [ ] Both bindings are swallowed when they fire, so whatever else they would have done does not happen over the app
-- [ ] The bindings cannot take the unmodified arrow keys, which belong to recall
 
 Out of the box, stashing is the save gesture — parking a draft is a save — and restoring takes a key that no one presses on a Workhorse page for its usual purpose.
 

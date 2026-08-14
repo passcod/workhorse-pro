@@ -73,7 +73,7 @@ test('an empty binding matches nothing', () => {
 })
 
 test('a binding with no modifier is refused', () => {
-  // It would swallow ordinary typing, and the bare arrows belong to recall.
+  // It would swallow ordinary typing or caret movement in the composer.
   assert.match(bindingProblem('S') ?? '', /Ctrl, Alt or Meta/)
   assert.match(bindingProblem('ArrowUp') ?? '', /Ctrl, Alt or Meta/)
   assert.match(bindingProblem('Shift+S') ?? '', /Ctrl, Alt or Meta/)

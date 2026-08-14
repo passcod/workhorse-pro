@@ -58,10 +58,10 @@ test('recall from an empty composer walks back through sent messages', () => {
   local.recordSent('second')
   const composer = reconcile()
 
-  assert.equal(key(composer, { key: 'ArrowUp' }), true)
+  assert.equal(key(composer, { key: 'ArrowUp', ctrlKey: true }), true)
   assert.equal(composer.value, 'second')
 
-  key(composer, { key: 'ArrowUp' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
   assert.equal(composer.value, 'first')
 })
 
@@ -70,31 +70,40 @@ test('stepping newer returns towards the most recent, then empties', () => {
   local.recordSent('second')
   const composer = reconcile()
 
-  key(composer, { key: 'ArrowUp' })
-  key(composer, { key: 'ArrowUp' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
   assert.equal(composer.value, 'first')
 
-  key(composer, { key: 'ArrowDown' })
+  key(composer, { key: 'ArrowDown', ctrlKey: true })
   assert.equal(composer.value, 'second')
-  key(composer, { key: 'ArrowDown' })
+  key(composer, { key: 'ArrowDown', ctrlKey: true })
   assert.equal(composer.value, '')
 })
 
 test('recall with no history leaves the arrow key alone', () => {
   const composer = reconcile()
-  assert.equal(key(composer, { key: 'ArrowUp' }), false)
+  assert.equal(key(composer, { key: 'ArrowUp', ctrlKey: true }), false)
 })
 
-test('the caret rule lets arrows move within a multi-line message', () => {
+test('a bare arrow moves the caret and never recalls', () => {
+  local.recordSent('recalled')
+  const composer = reconcile()
+  type(composer, 'line one\nline two')
+
+  // On the first line, a bare arrow used to be hijacked into recall.
+  caretTo(composer, 2)
+  assert.equal(key(composer, { key: 'ArrowUp' }), false, 'should have moved the caret')
+  assert.equal(composer.value, 'line one\nline two')
+})
+
+test('Ctrl+arrow recalls regardless of caret position', () => {
   local.recordSent('recalled')
   const composer = reconcile()
   type(composer, 'line one\nline two')
 
   caretTo(composer, 12) // on the second line
-  assert.equal(key(composer, { key: 'ArrowUp' }), false, 'should have moved the caret')
-
-  caretTo(composer, 2) // on the first line
-  assert.equal(key(composer, { key: 'ArrowUp' }), true, 'should have recalled')
+  assert.equal(key(composer, { key: 'ArrowUp', ctrlKey: true }), true, 'should have recalled')
+  assert.equal(composer.value, 'recalled')
 })
 
 test('recall from a composer with text holds the draft and gives it back', () => {
@@ -104,10 +113,10 @@ test('recall from a composer with text holds the draft and gives it back', () =>
   const composer = reconcile()
   type(composer, 'my unsent draft')
 
-  key(composer, { key: 'ArrowUp' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
   assert.equal(composer.value, 'an old message')
 
-  key(composer, { key: 'ArrowDown' })
+  key(composer, { key: 'ArrowDown', ctrlKey: true })
   assert.equal(composer.value, 'my unsent draft')
 })
 
@@ -115,14 +124,14 @@ test('editing during recall leaves recall, and a further recall holds the edit',
   local.recordSent('old')
   const composer = reconcile()
 
-  key(composer, { key: 'ArrowUp' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
   assert.equal(composer.value, 'old')
 
   type(composer, 'now a new draft')
-  key(composer, { key: 'ArrowUp' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
   assert.equal(composer.value, 'old')
 
-  key(composer, { key: 'ArrowDown' })
+  key(composer, { key: 'ArrowDown', ctrlKey: true })
   assert.equal(composer.value, 'now a new draft')
 })
 
@@ -159,7 +168,7 @@ test('abandoning recall puts the held draft back in the app’s draft store', ()
   dom.window.localStorage.setItem(DRAFTS_KEY, drafts)
   type(composer, 'my real draft')
 
-  key(composer, { key: 'ArrowUp' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
   assert.equal(composer.value, 'an old message')
 
   dom.window.dispatchEvent(new dom.window.Event('pagehide'))
@@ -174,7 +183,7 @@ test('the composer being removed restores the draft too', () => {
   const drafts = JSON.stringify({ 'session:abc': { text: 'my real draft', updatedAt: 1 } })
   dom.window.localStorage.setItem(DRAFTS_KEY, drafts)
   type(composer, 'my real draft')
-  key(composer, { key: 'ArrowUp' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
 
   setBody('<div></div>')
   feature.reconcile({
@@ -190,8 +199,8 @@ test('a normal exit from recall leaves the draft store alone', () => {
   const composer = reconcile()
   dom.window.localStorage.setItem(DRAFTS_KEY, '{}')
 
-  key(composer, { key: 'ArrowUp' })
-  key(composer, { key: 'ArrowDown' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
+  key(composer, { key: 'ArrowDown', ctrlKey: true })
   key(composer, { key: 'Enter' })
   // Nothing to restore: the user left recall themselves.
   assert.equal(dom.window.localStorage.getItem(DRAFTS_KEY), '{}')
@@ -232,7 +241,7 @@ test('pushing during recall stashes the old message and hands the draft back', (
   const composer = reconcile()
   type(composer, 'my unsent draft')
 
-  key(composer, { key: 'ArrowUp' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
   assert.equal(composer.value, 'an old message')
 
   key(composer, { key: 's', ctrlKey: true })
@@ -245,11 +254,11 @@ test('the stash keys do not collide with recall', () => {
   const composer = reconcile()
   type(composer, 'draft')
 
-  // Ctrl+S is the stash; the bare arrows stay with recall.
+  // Ctrl+S is the stash; Ctrl+arrow is recall.
   key(composer, { key: 'p', ctrlKey: true })
   assert.equal(composer.value, 'draft', 'a pop from an empty stack should do nothing')
 
-  key(composer, { key: 'ArrowUp' })
+  key(composer, { key: 'ArrowUp', ctrlKey: true })
   assert.equal(composer.value, 'history entry')
 })
 

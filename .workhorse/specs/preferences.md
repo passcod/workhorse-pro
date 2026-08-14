@@ -19,11 +19,12 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 - [ ] Input history
 - [ ] Composer stash
 - [ ] Cross-workspace conversations
+- [ ] Named checks, alongside where the GitHub token is entered and a reading of whether it currently works
 - [ ] Live device state, alongside the control that grants access to the device and a reading of whether access is currently held
 - [ ] Reading responses the app has already fetched
 
 - [ ] Every switch starts on
-- [ ] Switch settings follow the user across devices
+- [ ] Switch settings follow the user across devices, and stored credentials do not
 
 ## Taking effect
 
@@ -37,7 +38,7 @@ A feature that is off has nothing as its desired state, and the reconcile pass t
 
 ## Stored data
 
-- [ ] The preferences page reports what the extension has stored and can clear the recorded input history and the stash independently
+- [ ] The preferences page reports what the extension has stored and can clear the recorded input history, the stash, and the GitHub token independently
 
 ## Access to a paired device
 

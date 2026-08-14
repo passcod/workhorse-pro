@@ -24,7 +24,8 @@ It reads the same endpoints the app reads, renders extra rows into the app's own
 
 ## Guiding decisions
 
-- **Read-only against Workhorse.** The extension issues GETs and renders UI. It holds no tokens, requests no GitHub scope, and performs no background network activity. Authentication is free: fetches to the app origin carry the session cookie.
+- **Read-only.** The extension issues GETs and renders UI. It changes nothing in Workhorse and nothing on GitHub. Reads against Workhorse need no credential of their own: fetches to the app origin carry the session cookie.
+- **Credentials are opt-in and earn their place.** The only credential the extension can hold is a GitHub token the user supplies for detail Workhorse does not carry. Everything works without it, in less detail. See `platform/github.md`.
 - **Degrade to absent, never to broken.** Every feature is skipped when the page does not support it, when a read fails, or when an anchor does not resolve. A missing row is an acceptable outcome; a broken app is not.
 - **Prefer the app's own work.** Where the app already holds data or already renders something correctly, the extension reads it or leaves it alone rather than duplicating it.
 - **Every feature is optional.** Each behaviour has its own switch, and turning one off removes its effect. See `preferences.md`.

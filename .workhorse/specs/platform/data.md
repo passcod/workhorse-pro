@@ -4,8 +4,10 @@ id: DATA
 
 # Reading Workhorse data
 
-Everything the extension renders comes from endpoints the app itself calls.
-Reads are same-origin and carry the session cookie, so the extension holds no credentials of its own.
+Almost everything the extension renders comes from endpoints the app itself calls.
+Those reads are same-origin and carry the session cookie, so they need no credential of their own.
+
+Detail Workhorse does not carry is read from GitHub instead — see `platform/github.md`.
 
 ## What is read
 

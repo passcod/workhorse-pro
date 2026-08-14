@@ -17,7 +17,7 @@ Firefox is the primary target; Chrome builds from the same source with the diffe
 
 The extension asks for the least it can, and asks for the rest only when a feature that needs it is used.
 
-- [ ] The extension requests host access to the configured Workhorse origins and access to extension storage, and nothing else
+- [ ] The extension requests host access to the configured Workhorse origins and to GitHub's API host, plus access to extension storage, and nothing else
 - [ ] The session cookie travels on same-origin fetches without a cookies permission, so none is requested
 - [ ] Host access to a paired device is optional, requested only when the live device state feature is enabled and a device is paired
 - [ ] Declining or revoking the optional device permission leaves every other feature working

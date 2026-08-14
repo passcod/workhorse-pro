@@ -25,7 +25,7 @@ This repo is a browser extension that overlays the Workhorse web app. It is not 
 Test approach is implementation guidance, so it lives here rather than in specs.
 
 - `node:test`, matching Workhorse's own style. No test framework dependency
-- Unit-test the pure logic: history stepping and the caret rule, stash push/pop including the swap case, check-bucket recomputation with its guards, workspace colour derivation, preference defaults, and legacy-history adoption
+- Unit-test the pure logic: history stepping and the caret rule, stash push/pop including the swap case, check-bucket recomputation with its guards, repo and ref parsing out of GitHub URLs, check-run mapping, workspace colour derivation, preference defaults, and legacy-history adoption
 - Fixture-test the DOM coupling: anchor resolution runs under jsdom against captured HTML snapshots of the real app. This is the test that earns its keep — an unmatched fallback otherwise fails silently, rendering nothing, which is the characteristic failure of the whole anchor strategy
 - Test the reconcile loop under jsdom for idempotence, removal on feature disable, and the self-feeding guard
 - Verify manually with `web-ext run` what cannot be tested headlessly: synthetic clicks against real React handlers, the native-setter write path, the event stream, and permission grants

@@ -1,0 +1,212 @@
+/*
+ * The extension's own styles.
+ *
+ * Every colour, radius and shadow comes from the app's design tokens, which
+ * are real custom properties on :root — so injected rows match the design
+ * system and follow the light and dark themes without this stylesheet knowing
+ * which is active.
+ *
+ * Nothing here reuses the app's utility classes. Those exist in its compiled
+ * stylesheet only while some component uses them, so a row styled with them
+ * would lose its styling to a change nowhere near it. spec: INJ
+ */
+
+/* A reading beneath the row it belongs to. The dotted rule is the marker
+   distinguishing an extension-rendered row from one the app renders. */
+.whx-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 0 6px;
+  border-left: 2px dotted var(--border-subtle, #eae7e1);
+}
+
+.whx-stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--text-muted, #776f6a);
+}
+
+.whx-stat-value {
+  font-size: 11px;
+  color: var(--text-muted, #776f6a);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 0;
+}
+
+.whx-amber {
+  color: var(--amber, #b45309);
+  font-weight: 500;
+}
+
+.whx-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 500;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The resolved base branch, hanging under the Based on row. */
+.whx-base-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 0 4px;
+  margin-top: -4px;
+  font-size: 11px;
+  color: var(--text-muted, #776f6a);
+}
+
+/* A named check under the breakdown. */
+.whx-check {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 0 6px;
+  border-left: 2px dotted var(--border-subtle, #eae7e1);
+  font-size: 11px;
+  color: var(--text-muted, #776f6a);
+}
+
+.whx-check-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.whx-check a {
+  color: var(--accent, #c2410c);
+  font-weight: 500;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.whx-check a:hover {
+  text-decoration: underline;
+}
+
+/* Stash depth, under the composer. Static rather than absolutely positioned:
+   the app owns the composer's layout, and giving its container a positioning
+   context would be reaching further into it than this needs to. */
+.whx-stash-badge {
+  align-self: flex-end;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted, #776f6a);
+  padding: 1px 4px 0;
+  pointer-events: none;
+}
+
+/* Scope control at the Conversations header. */
+.whx-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm, 4px);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.whx-scope:hover {
+  background: var(--bg-hover, #f5f2ee);
+}
+
+.whx-scope-glyph {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--text-muted, #776f6a);
+}
+
+.whx-scope[aria-pressed='false'] .whx-scope-glyph {
+  opacity: 0.4;
+}
+
+/* The widened conversations list. */
+.whx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 0;
+}
+
+.whx-conv {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-md, 6px);
+  font-size: 12px;
+  color: var(--text-secondary, #4a4440);
+  text-decoration: none;
+  min-width: 0;
+}
+
+.whx-conv:hover {
+  background: var(--bg-hover, #f5f2ee);
+}
+
+.whx-conv-glyph {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.whx-conv-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.whx-conv-running {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--green, #15803d);
+  flex-shrink: 0;
+  animation: whx-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes whx-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* An unobtrusive offer to open preferences, shown when device access is
+   wanted but not held. */
+.whx-notice {
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--text-muted, #776f6a);
+}
+
+.whx-notice button {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent, #c2410c);
+  cursor: pointer;
+}
+
+.whx-notice button:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,23 @@
+{
+  "name": "workhorse-expert",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A read-only overlay adding density to the Workhorse web app",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test 'test/**/*.test.ts'",
+    "start:firefox": "npm run build && web-ext run --source-dir dist/firefox"
+  },
+  "devDependencies": {
+    "@types/firefox-webext-browser": "^143.0.0",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^26.2.0",
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.0.1",
+    "typescript": "^7.0.2",
+    "web-ext": "^10.6.0"
+  }
+}

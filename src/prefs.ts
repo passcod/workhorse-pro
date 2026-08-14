@@ -23,6 +23,7 @@ export interface Prefs {
   composerStash: boolean
   crossWorkspaceConversations: boolean
   sortWorkspaces: boolean
+  rawDiff: boolean
   observeFetches: boolean
   /** Read-only, checks-scoped. Empty when the user has not supplied one. */
   githubToken: string
@@ -46,6 +47,7 @@ export const PREF_DEFAULTS: Prefs = {
   composerStash: true,
   crossWorkspaceConversations: true,
   sortWorkspaces: true,
+  rawDiff: true,
   observeFetches: true,
   githubToken: '',
   scopeWide: false,
@@ -124,6 +126,14 @@ export const SWITCHES: SwitchInfo[] = [
     detail:
       'Add a control to the sidebar’s Conversations header that widens the list to every ' +
       'workspace you can see. Each row’s card code takes its workspace’s colour.',
+  },
+  {
+    key: 'rawDiff',
+    label: 'Raw diff view',
+    detail:
+      'Add a Diff segment to the File/Changes toggle above a markdown artefact, showing it as a ' +
+      'unified diff against the base branch. Only changed passages and a few lines either side ' +
+      'appear, so a long spec does not have to be scrolled through to find what moved.',
   },
   {
     key: 'sortWorkspaces',

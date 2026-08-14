@@ -366,3 +366,127 @@ div:hover > div > .whp-scope[aria-pressed='false'],
   color: var(--accent, #c2410c);
 }
 
+
+/* ── Raw diff view ─────────────────────────────────────────────────────────
+   The Diff segment reproduces the app's own segmented control rather than
+   borrowing its classes, which exist in the compiled stylesheet only while
+   some component uses them. Every value below is the app's own token, so the
+   segment sits in the control indistinguishable from the two beside it.
+   spec: DIFF */
+
+.whp-segment {
+  border: 0;
+  margin: 0;
+  padding: 5px 14px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: var(--radius-md, 6px);
+  background: transparent;
+  color: var(--text-muted, #776f6a);
+  cursor: pointer;
+  transition: color 100ms;
+}
+
+.whp-segment:hover {
+  color: var(--text-secondary, #57534e);
+}
+
+.whp-segment[aria-pressed='true'] {
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-primary, #1c1917);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgb(0 0 0 / 0.05));
+}
+
+/* While Diff is the view being shown, the app's own segments read as
+   unselected. The app still holds File or Changes as its state and restyles
+   them on every render, so this cannot be done by rewriting their classes —
+   and out-specifying a utility class that carries its own colour is what the
+   weight here is for. */
+[data-whp-diff-active] > button:not([data-whp]) {
+  background-color: transparent !important;
+  color: var(--text-muted, #776f6a) !important;
+  box-shadow: none !important;
+}
+
+.whp-diff {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 12px 32px;
+  background: var(--bg-surface, #ffffff);
+}
+
+.whp-diff-notice {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-muted, #776f6a);
+}
+
+.whp-diff-hunk {
+  margin-bottom: 16px;
+  border: 1px solid var(--border-subtle, #eae7e1);
+  border-radius: var(--radius-default, 8px);
+  overflow: hidden;
+}
+
+.whp-diff-header {
+  padding: 4px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--text-muted, #776f6a);
+  background: var(--bg-page, #f8f7f4);
+  border-bottom: 1px solid var(--border-subtle, #eae7e1);
+  white-space: pre-wrap;
+}
+
+.whp-diff-body {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.whp-diff-line {
+  display: flex;
+  gap: 8px;
+  padding: 0 10px;
+}
+
+.whp-diff-sign {
+  flex-shrink: 0;
+  width: 1ch;
+  color: var(--text-muted, #776f6a);
+  user-select: none;
+}
+
+/* Pre-wrap so a long line wraps instead of scrolling the panel sideways, and
+   so an empty line still occupies one. */
+.whp-diff-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.whp-diff-add {
+  background: var(--bg-diff-insert, rgba(22, 163, 74, 0.1));
+}
+
+.whp-diff-add .whp-diff-sign,
+.whp-diff-add .whp-diff-text {
+  color: var(--text-diff-insert, #16a34a);
+}
+
+.whp-diff-remove {
+  background: var(--bg-diff-delete, rgba(194, 65, 12, 0.1));
+}
+
+.whp-diff-remove .whp-diff-sign,
+.whp-diff-remove .whp-diff-text {
+  color: var(--text-diff-delete, #c2410c);
+}
+
+.whp-diff-context .whp-diff-text {
+  color: var(--text-secondary, #57534e);
+}

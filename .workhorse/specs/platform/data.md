@@ -14,6 +14,7 @@ Detail Workhorse does not carry is read from GitHub instead — see `platform/gi
 - [ ] Branch status for the card on screen supplies the check counts and the review run state
 - [ ] Sidebar data supplies the workspace list the row colours are derived from
 - [ ] The recent-sessions list, requested without a workspace, supplies conversations across every workspace the user can see
+- [ ] The card's file listing supplies the current content of the artefact on screen, and the base-file read supplies the same artefact's content on the base branch, which are the two sides of the raw diff
 
 Both branch-status parameters are taken from the card route, so the extension never has to discover which card it is looking at by any other means.
 

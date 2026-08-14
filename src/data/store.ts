@@ -159,6 +159,21 @@ export function peek<T>(key: string): T | null {
 }
 
 /**
+ * Whether a key has never resolved and its last attempt failed.
+ *
+ * Almost every feature renders detail nobody asked for, so a read that fails
+ * costs a row and needs no distinction from one still in flight. The raw diff
+ * is the exception: it sits behind a segment the reader clicked, and a click
+ * that renders nothing at all reads as a broken control rather than as an
+ * answer. This is what lets it say so instead. spec: DIFF
+ */
+export function failed(key: string): boolean {
+  const entry = entries.get(key)
+  if (!entry) return false
+  return entry.at === 0 && entry.failedAt !== 0
+}
+
+/**
  * Record a value the extension did not fetch — an observed response.
  *
  * Treated exactly as a fetched value, including cancelling the staleness that

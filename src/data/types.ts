@@ -37,6 +37,38 @@ export interface BranchStatusData {
 }
 
 /**
+ * One artefact in a card's worktree, as the card-files listing carries it.
+ *
+ * `content` is the version on the card's branch, which is the "after" side of
+ * the raw diff. spec: DIFF
+ */
+export interface CardFile {
+  filePath: string
+  isNew: boolean
+  isDeleted: boolean
+  content: string
+}
+
+export interface CardFilesData {
+  initialFiles: CardFile[]
+}
+
+/** The artefact's content on the base branch. Null when it is not there. */
+export interface BaseFileData {
+  content: string | null
+}
+
+/**
+ * Card detail, narrowed to the identifier-to-id mapping.
+ *
+ * The base-file read is keyed by the card's own id rather than the identifier
+ * the route carries, and this is where that id comes from.
+ */
+export interface CardDetailData {
+  card: { id: string } | null
+}
+
+/**
  * A row's worth of a recent conversation, as `mapRecentSession` returns it.
  *
  * A row is not a conversation: card-bound conversations collapse to one row

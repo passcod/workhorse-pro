@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Workhorse Expert",
+  "name": "Workhorse Pro",
   "version": "0.1.0",
   "description": "Adds density to the Workhorse web app: expanded pull request detail, check and review stats, composer history and stash, and cross-workspace conversations.",
   "permissions": ["storage"],

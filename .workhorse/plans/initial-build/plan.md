@@ -1,4 +1,4 @@
-# Workhorse Expert — initial build
+# Workhorse Pro — initial build
 
 Greenfield build of the extension from the spec set. No prior code, so the sequence is scaffolding → core machinery → data → features → preferences → tests.
 
@@ -28,7 +28,7 @@ Greenfield build of the extension from the spec set. No prior code, so the seque
 
 - [x] `prefs.ts` — schema, defaults (all on), sync-area read/write, change subscription
 - [x] `localData.ts` — history and stash in the local area, loaded into memory for synchronous reads
-- [x] `content/styles.css` — `whx-` classes over app design tokens
+- [x] `content/styles.css` — `whp-` classes over app design tokens
 - [x] `content/anchors.ts` — named anchors, attribute-first with fallbacks
 - [x] `content/dom.ts` — `ensure`/`ensureAfter`/`remove`, which is what makes features idempotent
 - [x] `content/reconcile.ts` — observer, rAF coalescing, self-injection guard, per-feature isolation

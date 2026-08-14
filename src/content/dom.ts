@@ -8,7 +8,7 @@ import { marked } from './reconcile.ts'
  * exist, here" and run any number of times. spec: INJ
  */
 
-const ID = 'data-whx-id'
+const ID = 'data-whp-id'
 
 /** Find or create a child of `parent` identified by `id`. */
 export function ensure<T extends HTMLElement>(
@@ -79,9 +79,9 @@ export function statRow(label: string): {
   root: HTMLDivElement
   value: HTMLSpanElement
 } {
-  const root = el('div', 'whx-stat-row')
-  root.appendChild(el('span', 'whx-stat-label', label))
-  const value = el('span', 'whx-stat-value')
+  const root = el('div', 'whp-stat-row')
+  root.appendChild(el('span', 'whp-stat-label', label))
+  const value = el('span', 'whp-stat-value')
   root.appendChild(value)
   return { root, value }
 }

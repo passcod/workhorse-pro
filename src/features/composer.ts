@@ -240,7 +240,7 @@ export function composerFeature(): Feature {
 
       const depth = getStash().length
       if (current.composerStash && depth > 0) {
-        const badge = ensureAfter(element, BADGE, () => el('div', 'whx-stash-badge'))
+        const badge = ensureAfter(element, BADGE, () => el('div', 'whp-stash-badge'))
         badge.textContent = `${depth} stashed`
       } else {
         remove(BADGE)

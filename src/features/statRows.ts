@@ -30,7 +30,7 @@ function breakdownNodes(counts: {
   // Only non-zero buckets appear, so a clean run reads as a passed count alone
   // rather than padding three zeroes around it. spec: STAT
   if (counts.passed > 0) push(document.createTextNode(`${counts.passed} passed`))
-  if (counts.failed > 0) push(el('span', 'whx-amber', `${counts.failed} failed`))
+  if (counts.failed > 0) push(el('span', 'whp-amber', `${counts.failed} failed`))
   if (counts.running > 0) push(document.createTextNode(`${counts.running} running`))
   if (counts.skipped > 0) push(document.createTextNode(`${counts.skipped} skipped`))
   return parts
@@ -58,7 +58,7 @@ export function statRows(): Feature {
       const counts = status?.ci ? checkBreakdown(status.ci) : null
       if (prefs.checksBreakdown && checksContent && counts && !breakdownIsEmpty(counts)) {
         const row = ensure(checksContent, BREAKDOWN, () => statRow('Latest run').root)
-        const value = row.querySelector('.whx-stat-value')!
+        const value = row.querySelector('.whp-stat-value')!
         value.replaceChildren(...breakdownNodes(counts))
       } else {
         remove(BREAKDOWN)
@@ -75,7 +75,7 @@ export function statRows(): Feature {
         : 0
       if (prefs.reviewStats && reviewContent && runs > 0) {
         const row = ensure(reviewContent, RUNS, () => statRow('Runs').root)
-        row.querySelector('.whx-stat-value')!.textContent = String(runs)
+        row.querySelector('.whp-stat-value')!.textContent = String(runs)
       } else {
         remove(RUNS)
       }
@@ -83,12 +83,12 @@ export function statRows(): Feature {
       const lastReview = status?.lastReview ?? null
       if (prefs.reviewStats && reviewContent && lastReview) {
         const row = ensure(reviewContent, LAST_RUN, () => statRow('Last run').root)
-        const value = row.querySelector('.whx-stat-value')!
+        const value = row.querySelector('.whp-stat-value')!
         const summary = formatReviewCounts(lastReview.counts)
         const nodes: Node[] = [document.createTextNode(summary.text)]
         if (summary.critical > 0) {
           nodes.push(document.createTextNode(', '))
-          nodes.push(el('span', 'whx-amber', `${summary.critical} critical`))
+          nodes.push(el('span', 'whp-amber', `${summary.critical} critical`))
         }
         value.replaceChildren(...nodes)
       } else {
@@ -100,13 +100,13 @@ export function statRows(): Feature {
       const effective = status?.effectiveBaseBranch ?? null
       if (prefs.effectiveBaseBranch && basedOn && effective) {
         const row = ensureAfter(basedOn, BASE, () => {
-          const node = el('div', 'whx-base-row')
+          const node = el('div', 'whp-base-row')
           node.title = 'Effective base branch'
           node.appendChild(el('span', undefined, '↳'))
-          node.appendChild(el('span', 'whx-mono'))
+          node.appendChild(el('span', 'whp-mono'))
           return node
         })
-        row.querySelector('.whx-mono')!.textContent = effective
+        row.querySelector('.whp-mono')!.textContent = effective
       } else {
         remove(BASE)
       }

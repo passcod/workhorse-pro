@@ -1,4 +1,4 @@
-# Workhorse Expert — initial build
+# Workhorse Pro — initial build
 
 Scenarios verifying the extension against its specs. Automated where the logic is pure or reachable under jsdom; manual where it needs a real browser and a live Workhorse.
 

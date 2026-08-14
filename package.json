@@ -1,5 +1,5 @@
 {
-  "name": "workhorse-expert",
+  "name": "workhorse-pro",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,8 @@
     "watch": "node build.mjs --watch",
     "typecheck": "tsc --noEmit",
     "test": "node --test 'test/**/*.test.ts'",
-    "start:firefox": "npm run build && web-ext run --source-dir dist/firefox"
+    "start:firefox": "npm run build && web-ext run --source-dir dist/firefox",
+    "package": "npm run build && web-ext build --source-dir dist/firefox --overwrite-dest"
   },
   "devDependencies": {
     "@types/firefox-webext-browser": "^143.0.0",

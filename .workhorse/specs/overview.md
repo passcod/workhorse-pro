@@ -2,9 +2,9 @@
 id: WXP
 ---
 
-# Workhorse Expert
+# Workhorse Pro
 
-Workhorse Expert is a browser extension that adds density to the Workhorse web app.
+Workhorse Pro is a browser extension that adds density to the Workhorse web app.
 It surfaces detail the app deliberately keeps out of its own chrome — check breakdowns, review run counts, resolved base branches — and adds composer and sidebar affordances for people who work in Workhorse all day.
 
 The extension is an overlay, not a fork.

@@ -47,11 +47,11 @@ export function namedChecks(): Feature {
       const container = ensure(content, CONTAINER, () => el('div'))
       container.replaceChildren(
         ...interesting.map((run) => {
-          const row = el('div', 'whx-check')
+          const row = el('div', 'whp-check')
           const state = checkRunState(run)
           const name = el(
             'span',
-            state === 'failed' ? 'whx-check-name whx-amber' : 'whx-check-name',
+            state === 'failed' ? 'whp-check-name whp-amber' : 'whp-check-name',
             run.name,
           )
           row.appendChild(name)

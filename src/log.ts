@@ -10,7 +10,7 @@ const reported = new Set<string>()
 export function reportOnce(scope: string, error: unknown): void {
   if (reported.has(scope)) return
   reported.add(scope)
-  console.warn(`[workhorse-expert] ${scope}`, error)
+  console.warn(`[workhorse-pro] ${scope}`, error)
 }
 
 /** Test seam: forget what has been reported. */

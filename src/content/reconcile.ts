@@ -29,7 +29,7 @@ export interface Feature {
 }
 
 /** Attribute marking a node as the extension's own. */
-export const MARK = 'data-whx'
+export const MARK = 'data-whp'
 
 /** Mark an element as injected, so the observer ignores its own work. */
 export function marked<T extends Element>(element: T): T {

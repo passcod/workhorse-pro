@@ -12,7 +12,7 @@ When picking up a task, read the skill whose folder name matches what you're bei
 Workhorse keeps this section, the skills, and the reference docs current automatically: the first agent turn of a session smart-merges the latest release over your local edits, so your deliberate changes survive. Edit or remove it freely.
 <!-- END:workhorse -->
 
-# Workhorse Expert
+# Workhorse Pro
 
 This repo is a browser extension that overlays the Workhorse web app. It is not part of Workhorse itself — it is a separate product with its own specs, built against Workhorse's HTTP endpoints and rendered DOM.
 

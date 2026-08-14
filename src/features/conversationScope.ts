@@ -22,10 +22,10 @@ const LIST = 'scope-list'
 const NOTICE = 'device-notice'
 
 function buildToggle(onClick: () => void): HTMLButtonElement {
-  const button = el('button', 'whx-scope')
+  const button = el('button', 'whp-scope')
   button.type = 'button'
   button.title = 'Conversations from every workspace'
-  for (let i = 0; i < 4; i++) button.appendChild(el('span', 'whx-scope-glyph'))
+  for (let i = 0; i < 4; i++) button.appendChild(el('span', 'whp-scope-glyph'))
   button.addEventListener('click', (event) => {
     event.preventDefault()
     event.stopPropagation()
@@ -40,12 +40,12 @@ function rowFor(
   isRunning: boolean,
   live: SessionSummary | undefined,
 ): HTMLAnchorElement {
-  const row = el('a', 'whx-conv')
+  const row = el('a', 'whp-conv')
   row.href = session.workspaceName
     ? `/${encodeURIComponent(session.workspaceName)}/sessions/${session.id}`
     : '#'
 
-  const glyph = el('span', 'whx-conv-glyph')
+  const glyph = el('span', 'whp-conv-glyph')
   if (colour) glyph.style.background = colour
   glyph.title = session.workspaceName ?? ''
   row.appendChild(glyph)
@@ -56,9 +56,9 @@ function rowFor(
     live?.lastMessagePreview ??
     session.lastMessagePreview ??
     'Conversation'
-  row.appendChild(el('span', 'whx-conv-title', title))
+  row.appendChild(el('span', 'whp-conv-title', title))
 
-  if (isRunning) row.appendChild(el('span', 'whx-conv-running'))
+  if (isRunning) row.appendChild(el('span', 'whp-conv-running'))
   return row
 }
 
@@ -125,7 +125,7 @@ export function conversationScope(): Feature {
         : new Map<string, SessionSummary>()
 
       const running = runningSessions()
-      const container = ensureAfter(appList ?? header, LIST, () => el('div', 'whx-list'))
+      const container = ensureAfter(appList ?? header, LIST, () => el('div', 'whp-list'))
       container.replaceChildren(
         ...sessions.map((session) =>
           rowFor(
@@ -142,7 +142,7 @@ export function conversationScope(): Feature {
         prefs.deviceOverlay && localIds.length > 0 && devicePermitted() === false
       if (wantsDevice) {
         const notice = ensureAfter(container, NOTICE, () => {
-          const node = el('div', 'whx-notice')
+          const node = el('div', 'whp-notice')
           node.appendChild(document.createTextNode('Device state unavailable — '))
           const button = el('button', undefined, 'grant access')
           button.addEventListener('click', () => {

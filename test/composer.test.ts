@@ -259,10 +259,10 @@ test('the stash depth shows while something is held', () => {
   key(composer, { key: 'ArrowDown', altKey: true })
   reconcile()
 
-  const badge = document.querySelector('[data-whx-id="stash-badge"]')
+  const badge = document.querySelector('[data-whp-id="stash-badge"]')
   assert.equal(badge?.textContent, '1 stashed')
 
   key(composer, { key: 'ArrowUp', altKey: true })
   reconcile()
-  assert.equal(document.querySelector('[data-whx-id="stash-badge"]'), null)
+  assert.equal(document.querySelector('[data-whp-id="stash-badge"]'), null)
 })

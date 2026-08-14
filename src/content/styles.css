@@ -13,7 +13,7 @@
 
 /* A reading beneath the row it belongs to. The dotted rule is the marker
    distinguishing an extension-rendered row from one the app renders. */
-.whx-stat-row {
+.whp-stat-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -22,14 +22,14 @@
   border-left: 2px dotted var(--border-subtle, #eae7e1);
 }
 
-.whx-stat-label {
+.whp-stat-label {
   font-size: 11px;
   font-weight: 500;
   font-style: italic;
   color: var(--text-muted, #776f6a);
 }
 
-.whx-stat-value {
+.whp-stat-value {
   font-size: 11px;
   color: var(--text-muted, #776f6a);
   font-variant-numeric: tabular-nums;
@@ -37,12 +37,12 @@
   min-width: 0;
 }
 
-.whx-amber {
+.whp-amber {
   color: var(--amber, #b45309);
   font-weight: 500;
 }
 
-.whx-mono {
+.whp-mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 500;
   max-width: 160px;
@@ -52,7 +52,7 @@
 }
 
 /* The resolved base branch, hanging under the Based on row. */
-.whx-base-row {
+.whp-base-row {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -64,7 +64,7 @@
 }
 
 /* A named check under the breakdown. */
-.whx-check {
+.whp-check {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -75,27 +75,27 @@
   color: var(--text-muted, #776f6a);
 }
 
-.whx-check-name {
+.whp-check-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.whx-check a {
+.whp-check a {
   color: var(--accent, #c2410c);
   font-weight: 500;
   text-decoration: none;
   flex-shrink: 0;
 }
 
-.whx-check a:hover {
+.whp-check a:hover {
   text-decoration: underline;
 }
 
 /* Stash depth, under the composer. Static rather than absolutely positioned:
    the app owns the composer's layout, and giving its container a positioning
    context would be reaching further into it than this needs to. */
-.whx-stash-badge {
+.whp-stash-badge {
   align-self: flex-end;
   font-size: 10px;
   font-weight: 500;
@@ -105,7 +105,7 @@
 }
 
 /* Scope control at the Conversations header. */
-.whx-scope {
+.whp-scope {
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -117,30 +117,30 @@
   cursor: pointer;
 }
 
-.whx-scope:hover {
+.whp-scope:hover {
   background: var(--bg-hover, #f5f2ee);
 }
 
-.whx-scope-glyph {
+.whp-scope-glyph {
   width: 5px;
   height: 5px;
   border-radius: 999px;
   background: var(--text-muted, #776f6a);
 }
 
-.whx-scope[aria-pressed='false'] .whx-scope-glyph {
+.whp-scope[aria-pressed='false'] .whp-scope-glyph {
   opacity: 0.4;
 }
 
 /* The widened conversations list. */
-.whx-list {
+.whp-list {
   display: flex;
   flex-direction: column;
   gap: 1px;
   padding: 2px 0;
 }
 
-.whx-conv {
+.whp-conv {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -152,18 +152,18 @@
   min-width: 0;
 }
 
-.whx-conv:hover {
+.whp-conv:hover {
   background: var(--bg-hover, #f5f2ee);
 }
 
-.whx-conv-glyph {
+.whp-conv-glyph {
   width: 6px;
   height: 6px;
   border-radius: 999px;
   flex-shrink: 0;
 }
 
-.whx-conv-title {
+.whp-conv-title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -171,16 +171,16 @@
   min-width: 0;
 }
 
-.whx-conv-running {
+.whp-conv-running {
   width: 5px;
   height: 5px;
   border-radius: 999px;
   background: var(--green, #15803d);
   flex-shrink: 0;
-  animation: whx-pulse 1.4s ease-in-out infinite;
+  animation: whp-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes whx-pulse {
+@keyframes whp-pulse {
   0%,
   100% {
     opacity: 1;
@@ -192,13 +192,13 @@
 
 /* An unobtrusive offer to open preferences, shown when device access is
    wanted but not held. */
-.whx-notice {
+.whp-notice {
   padding: 2px 8px;
   font-size: 11px;
   color: var(--text-muted, #776f6a);
 }
 
-.whx-notice button {
+.whp-notice button {
   border: none;
   background: none;
   padding: 0;
@@ -207,6 +207,6 @@
   cursor: pointer;
 }
 
-.whx-notice button:hover {
+.whp-notice button:hover {
   text-decoration: underline;
 }

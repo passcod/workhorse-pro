@@ -16,6 +16,9 @@ const ENTRIES = {
 const STATIC = [
   ['src/content/styles.css', 'styles.css'],
   ['src/options/options.html', 'options.html'],
+  // Firefox takes SVG icons directly. Chrome does not — chromifying means
+  // rasterising this to PNGs and adding an `icons` block to its manifest.
+  ['src/icons/icon.svg', 'icon.svg'],
 ]
 
 const pkg = JSON.parse(await readFile('package.json', 'utf8'))

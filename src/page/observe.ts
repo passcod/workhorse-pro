@@ -34,7 +34,7 @@ function install(): void {
   const original = window.fetch
   // Re-running would wrap the wrapper. Nothing should inject this twice, but a
   // doubled side-channel is silent and would be tedious to diagnose.
-  if ((original as { __whx?: boolean }).__whx) return
+  if ((original as { __whp?: boolean }).__whp) return
 
   const wrapped: typeof window.fetch = function (this: unknown, input, init) {
     const promise = original.call(this as never, input as never, init as never)
@@ -63,7 +63,7 @@ function install(): void {
     }
     return promise
   }
-  ;(wrapped as { __whx?: boolean }).__whx = true
+  ;(wrapped as { __whp?: boolean }).__whp = true
   window.fetch = wrapped
 }
 

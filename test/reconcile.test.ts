@@ -152,5 +152,5 @@ test("a change the app makes does schedule a pass", async () => {
 
 test('marked nodes are recognised as the extension’s own', () => {
   const node = marked(document.createElement('div'))
-  assert.equal(node.hasAttribute('data-whx'), true)
+  assert.equal(node.hasAttribute('data-whp'), true)
 })

@@ -8,7 +8,7 @@
  */
 
 /** Page world → content script: a response the app fetched. */
-export const OBSERVED_MESSAGE = 'workhorse-expert:observed'
+export const OBSERVED_MESSAGE = 'workhorse-pro:observed'
 
 /** Content script → background: open the preferences page. */
-export const OPEN_OPTIONS_MESSAGE = 'workhorse-expert:open-options'
+export const OPEN_OPTIONS_MESSAGE = 'workhorse-pro:open-options'

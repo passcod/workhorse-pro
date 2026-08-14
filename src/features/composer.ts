@@ -1,5 +1,5 @@
 import { anchors } from '../content/anchors.ts'
-import { ensureAfter, el, remove } from '../content/dom.ts'
+import { ensureAfter, el, remove, writeComposer } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { stepHistory } from '../lib/history.ts'
 import { matchesBinding } from '../lib/keys.ts'
@@ -18,12 +18,6 @@ import type { Prefs } from '../prefs.ts'
 /** The app's own draft store, which recall has to be careful not to cost. */
 const DRAFTS_KEY = 'workhorse:chat-drafts'
 const BADGE = 'stash-badge'
-
-/** Writing through this makes React's own change handler run. */
-const nativeValue = Object.getOwnPropertyDescriptor(
-  HTMLTextAreaElement.prototype,
-  'value',
-)?.set
 
 let composer: HTMLTextAreaElement | null = null
 let prefs: Prefs | null = null
@@ -54,18 +48,13 @@ function writeDrafts(value: string): void {
 }
 
 /**
- * Put text in the composer as though the user had typed it, so the app's
- * change handler runs and its draft retention and auto-resize behave normally.
+ * Write to the composer, guarding the write with `applying` so this module's
+ * own input handler ignores the event it triggers.
  */
 function setValue(element: HTMLTextAreaElement, text: string): void {
   applying = true
   try {
-    nativeValue?.call(element, text)
-    element.dispatchEvent(new Event('input', { bubbles: true }))
-    element.style.height = 'auto'
-    element.style.height = `${element.scrollHeight}px`
-    element.setSelectionRange(text.length, text.length)
-    element.focus()
+    writeComposer(element, text)
   } finally {
     applying = false
   }

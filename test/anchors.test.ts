@@ -1,7 +1,7 @@
 import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { installDom, setBody } from './dom.ts'
-import { artefactPane, composerArea, prSection, sidebar } from './fixtures/app.ts'
+import { artefactPane, composerArea, prSection, queuedMessages, sidebar } from './fixtures/app.ts'
 
 installDom()
 const { anchors } = await import('../src/content/anchors.ts')
@@ -77,6 +77,20 @@ test('the Review Hero content exists only while its row is open', () => {
   assert.equal(anchors.reviewContent(), null)
   setBody(prSection({ detailExpanded: true, reviewOpen: true }))
   assert.ok(anchors.reviewContent())
+})
+
+test('the queued discards resolve one per undelivered message', () => {
+  setBody(queuedMessages([{}, { grouped: true }]))
+  const discards = anchors.queuedDiscards()
+  assert.equal(discards.length, 2)
+  for (const discard of discards) {
+    assert.equal(discard.getAttribute('aria-label'), 'Discard queued message')
+  }
+})
+
+test('no queued messages resolves to an empty list rather than throwing', () => {
+  setBody(composerArea())
+  assert.deepEqual(anchors.queuedDiscards(), [])
 })
 
 test('the conversations header resolves to the row, not the label link', () => {

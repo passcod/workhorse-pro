@@ -71,6 +71,23 @@ export const anchors = {
     )
   },
 
+  /**
+   * The discard controls of the queued messages, one per undelivered message.
+   *
+   * The app reveals one on each message queued while a turn runs, labelled to
+   * discard it from the queue. The revert control sits beside each. spec: QRV
+   */
+  queuedDiscards(): HTMLElement[] {
+    const hooked = document.querySelectorAll<HTMLElement>('[data-wh-queued-discard]')
+    if (hooked.length > 0) return [...hooked]
+    // Fallback: the discard button carries the app's own accessible label.
+    return [
+      ...document.querySelectorAll<HTMLElement>(
+        'button[aria-label="Discard queued message"]',
+      ),
+    ]
+  },
+
   /** The control that expands the pull request detail section. */
   prDetailToggle(): HTMLElement | null {
     const hooked = document.querySelector<HTMLElement>('[data-wh-pr-toggle]')

@@ -7,6 +7,7 @@ import { autoExpand } from '../features/autoExpand.ts'
 import { statRows } from '../features/statRows.ts'
 import { namedChecks } from '../features/namedChecks.ts'
 import { composerFeature } from '../features/composer.ts'
+import { queuedRevert } from '../features/queuedRevert.ts'
 import { conversationScope } from '../features/conversationScope.ts'
 import { workspaceOrder } from '../features/workspaceOrder.ts'
 import { rawDiff } from '../features/rawDiff.ts'
@@ -43,6 +44,7 @@ async function main(): Promise<void> {
   reconciler.register(statRows())
   reconciler.register(namedChecks())
   reconciler.register(composerFeature())
+  reconciler.register(queuedRevert())
   reconciler.register(conversationScope())
   reconciler.register(workspaceOrder())
   reconciler.register(rawDiff())

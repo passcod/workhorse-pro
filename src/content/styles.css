@@ -139,6 +139,47 @@ a.whp-check:hover .whp-check-job {
   background: var(--bg-hover, #f5f2ee);
 }
 
+/* Revert control, beside the app's discard control on a queued message. It
+   mirrors that control: a muted icon button, revealed on the message's hover,
+   tinting toward the accent on its own hover rather than the discard's red.
+   Margin-auto pulls it to the right so it sits immediately left of the discard,
+   which the app pushes to the far end of the header row. */
+.whp-queued-revert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--text-muted, #776f6a);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 100ms, color 100ms, background-color 100ms;
+}
+
+/* A grouped message has no header row, so the app floats its discard at the
+   message's top-right. The revert control sits one control-width to its left. */
+.whp-queued-revert-grouped {
+  position: absolute;
+  top: 0;
+  right: 26px;
+  margin-left: 0;
+}
+
+[data-whp-queued]:hover .whp-queued-revert,
+.whp-queued-revert:focus-visible {
+  opacity: 1;
+}
+
+.whp-queued-revert:hover {
+  color: var(--accent, #c2410c);
+  background: var(--bg-hover, #f5f2ee);
+}
+
 /* Scope control, sitting in the Conversations header's own control cluster
    alongside the app's row buttons. Like them it is revealed on row hover —
    except while the list is widened, when it stays lit so the widened state

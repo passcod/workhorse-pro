@@ -146,6 +146,39 @@ export function remove(id: string, root: ParentNode = document): void {
   }
 }
 
+/**
+ * The textarea's native value setter, resolved lazily.
+ *
+ * Read on first use rather than at import time: `dom.ts` is imported by every
+ * feature, some in test setups that install the DOM globals only just before
+ * the module that needs the write path — a top-level read would run before
+ * `HTMLTextAreaElement` exists.
+ */
+let nativeTextareaValue: ((value: string) => void) | null | undefined
+function textareaValueSetter(): ((value: string) => void) | null {
+  if (nativeTextareaValue === undefined) {
+    nativeTextareaValue =
+      (typeof HTMLTextAreaElement !== 'undefined'
+        ? Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set
+        : undefined) ?? null
+  }
+  return nativeTextareaValue
+}
+
+/**
+ * Put text in the composer as though the user had typed it, so the app's own
+ * change handler runs and its draft retention and auto-resize behave normally.
+ * Leaves the caret at the end and the composer focused.
+ */
+export function writeComposer(element: HTMLTextAreaElement, text: string): void {
+  textareaValueSetter()?.call(element, text)
+  element.dispatchEvent(new Event('input', { bubbles: true }))
+  element.style.height = 'auto'
+  element.style.height = `${element.scrollHeight}px`
+  element.setSelectionRange(text.length, text.length)
+  element.focus()
+}
+
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   className?: string,

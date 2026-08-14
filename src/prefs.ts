@@ -21,6 +21,7 @@ export interface Prefs {
   namedChecks: boolean
   inputHistory: boolean
   composerStash: boolean
+  queuedRevert: boolean
   crossWorkspaceConversations: boolean
   sortWorkspaces: boolean
   rawDiff: boolean
@@ -45,6 +46,7 @@ export const PREF_DEFAULTS: Prefs = {
   namedChecks: true,
   inputHistory: true,
   composerStash: true,
+  queuedRevert: true,
   crossWorkspaceConversations: true,
   sortWorkspaces: true,
   rawDiff: true,
@@ -118,6 +120,13 @@ export const SWITCHES: SwitchInfo[] = [
       'Park drafts on a stack and bring them back later, across any conversation. ' +
       'The keys are set below and can be changed. ' +
       'Popping into a composer that already has text swaps the two, so nothing is lost.',
+  },
+  {
+    key: 'queuedRevert',
+    label: 'Revert queued messages',
+    detail:
+      'Add a control beside a queued message’s discard button that puts the message back into ' +
+      'the composer instead of dropping it. The text folds in above any draft you have started.',
   },
   {
     key: 'crossWorkspaceConversations',

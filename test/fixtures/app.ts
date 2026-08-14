@@ -253,3 +253,57 @@ export function composerArea(): string {
     </div>
   `
 }
+
+/**
+ * A queued message, as `ChatMessage` renders one while it waits to be delivered.
+ *
+ * Shape reproduced from that component:
+ *
+ * - The container is a `.group.relative` div, opened by a header row or grouped
+ *   under the message above.
+ * - The discard control is a `button[aria-label="Discard queued message"]`. In
+ *   the header case it is the last thing in the header row; in the grouped case
+ *   it floats directly in the container, before the body.
+ * - The body is the container's other child, holding the markdown the app
+ *   renders from the message's source inside its own container div.
+ *
+ * spec: QRV
+ */
+function queuedMessage(content: string, grouped: boolean): string {
+  const discard = `<button type="button" aria-label="Discard queued message" title="Discard this queued message"><svg></svg></button>`
+  const body = `<div class="body"><div class="markdown">${content}</div></div>`
+  const opener = grouped
+    ? discard
+    : `<div class="header">
+         <span class="avatar"></span>
+         <span class="name">You</span>
+         <span class="queued">queued</span>
+         ${discard}
+       </div>`
+  return `<div class="group relative">${opener}${body}</div>`
+}
+
+export interface QueuedMessage {
+  content?: string
+  grouped?: boolean
+}
+
+/**
+ * A chat column carrying queued messages and the composer they revert into.
+ * Each message defaults to a single markdown paragraph with a header.
+ */
+export function queuedMessages(messages: QueuedMessage[] = [{}]): string {
+  const bubbles = messages
+    .map(({ content = '<p>a queued message</p>', grouped = false }) =>
+      queuedMessage(content, grouped),
+    )
+    .join('')
+  return `
+    <div class="chat">
+      <div class="messages">${bubbles}</div>
+      <div class="composer">
+        <textarea placeholder="Continue the conversation..."></textarea>
+      </div>
+    </div>
+  `
+}

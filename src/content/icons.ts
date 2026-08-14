@@ -146,6 +146,18 @@ export function closeIcon(size = 11): SVGSVGElement {
   return node
 }
 
+/** Return a queued message to the composer: the enter-key corner arrow. */
+export function cornerDownLeftIcon(size = 14): SVGSVGElement {
+  const node = svg(size, '0 0 24 24')
+  node.setAttribute('stroke', 'currentColor')
+  node.setAttribute('stroke-width', '2')
+  node.setAttribute('stroke-linecap', 'round')
+  node.setAttribute('stroke-linejoin', 'round')
+  child(node, 'polyline', { points: '9 10 4 15 9 20' })
+  child(node, 'path', { d: 'M20 4v7a4 4 0 0 1-4 4H4' })
+  return node
+}
+
 /**
  * The scope control's glyph: four squares, each turned about its own centre
  * while the grid they sit on stays orthogonal. Coloured while the list is

@@ -19,9 +19,11 @@
  *   the label, followed by a content div when open.
  * - The branch dropdown carries `aria-expanded` and `title="Advanced branch
  *   controls"`, and renders only inside the expanded detail.
- * - Before a pull request exists, the detail is opened by
- *   `button[title="Branch details"]`; afterwards by the collapsed bar's own
- *   button, which sits in a row with `a[title="Open on GitHub"]`.
+ * - The detail is opened by the bar's title row: a button carrying no title of
+ *   its own, whose chevron carries the app's own test id — `pr-create-chevron`
+ *   before a pull request exists, `pr-detail-chevron` once one does. Beside it
+ *   sit the Create button (before a PR) and the kebab `button[title="More"]`
+ *   that holds Open in GitHub and the title actions.
  *
  * spec: INJ
  */
@@ -35,6 +37,20 @@ function disclosure(label: string, open: boolean, right = ''): string {
     ${open ? '<div class="disclosure-content"></div>' : ''}
   `
 }
+
+/** The bar's expand toggle: a button wrapping the title and a chevron that
+ *  carries the app's own test id. */
+function barTitleRow(chevronTestId: string, inner: string): string {
+  return `
+    <button type="button">
+      ${inner}
+      <svg data-testid="${chevronTestId}"></svg>
+    </button>
+  `
+}
+
+/** The bar's kebab, holding Open in GitHub and the title actions. */
+const kebab = `<button type="button" title="More">⋯</button>`
 
 export interface PrSectionOptions {
   hasPr?: boolean
@@ -55,12 +71,13 @@ export function prSection(options: PrSectionOptions = {}): string {
 
   const collapsedBar = hasPr
     ? `<div class="bar">
-         <button type="button"><span>Add the thing</span><span>#78</span></button>
-         <a href="https://github.com/o/r/pull/78" title="Open on GitHub">↗</a>
+         ${barTitleRow('pr-detail-chevron', '<span>Add the thing</span><span>#78</span>')}
+         ${kebab}
        </div>`
     : `<div class="bar">
          <button type="button">Create PR</button>
-         <button type="button" title="Branch details">v</button>
+         ${barTitleRow('pr-create-chevron', '<span>Add the thing</span>')}
+         ${kebab}
        </div>`
 
   const detail = detailExpanded

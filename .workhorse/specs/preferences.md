@@ -20,6 +20,7 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 - [ ] Composer stash
 - [ ] Cross-workspace conversations
 - [ ] Alphabetical workspace switcher
+- [ ] Raw diff view for markdown artefacts
 - [ ] Named checks, alongside where the GitHub token is entered and a reading of whether it currently works
 - [ ] Reading responses the app has already fetched
 

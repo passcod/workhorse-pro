@@ -61,13 +61,15 @@ Behaviour lives in `.workhorse/specs/`. A change to what the extension does chan
 
 Specs describe the system as it should be, not the change being made. Prose acceptance criteria, one sentence per line.
 
-## Commits and releases
+## Releases
 
-Conventional commits. `feat:` and `fix:` reach the changelog and drive the version; `chore:`, `docs:`, `refactor:` and `test:` do not.
+Every push to `main` releases: the patch version goes up, the add-on is signed through AMO's unlisted channel, the `.xpi` is attached to a GitHub release, and the update manifest is republished. Commit messages are free-form — the release notes come from GitHub's own generator.
 
-[release-please](https://github.com/googleapis/release-please) keeps a release pull request up to date from those commits. Merging it tags the release, which signs the add-on through AMO's unlisted channel, attaches the `.xpi` to the GitHub release, and republishes the update manifest.
+Put `[skip release]` in a commit message to opt out, for a change that alters nothing anyone installs.
 
-There is one version to bump: `build.mjs` stamps `package.json`'s version into the manifests at build time. Keep it that way — a second place to bump is a second place to drift.
+The version comes from the tags, not from a file. `build.mjs` stamps `VERSION` into both manifests, and falls back to `package.json` for local builds and for the first release. Keeping it out of the repository is what stops the release job pushing a bump back to the branch that triggers it.
+
+The job signs before it tags, so a version AMO refuses leaves no tag behind — otherwise the next run would skip past a version that never existed.
 
 Three things stop being free once a version is signed, and are worth knowing before touching them:
 

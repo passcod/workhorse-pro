@@ -22,10 +22,20 @@ const STATIC = [
 
 const pkg = JSON.parse(await readFile('package.json', 'utf8'))
 
-/** The manifest's version is the package's, so there is one place to bump it. */
+/**
+ * The version the build stamps into the manifests.
+ *
+ * Releases pass it in: the version lives in the git tags rather than in a
+ * committed file, so that releasing does not mean pushing a bump back to the
+ * branch that triggers releases. `package.json` is the local default, and the
+ * starting point before the first tag exists.
+ */
+const version = process.env.VERSION || pkg.version
+
+/** One version, stamped into both manifests, so the two cannot drift. */
 async function writeManifest(target) {
   const manifest = JSON.parse(await readFile(`manifest.${target}.json`, 'utf8'))
-  manifest.version = pkg.version
+  manifest.version = version
   await writeFile(
     `dist/${target}/manifest.json`,
     JSON.stringify(manifest, null, 2) + '\n',

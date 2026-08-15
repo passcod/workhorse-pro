@@ -1,0 +1,318 @@
+<!-- spec: sidebar/wordmark.md -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Racing horse in the tile</title>
+<style>
+  /* Tokens and sidebar reproduction carried through from the wordmark options
+     mockup, so the two are compared on the same ground. */
+  :root {
+    --bg-page: #f8f7f4;
+    --bg-surface: #ffffff;
+    --bg-sidebar: #f1efeb;
+    --bg-hover: #edeae5;
+    --text-primary: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #776f6a;
+    --border-default: #dfdcd5;
+    --border-subtle: #eae7e1;
+    --accent: #c2410c;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-default: 8px;
+    --shadow-sm: 0 1px 3px rgba(28, 25, 23, 0.04);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 32px;
+    background: var(--bg-page);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+
+  .intro {
+    margin: 0 0 28px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    max-width: 640px;
+  }
+
+  h2 {
+    margin: 32px 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .row { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+
+  .option { width: 216px; }
+
+  .option-head { display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px; }
+  .option-key { font-size: 11px; font-weight: 600; color: var(--accent); }
+  .option-name { font-size: 12px; font-weight: 500; }
+
+  .option-note {
+    margin: 8px 2px 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+
+  /* ── The sidebar, reproduced ───────────────────────────────────────────── */
+
+  .sidebar {
+    width: 216px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-default);
+    overflow: hidden;
+  }
+
+  .sidebar-head { padding: 16px 12px 8px; }
+
+  .lockup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px;
+    margin-bottom: 12px;
+  }
+
+  .wordmark { font-size: 15px; font-weight: 700; letter-spacing: -0.03em; white-space: nowrap; }
+
+  .lockup-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+  }
+
+  .palette-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 22px;
+    width: 28px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+
+  .switcher {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav { padding: 0 12px 16px; }
+
+  .nav-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 450;
+    color: var(--text-secondary);
+  }
+
+  .nav-row.active {
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .icon { flex-shrink: 0; }
+
+  /* ── The tile ──────────────────────────────────────────────────────────
+     The app's mark geometry, with an emoji where the "W" path sits. */
+
+  .tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    background: var(--accent);
+    line-height: 1;
+    user-select: none;
+  }
+
+  .g14 { font-size: 14px; }
+  .g16 { font-size: 16px; }
+  .g18 { font-size: 18px; }
+  .g20 { font-size: 20px; }
+
+  /* Tile variants tried against the contrast problem. */
+  .tile-dark { background: var(--text-primary); }
+  .tile-alpha { background: rgba(194, 65, 12, 0.12); }
+  .tile-ring { background: transparent; box-shadow: inset 0 0 0 1.5px var(--accent); }
+
+  /* ── Sizing and rail strips ────────────────────────────────────────────── */
+
+  .strip {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 14px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-default);
+    width: max-content;
+  }
+
+  .swatch { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .swatch-label { font-size: 10px; color: var(--text-muted); }
+
+  .rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 48px;
+    height: 108px;
+    padding-top: 16px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-default);
+  }
+</style>
+</head>
+<body>
+
+<h1>Racing horse in the tile</h1>
+<p class="intro">
+  E's glyph on C's shape: 🐎 inside the app's own rounded square, with the Prohorse wordmark beside
+  it. Shown against C for comparison, since the two differ only in the glyph.
+</p>
+
+<div class="row">
+
+  <!-- The ask ───────────────────────────────────────────────────────────── -->
+  <div class="option">
+    <div class="option-head">
+      <span class="option-key">G</span>
+      <span class="option-name">Racing horse, tile</span>
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-head">
+        <div class="lockup">
+          <span class="tile g16">🐎</span>
+          <span class="wordmark">Prohorse</span>
+          <span class="lockup-controls">
+            <span class="palette-chip">
+              <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </span>
+            <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M16 9l-3 3 3 3"/></svg>
+          </span>
+        </div>
+        <div class="switcher">
+          <span>Workhorse Pro</span>
+          <svg class="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="nav-row">
+          <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          <span>Inbox</span>
+        </div>
+        <div class="nav-row active">
+          <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="12" width="18" height="4" rx="1"/></svg>
+          <span>Cards</span>
+        </div>
+      </div>
+    </div>
+    <p class="option-note">E's glyph on C's shape.</p>
+  </div>
+
+  <!-- C, for comparison ─────────────────────────────────────────────────── -->
+  <div class="option">
+    <div class="option-head">
+      <span class="option-key">C</span>
+      <span class="option-name">Horse face, tile</span>
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-head">
+        <div class="lockup">
+          <span class="tile" style="font-size:15px">🐴</span>
+          <span class="wordmark">Prohorse</span>
+          <span class="lockup-controls">
+            <span class="palette-chip">
+              <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </span>
+            <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M16 9l-3 3 3 3"/></svg>
+          </span>
+        </div>
+        <div class="switcher">
+          <span>Workhorse Pro</span>
+          <svg class="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="nav-row">
+          <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          <span>Inbox</span>
+        </div>
+        <div class="nav-row active">
+          <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="12" width="18" height="4" rx="1"/></svg>
+          <span>Cards</span>
+        </div>
+      </div>
+    </div>
+    <p class="option-note">For comparison.</p>
+  </div>
+
+</div>
+
+<h2>Glyph size in the tile</h2>
+
+<div class="strip">
+  <div class="swatch"><span class="tile g14">🐎</span><span class="swatch-label">14</span></div>
+  <div class="swatch"><span class="tile g16">🐎</span><span class="swatch-label">16</span></div>
+  <div class="swatch"><span class="tile g18">🐎</span><span class="swatch-label">18</span></div>
+  <div class="swatch"><span class="tile g20">🐎</span><span class="swatch-label">20</span></div>
+</div>
+
+<h2>Tile treatment</h2>
+
+<div class="strip">
+  <div class="swatch"><span class="tile g16">🐎</span><span class="swatch-label">Accent</span></div>
+  <div class="swatch"><span class="tile tile-dark g16">🐎</span><span class="swatch-label">Ink</span></div>
+  <div class="swatch"><span class="tile tile-alpha g16">🐎</span><span class="swatch-label">Wash</span></div>
+  <div class="swatch"><span class="tile tile-ring g16">🐎</span><span class="swatch-label">Ring</span></div>
+</div>
+
+<h2>Minimised sidebar</h2>
+
+<div class="row">
+  <div class="option">
+    <div class="rail">
+      <span class="tile g16">🐎</span>
+      <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M13 9l3 3-3 3"/></svg>
+    </div>
+    <p class="option-note">The tile holds the corner with no wordmark beside it.</p>
+  </div>
+</div>
+
+</body>
+</html>

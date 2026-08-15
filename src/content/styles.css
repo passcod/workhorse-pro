@@ -367,6 +367,22 @@ div:hover > div > .whp-scope[aria-pressed='false'],
 }
 
 
+/* The brand mark, standing where the app's own 26px mark stood — in the
+   sidebar header beside the wordmark, and alone in the retracted rail. Sized
+   and centred so neither placement reflows around it. The emoji brings its own
+   colour, so nothing here sets one. spec: BRND */
+.whp-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  font-size: 20px;
+  line-height: 1;
+  user-select: none;
+}
+
 /* ── Raw diff view ─────────────────────────────────────────────────────────
    The Diff segment reproduces the app's own segmented control rather than
    borrowing its classes, which exist in the compiled stylesheet only while

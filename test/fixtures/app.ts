@@ -149,6 +149,48 @@ export function sidebar(options: { withList?: boolean } = {}): string {
 }
 
 /**
+ * The branding in the sidebar's top corner.
+ *
+ * Shape reproduced from `Sidebar`: the header lockup is a flex row holding the
+ * `Logo` svg, then a span carrying the app's name, then a right-aligned cluster
+ * of controls. The `Logo` is `aria-hidden` — the name beside it is what carries
+ * the accessible name.
+ *
+ * The retracted rail, rendered instead of the header's lockup while the sidebar
+ * is minimised on a regular-width viewport, stacks the same `Logo` above the
+ * control that reveals the sidebar again. It carries no name at all, so there
+ * is no wordmark in it to resolve a mark from.
+ *
+ * spec: BRND
+ */
+export function branding(options: { collapsed?: boolean } = {}): string {
+  const { collapsed = false } = options
+
+  if (collapsed) {
+    return `
+      <div class="rail">
+        <svg class="logo" width="26" height="26" aria-hidden="true"></svg>
+        <button type="button" title="Show sidebar"><svg class="panel"></svg></button>
+      </div>
+    `
+  }
+
+  return `
+    <aside>
+      <div class="px-3 pt-4 pb-2">
+        <div class="flex items-center gap-2 px-1 mb-3">
+          <svg class="logo" width="26" height="26" aria-hidden="true"></svg>
+          <span class="text-[15px] font-bold">Workhorse</span>
+          <div class="ml-auto flex items-center gap-2">
+            <button type="button" title="Hide sidebar"><svg class="panel"></svg></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  `
+}
+
+/**
  * The sidebar's workspace switcher.
  *
  * Shape reproduced from the header's switcher: a trigger button carrying the

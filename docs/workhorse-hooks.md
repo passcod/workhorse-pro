@@ -62,6 +62,9 @@ in Workhorse can silently stop a row from rendering.
 | `data-wh-conversations-controls` | that header's control cluster | the parent of `button[title="New"]` |
 | `data-wh-conversations-list` | the conversations list | the header's next sibling that is not a paragraph |
 | `data-wh-workspace-switcher` | the workspace switcher's open menu | the parent of the button reading `Add workspace…` |
+| `data-wh-wordmark` | the sidebar header's wordmark | a non-interactive `span` in the sidebar reading `Workhorse` |
+| `data-wh-brand-mark` | the brand mark beside that wordmark | the wordmark's previous sibling, when it is an `svg` |
+| `data-wh-rail-mark` | the brand mark in the retracted rail | the `svg` beside `button[title="Show sidebar"]` |
 
 They are useful to Workhorse independently: the same attributes are what UI
 tests would target, for the same reason — a test that finds a row by its label

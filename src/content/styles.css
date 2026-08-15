@@ -490,3 +490,20 @@ div:hover > div > .whp-scope[aria-pressed='false'],
 .whp-diff-context .whp-diff-text {
   color: var(--text-secondary, #57534e);
 }
+
+/* The words that changed within a line, drawn apart from the words held in
+   common by a stronger patch of the line's own colour. The negative margin
+   offsets the padding so the highlight has room without nudging the text. */
+.whp-diff-word {
+  border-radius: 2px;
+  padding: 0 1px;
+  margin: 0 -1px;
+}
+
+.whp-diff-add .whp-diff-word {
+  background: var(--bg-diff-insert-strong, rgba(22, 163, 74, 0.24));
+}
+
+.whp-diff-remove .whp-diff-word {
+  background: var(--bg-diff-delete-strong, rgba(194, 65, 12, 0.24));
+}

@@ -46,6 +46,16 @@ A segment that disappears when there is nothing to show cannot be told apart fro
 Showing source is what separates this from the view beside it.
 A rendered diff cannot show a change to a heading level, a link target, or a checkbox marker, and those are changes worth seeing.
 
+## Word-level emphasis within a change
+
+- [ ] Where a change replaces a line with a similar one, the words that differ are marked more strongly than the words that carry through, so an edit to part of a long line reads as that edit rather than as the whole line changing
+- [ ] A removed line and the added line replacing it are paired by position within the change, and their words are compared across the pair
+- [ ] The emphasis sits inside the line's own added or removed colouring rather than replacing it, so the line still reads as added or removed at a glance
+- [ ] A pair that shares no meaningful word is left marked whole, since there is nothing within it to single out
+
+Emphasis is for the edit, not the rewrite.
+A line replaced by an unrelated line has no words in common to hold onto, and marking a few coincidental ones would read as an edit that never happened.
+
 ## Reading the two sides
 
 - [ ] Both sides are read from the app's own endpoints and cached the way every other Workhorse response is

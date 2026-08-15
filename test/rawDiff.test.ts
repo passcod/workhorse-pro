@@ -129,6 +129,19 @@ test('choosing Diff renders the unified diff in place of the app’s view', asyn
   assert.deepEqual(lines(), [' # Injection', ' ', ' one', '-two', '+two!', ' three'])
 })
 
+test('the changed words of a replaced line are wrapped for emphasis', async () => {
+  selectRawDiff(FILE)
+  await settle()
+  const added = [...document.querySelectorAll('.whp-diff-add')].find(
+    (line) => line.textContent?.replace(/^\+?/, '').trim() === 'two!',
+  )!
+  const words = [...added.querySelectorAll('.whp-diff-word')].map((node) => node.textContent)
+  // Only the added "!" is the edit; "two" carried through and is left unwrapped.
+  assert.deepEqual(words, ['!'])
+  // The line still reads back whole, so selection and copy are unaffected.
+  assert.equal(added.querySelector('.whp-diff-text')?.textContent, 'two!')
+})
+
 test('the hunk header carries the heading the change falls under', async () => {
   selectRawDiff(FILE)
   await settle()

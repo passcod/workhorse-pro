@@ -9,9 +9,29 @@
 
 export type LineKind = 'context' | 'add' | 'remove'
 
+/**
+ * A run of a changed line's text, marked by whether it is part of what changed.
+ *
+ * A line replaced by a similar one carries these so the words that differ can be
+ * drawn apart from the words that carry through: `changed` runs are the edit,
+ * the rest is the line either side held in common. Concatenating every
+ * segment's text reproduces the line exactly.
+ */
+export interface DiffSegment {
+  text: string
+  changed: boolean
+}
+
 export interface DiffLine {
   kind: LineKind
   text: string
+  /**
+   * Word-level segments, present only on a removed or added line paired with
+   * its counterpart across a change. Absent when the line stands alone or when
+   * the pair shares no meaningful words, in which case it reads as changed
+   * whole.
+   */
+  segments?: DiffSegment[]
 }
 
 export interface Hunk {
@@ -127,6 +147,93 @@ function lcsOps(before: string[], after: string[]): Op[] {
 }
 
 /**
+ * A line split into word-level tokens: runs of whitespace, runs of letters and
+ * digits, and every other character on its own. Every character lands in
+ * exactly one token, so joining them back yields the line unchanged.
+ */
+function tokenize(line: string): string[] {
+  return line.match(/\s+|[\p{L}\p{N}_]+|[^\s\p{L}\p{N}_]/gu) ?? []
+}
+
+/** Gather one side's tokens from a token edit script into merged segments. */
+function toSegments(ops: Op[], side: 'before' | 'after'): DiffSegment[] {
+  const skip = side === 'before' ? 'add' : 'remove'
+  const changedKind = side === 'before' ? 'remove' : 'add'
+  const segments: DiffSegment[] = []
+  for (const op of ops) {
+    if (op.kind === skip) continue
+    const changed = op.kind === changedKind
+    const last = segments[segments.length - 1]
+    if (last && last.changed === changed) last.text += op.text
+    else segments.push({ text: op.text, changed })
+  }
+  return segments
+}
+
+/**
+ * Word-level segments for a removed line and the added line replacing it, or
+ * null when the pair shares nothing worth singling out.
+ *
+ * The two lines are compared as token sequences, so an edit to part of a long
+ * line reads as that edit rather than as the whole line changing. A pair with
+ * no shared word carries no segments, and reads as changed whole — there is
+ * nothing within it to draw apart. The token alignment is the same quadratic
+ * step the line diff runs, guarded the same way against a pathologically long
+ * line.
+ */
+function wordSegments(
+  before: string,
+  after: string,
+): { before: DiffSegment[]; after: DiffSegment[] } | null {
+  const beforeTokens = tokenize(before)
+  const afterTokens = tokenize(after)
+  if ((beforeTokens.length + 1) * (afterTokens.length + 1) > MAX_CELLS) return null
+
+  const ops = lcsOps(beforeTokens, afterTokens)
+  // A pair whose only common tokens are whitespace is two different lines that
+  // happen to be spaced alike, not an edit — leave it marked whole.
+  if (!ops.some((op) => op.kind === 'context' && /\S/.test(op.text))) return null
+
+  return { before: toSegments(ops, 'before'), after: toSegments(ops, 'after') }
+}
+
+/**
+ * Mark the words that changed within each removed line paired against the added
+ * line that replaces it.
+ *
+ * A change that replaces lines emits its removals then its additions, so a run
+ * of removed lines followed by a run of added lines is one such replacement;
+ * the lines are paired by position within it, as far as the shorter run
+ * reaches. Lines with no counterpart, and pairs sharing no word, keep no
+ * segments and read as changed whole.
+ */
+function annotateWords(lines: DiffLine[]): void {
+  let i = 0
+  while (i < lines.length) {
+    if (lines[i]!.kind !== 'remove') {
+      i += 1
+      continue
+    }
+    let removeEnd = i
+    while (removeEnd < lines.length && lines[removeEnd]!.kind === 'remove') removeEnd += 1
+    let addEnd = removeEnd
+    while (addEnd < lines.length && lines[addEnd]!.kind === 'add') addEnd += 1
+
+    const pairs = Math.min(removeEnd - i, addEnd - removeEnd)
+    for (let p = 0; p < pairs; p += 1) {
+      const removed = lines[i + p]!
+      const added = lines[removeEnd + p]!
+      const segments = wordSegments(removed.text, added.text)
+      if (segments) {
+        removed.segments = segments.before
+        added.segments = segments.after
+      }
+    }
+    i = Math.max(addEnd, i + 1)
+  }
+}
+
+/**
  * The edit script, with the common head and tail trimmed before aligning.
  *
  * An edit to a long document usually leaves both ends untouched, and trimming
@@ -192,7 +299,10 @@ function toHunks(ops: Op[], before: string[], after: string[], context: number):
   }
 
   return ranges.map(({ from, to }) => {
-    const lines = ops.slice(from, to + 1).map((op) => ({ kind: op.kind, text: op.text }))
+    const lines: DiffLine[] = ops
+      .slice(from, to + 1)
+      .map((op) => ({ kind: op.kind, text: op.text }))
+    annotateWords(lines)
     const beforeCount = lines.filter((line) => line.kind !== 'add').length
     const afterCount = lines.filter((line) => line.kind !== 'remove').length
     const beforeStart = beforeAt[from]!

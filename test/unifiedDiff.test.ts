@@ -147,6 +147,75 @@ test('a pathological pair still returns a true diff', () => {
   assert.equal(lines.filter((line) => line.kind === 'add').length, 3000)
 })
 
+/** The segments of a line, as `text` with changed runs wrapped in `[ ]`. */
+function marked(line: { text: string; segments?: { text: string; changed: boolean }[] }): string {
+  if (!line.segments) return line.text
+  return line.segments.map((seg) => (seg.changed ? `[${seg.text}]` : seg.text)).join('')
+}
+
+/** The single changed line of the given kind in a one-hunk diff. */
+function only(base: string, next: string, kind: 'add' | 'remove') {
+  const hunk = unifiedDiff(base, next)[0]!
+  return hunk.lines.find((line) => line.kind === kind)!
+}
+
+test('an edit within a line marks only the words that differ', () => {
+  const base = ['a', 'b', 'the quick brown fox', 'c', 'd'].join('\n')
+  const next = ['a', 'b', 'the quick red fox', 'c', 'd'].join('\n')
+  assert.equal(marked(only(base, next, 'remove')), 'the quick [brown] fox')
+  assert.equal(marked(only(base, next, 'add')), 'the quick [red] fox')
+})
+
+test('a segmented line reproduces its text exactly, spacing and all', () => {
+  const base = ['x', 'call(foo, bar)  # note', 'y'].join('\n')
+  const next = ['x', 'call(foo, baz)  # note!', 'y'].join('\n')
+  for (const kind of ['remove', 'add'] as const) {
+    const line = only(base, next, kind)
+    assert.equal(line.segments!.map((seg) => seg.text).join(''), line.text)
+  }
+})
+
+test('a pair sharing no word is left marked whole', () => {
+  const base = ['keep', 'the quick brown fox', 'keep'].join('\n')
+  const next = ['keep', 'a slow green turtle', 'keep'].join('\n')
+  assert.equal(only(base, next, 'remove').segments, undefined)
+  assert.equal(only(base, next, 'add').segments, undefined)
+})
+
+test('a shared word survives even when the rest is rewritten', () => {
+  const base = ['keep', 'send the report today', 'keep'].join('\n')
+  const next = ['keep', 'archive the file now', 'keep'].join('\n')
+  // Only "the" and the spacing carry through, so it is still an edit, not a rewrite.
+  assert.equal(marked(only(base, next, 'remove')), '[send] the [report] [today]')
+})
+
+test('a multi-line replacement pairs lines by position', () => {
+  const base = ['top', 'alpha one', 'beta two', 'bottom'].join('\n')
+  const next = ['top', 'alpha ONE', 'beta TWO', 'bottom'].join('\n')
+  const hunk = unifiedDiff(base, next)[0]!
+  const removes = hunk.lines.filter((line) => line.kind === 'remove').map(marked)
+  const adds = hunk.lines.filter((line) => line.kind === 'add').map(marked)
+  assert.deepEqual(removes, ['alpha [one]', 'beta [two]'])
+  assert.deepEqual(adds, ['alpha [ONE]', 'beta [TWO]'])
+})
+
+test('a line with no counterpart carries no segments', () => {
+  // One line becomes two: the first pairs, the pure insertion does not.
+  const base = ['top', 'alpha one', 'bottom'].join('\n')
+  const next = ['top', 'alpha ONE', 'brand new line', 'bottom'].join('\n')
+  const hunk = unifiedDiff(base, next)[0]!
+  const adds = hunk.lines.filter((line) => line.kind === 'add')
+  assert.equal(marked(adds.find((line) => line.text === 'alpha ONE')!), 'alpha [ONE]')
+  assert.equal(adds.find((line) => line.text === 'brand new line')!.segments, undefined)
+})
+
+test('word marks reproduce a unicode line unchanged', () => {
+  const base = ['x', 'café au lait', 'y'].join('\n')
+  const next = ['x', 'café au crème', 'y'].join('\n')
+  const line = only(base, next, 'add')
+  assert.equal(line.segments!.map((seg) => seg.text).join(''), 'café au crème')
+})
+
 test('a realistic spec edit produces a small diff', () => {
   const base = [
     '---',

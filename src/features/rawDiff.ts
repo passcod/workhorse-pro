@@ -79,7 +79,18 @@ function hunkNode(hunk: Hunk): HTMLElement {
     row.appendChild(el('span', 'whp-diff-sign', sign))
     // The text goes in its own element so an empty line still occupies one, and
     // so the sign is not part of what a selection copies as content.
-    row.appendChild(el('span', 'whp-diff-text', line.text))
+    const text = el('span', 'whp-diff-text')
+    if (line.segments) {
+      // A changed line paired with its counterpart: draw the words that differ
+      // apart from the words held in common, wrapping only the former.
+      for (const segment of line.segments) {
+        if (segment.changed) text.appendChild(el('span', 'whp-diff-word', segment.text))
+        else text.appendChild(document.createTextNode(segment.text))
+      }
+    } else {
+      text.textContent = line.text
+    }
+    row.appendChild(text)
     body.appendChild(row)
   }
   root.appendChild(body)

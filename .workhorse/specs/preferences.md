@@ -21,6 +21,7 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 - [ ] Cross-workspace conversations
 - [ ] Alphabetical workspace switcher
 - [ ] Raw diff view for markdown artefacts
+- [ ] Remembered view selection, carrying the reader's choice of view from one artefact to the next
 - [ ] The extension's own branding wordmark in the sidebar's top corner
 - [ ] Named checks, alongside where the GitHub token is entered and a reading of whether it currently works
 - [ ] Reading responses the app has already fetched

@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Workhorse Pro",
+  "name": "Prohorse",
   "version": "0.1.0",
-  "description": "Experiments and poweruser stuff for Workhorse.",
+  "description": "UI experiments for Workhorse.",
   "browser_specific_settings": {
     "gecko": {
       "id": "workhorse-pro@bes.au",
-      "strict_min_version": "140.0",
+      "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": [
           "none"

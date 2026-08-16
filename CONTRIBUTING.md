@@ -12,8 +12,6 @@ npm run lint:addon
 npm run package   # a loadable zip in web-ext-artifacts/
 ```
 
-Node 24. npm — not pnpm, not yarn.
-
 ## Loading it in Firefox
 
 `about:debugging` → **This Firefox** → **Load Temporary Add-on**, then pick `dist/firefox/manifest.json`. **Reload** re-reads from disk, so `npm run watch` plus Reload plus a tab refresh is the whole cycle. Temporary add-ons go away when Firefox restarts.

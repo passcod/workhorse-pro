@@ -1,6 +1,6 @@
-# Workhorse Pro
+# 🐴 Prohorse
 
-Experiments and poweruser stuff for Workhorse.
+UI experiments for Workhorse.
 
 ## Install
 

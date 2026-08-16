@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Workhorse Pro",
+  "name": "Prohorse",
   "version": "0.1.0",
-  "description": "Experiments and poweruser stuff for Workhorse.",
+  "description": "UI experiments for Workhorse.",
   "permissions": [
     "storage"
   ],

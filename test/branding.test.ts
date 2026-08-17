@@ -40,7 +40,7 @@ test('the wordmark reads Prohorse', () => {
   assert.equal(anchors.wordmark()?.textContent, 'Prohorse')
 })
 
-test('a horse stands where the app’s mark stood', () => {
+test('the mark carries a horse and stands where the app’s stood', () => {
   reconcile()
   const ours = ourMark()
   assert.equal(ours?.textContent, '🐴')

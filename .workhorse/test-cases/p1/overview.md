@@ -8,10 +8,12 @@ running Workhorse shows whether the anchors match what the app actually renders.
 
 - [x] The name in the sidebar's top corner reads "Prohorse" (verifies spec: BRND)
 - [x] A horse stands beside that name, where the app's mark stood (verifies spec: BRND)
-- [x] The horse is marked decorative, as the app's own mark is (verifies spec: BRND)
+- [x] The mark is marked decorative, as the app's own is (verifies spec: BRND)
 - [x] The controls sharing that corner keep their place (verifies spec: BRND)
-- [ ] Against a running Workhorse, the horse sits at the app's own mark size and nothing in the
-      header shifts (verifies spec: BRND)
+- [ ] Against a running Workhorse, the mark is the same square, radius and accent as the app's, and
+      nothing in the header shifts (verifies spec: BRND)
+- [ ] The horse reads clearly against the accent at 26px on a standard-density display, where the
+      glyph's own colours sit close to the tile's (verifies spec: BRND)
 - [ ] The lockup reads correctly in both the light and the dark theme
 
 ## The retracted rail

@@ -12,6 +12,19 @@ From `src/components/Sidebar.tsx` in the Workhorse source:
 - The retracted rail, shown when the sidebar is minimised on a regular-width viewport, carries the
   same `Logo` svg above `button[title="Show sidebar"]`. No wordmark text there.
 
+## The treatment, and why
+
+Workshopped as seven options across three mockups. The pick is **C**: the app's own tile, in the
+app's accent, carrying 🐴 at 15px in place of the "W".
+
+- **The tile stays.** A bare emoji has nothing holding the corner in the retracted rail, where the
+  mark stands with no wordmark beside it.
+- **Horse face over racing horse.** 🐎 fills the square better, but reads too busy at 26px.
+- **No edge treatment.** White halo, outline and drop-shadow were all tried against the glyph. They
+  do lift it off the accent, but every one of them reads as a sticker, and the details blending
+  slightly is the better trade. Worth knowing if this is revisited: `filter` belongs on a span
+  around the glyph, not on the tile, or it haloes the square instead.
+
 ## Approach
 
 - **Rewrite the text, hide the mark.** The wordmark span's text is set to "Prohorse"; the app's svg

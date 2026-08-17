@@ -7,21 +7,25 @@ id: BRND
 The app brands its sidebar's top corner with a mark and its own name.
 Someone running the extension is working in Workhorse Pro rather than in plain Workhorse, so that corner carries the extension's branding instead: a horse, and the word "Prohorse".
 
+The mark keeps the shape the app gives it and changes only what is on it.
+A corner that abandoned the mark's square would stop reading as Workhorse at a glance, and the square is also what holds the corner in the minimised sidebar, where the mark stands with no name beside it.
+
 This is the one place the extension changes something the app renders for its own sake rather than adding to it, which is why it is a switch of its own and why everything it touches is put back when that switch is off.
 
 ## The lockup
 
 - [ ] The name in the sidebar's top corner reads "Prohorse"
-- [ ] A horse stands in place of the app's own mark, beside that name
-- [ ] The horse sits where the app's mark sat, at the same size, so nothing around it moves
-- [ ] The horse is decorative, as the app's own mark is, and the name beside it is what is read aloud
+- [ ] The mark beside that name is the app's own square, in the app's accent, carrying a horse in place of the "W"
+- [ ] The mark sits where the app's sat, at the same size, so nothing around it moves
+- [ ] The horse sits well inside the square rather than filling it, so the square still reads as the mark
+- [ ] The mark is decorative, as the app's own is, and the name beside it is what is read aloud
 - [ ] The controls sharing that corner with the wordmark keep their place and their behaviour
 
 ## While the sidebar is minimised
 
 The retracted rail carries the same mark with no name beside it, and it is the only branding on show once the sidebar is collapsed.
 
-- [ ] The rail shows the horse in place of the app's mark
+- [ ] The rail shows the same mark, so the corner holds without a name beside it
 - [ ] The control that reveals the sidebar again keeps its place beneath it
 
 ## Holding the change

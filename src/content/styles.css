@@ -367,10 +367,13 @@ div:hover > div > .whp-scope[aria-pressed='false'],
 }
 
 
-/* The brand mark, standing where the app's own 26px mark stood — in the
-   sidebar header beside the wordmark, and alone in the retracted rail. Sized
-   and centred so neither placement reflows around it. The emoji brings its own
-   colour, so nothing here sets one. spec: BRND */
+/* The brand mark: the app's own tile with a horse on it in place of its "W".
+   Same 26px square, same radius, same accent, so the corner keeps the shape it
+   holds in the header and in the retracted rail and only the glyph changes.
+
+   The glyph sits well inside the tile rather than filling it. A horse rendered
+   large enough to reach the corners crowds them, and the tile stops reading as
+   the app's mark. spec: BRND */
 .whp-brand-mark {
   display: inline-flex;
   align-items: center;
@@ -378,7 +381,9 @@ div:hover > div > .whp-scope[aria-pressed='false'],
   width: 26px;
   height: 26px;
   flex-shrink: 0;
-  font-size: 20px;
+  border-radius: var(--radius-md, 6px);
+  background: var(--accent, #c2410c);
+  font-size: 15px;
   line-height: 1;
   user-select: none;
 }

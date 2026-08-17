@@ -5,11 +5,16 @@ import type { Context, Feature } from '../content/reconcile.ts'
 /**
  * Put Workhorse Pro's own branding in the sidebar's top corner.
  *
- * The app's wordmark reads "Workhorse" beside a burnt-orange "W"; here it reads
- * "Prohorse" beside a horse. The same mark stands alone in the retracted rail,
- * which is all the branding on show while the sidebar is minimised, so it is
- * swapped too — otherwise collapsing the sidebar brings the app's own mark
- * back.
+ * The app's wordmark reads "Workhorse" beside a burnt-orange tile carrying a
+ * "W"; here it reads "Prohorse" and the tile carries a horse. The tile itself
+ * is kept — same square, same radius, same accent — because it is what makes
+ * the corner read as Workhorse-shaped, and because a bare glyph has nothing
+ * holding the corner in the retracted rail, where there is no wordmark beside
+ * it.
+ *
+ * That rail is all the branding on show while the sidebar is minimised, so its
+ * mark is swapped too — otherwise collapsing the sidebar brings the app's own
+ * mark back.
  *
  * Nothing the app rendered is ever detached. The mark is hidden and the
  * extension's own sits beside it, because removing a node React still holds
@@ -23,7 +28,7 @@ const MARK_EMOJI = '🐴'
 const HEADER_MARK_ID = 'brand-mark'
 const RAIL_MARK_ID = 'brand-mark-rail'
 
-/** The emoji standing in for the app's mark, sized to sit where it sat. */
+/** The app's tile, rebuilt with a horse on it, sized to sit where it sat. */
 function emojiMark(): HTMLSpanElement {
   const node = el('span', 'whp-brand-mark', MARK_EMOJI)
   // Decorative, exactly as the app's own mark is: the wordmark beside it

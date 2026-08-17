@@ -41,9 +41,9 @@ All coupling to the app's markup is confined to one place, so that the app chang
 - [ ] Each fallback records what it stands in for, so it can be deleted when the app grows the attribute
 - [ ] Anchors never match on utility class names, because those exist in the compiled stylesheet only for as long as some component uses them
 
-Anchors are needed for the composer, the pull request detail toggle and its expanded state, the branch dropdown, the checks row, the review row, the base row, the conversations header, the conversations list, the open workspace switcher menu with its rows, the sidebar's wordmark and the brand mark in both the header and the retracted rail, and the toggle above an open artefact together with the region that artefact renders into.
+Anchors are needed for the composer, the pull request detail toggle and its expanded state, the branch dropdown, the checks row and the review row with the content each reveals, and the open workspace switcher menu with its rows, the sidebar's wordmark and the brand mark in both the header and the retracted rail.
 
-The artefact toggle is the same control wherever it appears, distinguished only by the segments in it, so the anchor identifies it by those rather than by where it sits.
+The checks row and the review row are disclosures, and each holds its own readings behind a chevron, so what the extension adds beneath a row goes inside that content rather than after the row.
 
 Anchors also read what the app's own markup says, where a feature needs it: a workspace row's name is read through the same module that resolves the row, so the app changing how a row is built has one blast radius rather than two.
 

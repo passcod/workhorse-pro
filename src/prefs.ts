@@ -2,8 +2,8 @@ import { ext } from './ext.ts'
 import { reportOnce } from './log.ts'
 
 /**
- * Everything held in the synced area: the feature switches, the GitHub token,
- * and the conversation scope control's own state.
+ * Everything held in the synced area: the feature switches and the GitHub
+ * token.
  *
  * Synced rather than device-local because these are small and are the same
  * wherever the user works — including the token, which is entered once rather
@@ -14,23 +14,17 @@ import { reportOnce } from './log.ts'
 export interface Prefs {
   autoExpandPrDetail: boolean
   autoExpandBranchDropdown: boolean
-  /** Open the Review Hero row, where the review run stats sit. */
+  /** Open the Checks and Review Hero rows, where the app's own run stats sit. */
   autoExpandRows: boolean
-  checksBreakdown: boolean
-  reviewStats: boolean
   namedChecks: boolean
   inputHistory: boolean
   composerStash: boolean
-  crossWorkspaceConversations: boolean
   sortWorkspaces: boolean
-  rawDiff: boolean
   /** Show the extension's own wordmark in the sidebar's top corner. */
   proWordmark: boolean
   observeFetches: boolean
   /** Read-only, checks-scoped. Empty when the user has not supplied one. */
   githubToken: string
-  /** Whether the conversations list is currently widened past the active workspace. */
-  scopeWide: boolean
   /** Written as `Ctrl+S`. Empty leaves the action unbound. */
   stashPushKey: string
   stashPopKey: string
@@ -42,18 +36,13 @@ export const PREF_DEFAULTS: Prefs = {
   // Off by default: it opens a row the app leaves closed, which is a stronger
   // change to the section's shape than the other two.
   autoExpandRows: false,
-  checksBreakdown: true,
-  reviewStats: true,
   namedChecks: true,
   inputHistory: true,
   composerStash: true,
-  crossWorkspaceConversations: true,
   sortWorkspaces: true,
-  rawDiff: true,
   proWordmark: true,
   observeFetches: true,
   githubToken: '',
-  scopeWide: false,
   // Parking a draft is a save. Restoring takes Ctrl+P rather than the shifted
   // save, which collides with a common screenshot binding — and nobody prints
   // a Workhorse page.
@@ -83,14 +72,10 @@ export const SWITCHES: SwitchInfo[] = [
   },
   {
     key: 'autoExpandRows',
-    label: 'Auto-expand Review Hero',
+    label: 'Auto-expand Checks and Review Hero',
     detail:
-      'Open the Review Hero row when a card is shown, so the run stats sit in view without a click.',
-  },
-  {
-    key: 'checksBreakdown',
-    label: 'Check breakdown',
-    detail: 'Passed, failed, running and skipped counts beneath the Checks row.',
+      'Open the Checks and Review Hero rows when a card is shown, so what sits inside them is in ' +
+      'view without a click.',
   },
   {
     key: 'namedChecks',
@@ -98,12 +83,6 @@ export const SWITCHES: SwitchInfo[] = [
     detail:
       'List the checks that failed or are still running, by name, with links to their logs.',
     needsToken: true,
-  },
-  {
-    key: 'reviewStats',
-    label: 'Review run stats',
-    detail:
-      'Run count and last run findings under the Review Hero row. Shown when that row is open.',
   },
   {
     key: 'inputHistory',
@@ -121,21 +100,6 @@ export const SWITCHES: SwitchInfo[] = [
       'Park drafts on a stack and bring them back later, across any conversation. ' +
       'The keys are set below and can be changed. ' +
       'Popping into a composer that already has text swaps the two, so nothing is lost.',
-  },
-  {
-    key: 'crossWorkspaceConversations',
-    label: 'Cross-workspace conversations',
-    detail:
-      'Add a control to the sidebar’s Conversations header that widens the list to every ' +
-      'workspace you can see. Each row’s card code takes its workspace’s colour.',
-  },
-  {
-    key: 'rawDiff',
-    label: 'Raw diff view',
-    detail:
-      'Add a Diff segment to the File/Changes toggle above a markdown artefact, showing it as a ' +
-      'unified diff against the base branch. Only changed passages and a few lines either side ' +
-      'appear, so a long spec does not have to be scrolled through to find what moved.',
   },
   {
     key: 'sortWorkspaces',

@@ -11,10 +11,7 @@ Detail Workhorse does not carry is read from GitHub instead — see `platform/gi
 
 ## What is read
 
-- [ ] Branch status for the card on screen supplies the check counts and the review run state
-- [ ] Sidebar data supplies the workspace list the row colours are derived from
-- [ ] The recent-sessions list, requested without a workspace, supplies conversations across every workspace the user can see
-- [ ] The card's file listing supplies the current content of the artefact on screen, and the base-file read supplies the same artefact's content on the base branch, which are the two sides of the raw diff
+- [ ] Branch status for the card on screen supplies the pull request the named jobs are read against
 
 Both branch-status parameters are taken from the card route, so the extension never has to discover which card it is looking at by any other means.
 
@@ -44,16 +41,4 @@ Observation is an optimisation over the extension's own reads, never a replaceme
 
 The failure mode is what makes this acceptable.
 Reading the app's internal query cache would mean coupling to framework internals with no supported access path and no graceful failure; observing responses couples only to a stable platform interface, and its worst case is the behaviour the extension has without it.
-
-## Session liveness
-
-Conversation rows show whether an agent is currently running.
-That state arrives as a stream rather than by polling.
-
-- [ ] The extension subscribes to the app's session event stream on its own connection
-- [ ] The stream is scoped to the user rather than to the active workspace, so it already covers conversations in every workspace
-- [ ] The set of running agents is seeded from the stream's initial frame and maintained by the start and stop frames that follow
-- [ ] Session update frames refresh the affected row's preview and timestamp in place, without refetching the list
-- [ ] A dropped stream reconnects with a backoff that lengthens on repeated failure up to a ceiling
-- [ ] While the stream is disconnected, rows still render from the last read and only the running indicator is lost
 

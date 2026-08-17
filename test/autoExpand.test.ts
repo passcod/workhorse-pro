@@ -26,7 +26,7 @@ function makeRowsClickable(): void {
 function reconcile(overrides: Partial<typeof PREF_DEFAULTS> = {}): void {
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS, ...overrides },
-    route: { workspace: 'workhorse', card: 'WH-078', filePath: null, view: null },
+    route: { workspace: 'workhorse', card: 'WH-078' },
     schedule: () => {},
   })
 }
@@ -89,7 +89,7 @@ test('a collapse on one card does not suppress expansion on another', () => {
   makeRowsClickable()
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS },
-    route: { workspace: 'workhorse', card: 'WH-099', filePath: null, view: null },
+    route: { workspace: 'workhorse', card: 'WH-099' },
     schedule: () => {},
   })
   assert.equal(anchors.branchDropdown()?.getAttribute('aria-expanded'), 'true')
@@ -105,25 +105,26 @@ test('turning the switch off stops expansion and leaves open sections open', () 
   assert.equal(anchors.branchDropdown()?.getAttribute('aria-expanded'), 'false')
 })
 
-// ── Review Hero ──────────────────────────────────────────────────────────
+// ── The stat rows ────────────────────────────────────────────────────────
 //
-// The Checks row is flat, so autoExpand does not touch it — its breakdown and
-// named jobs are in view whenever the row is. Only Review Hero is a disclosure
-// the extension opens, so its run stats come into view without a click.
+// Checks and Review Hero are both disclosures holding readings behind a
+// chevron — the app's own run stats, and the extension's named jobs under
+// Checks. Opening them is what puts those in view without a click.
 
-test('the Review Hero row stays closed by default', () => {
+test('both rows stay closed by default', () => {
   reconcile()
   assert.equal(anchors.reviewRow()?.getAttribute('aria-expanded'), 'false')
+  assert.equal(anchors.checksRow()?.getAttribute('aria-expanded'), 'false')
 })
 
-test('with the switch on, the Review Hero row opens', () => {
-  // The run stats live inside it, so this is what puts them in view without a
-  // click. spec: AEXP
+test('with the switch on, both rows open', () => {
+  // spec: AEXP
   reconcile({ autoExpandRows: true })
   assert.equal(anchors.reviewRow()?.getAttribute('aria-expanded'), 'true')
+  assert.equal(anchors.checksRow()?.getAttribute('aria-expanded'), 'true')
 })
 
-test('closing it by hand keeps it closed', () => {
+test('closing one by hand keeps it closed', () => {
   reconcile({ autoExpandRows: true })
   const review = anchors.reviewRow()!
   clickRow(review)
@@ -133,11 +134,16 @@ test('closing it by hand keeps it closed', () => {
   assert.equal(review.getAttribute('aria-expanded'), 'false')
 })
 
-test('the flat Checks row is left alone', () => {
-  // It carries no aria-expanded, so there is nothing to open and no synthetic
-  // click is spent on it.
+test('closing one row does not hold the other closed', () => {
+  // Each row has its own record, so a collapsed Review Hero must not suppress
+  // the Checks row the user never touched.
   reconcile({ autoExpandRows: true })
-  assert.equal(anchors.checksRow()?.hasAttribute('aria-expanded'), false)
+  clickRow(anchors.reviewRow()!)
+  assert.equal(anchors.reviewRow()?.getAttribute('aria-expanded'), 'false')
+
+  reconcile({ autoExpandRows: true })
+  assert.equal(anchors.reviewRow()?.getAttribute('aria-expanded'), 'false')
+  assert.equal(anchors.checksRow()?.getAttribute('aria-expanded'), 'true')
 })
 
 test('a section with nothing to expand is not an error', () => {

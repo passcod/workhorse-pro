@@ -73,14 +73,16 @@ function branchKey(card: string): string {
 }
 
 /**
- * The disclosure rows the extension's own readings hang inside.
- *
- * Only Review Hero: the Checks row is flat, so its breakdown and named jobs
- * hang beneath it as siblings and are in view whenever the row is, with nothing
- * to open.
+ * The disclosure rows worth opening: the Checks row, which holds the named jobs
+ * and the app's own run breakdown, and Review Hero, which holds its run stats.
+ * Both keep what they carry behind a chevron, so opening them is what puts it
+ * in view without a click.
  */
 function rowTargets(): { key: string; element: HTMLElement | null }[] {
-  return [{ key: 'review', element: anchors.reviewRow() as HTMLElement | null }]
+  return [
+    { key: 'checks', element: anchors.checksRow() as HTMLElement | null },
+    { key: 'review', element: anchors.reviewRow() as HTMLElement | null },
+  ]
 }
 
 /**
@@ -154,8 +156,8 @@ export function autoExpand(): Feature {
         }
       }
 
-      // The review run stats live inside the Review Hero row, so opening it is
-      // what puts those readings in view without a click.
+      // The named jobs and the app's own run readings live inside these rows,
+      // so opening them is what puts those in view without a click.
       if (prefs.autoExpandRows) {
         for (const { key, element } of rowTargets()) {
           if (!element) continue

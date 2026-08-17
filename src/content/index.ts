@@ -4,12 +4,9 @@ import { Reconciler } from './reconcile.ts'
 import { startObserving } from '../data/observed.ts'
 import { subscribe } from '../data/store.ts'
 import { autoExpand } from '../features/autoExpand.ts'
-import { statRows } from '../features/statRows.ts'
 import { namedChecks } from '../features/namedChecks.ts'
 import { composerFeature } from '../features/composer.ts'
-import { conversationScope } from '../features/conversationScope.ts'
 import { workspaceOrder } from '../features/workspaceOrder.ts'
-import { rawDiff } from '../features/rawDiff.ts'
 import { branding } from '../features/branding.ts'
 import { reportOnce } from '../log.ts'
 
@@ -41,12 +38,9 @@ async function main(): Promise<void> {
 
   const reconciler = new Reconciler(prefs)
   reconciler.register(autoExpand())
-  reconciler.register(statRows())
   reconciler.register(namedChecks())
   reconciler.register(composerFeature())
-  reconciler.register(conversationScope())
   reconciler.register(workspaceOrder())
-  reconciler.register(rawDiff())
   reconciler.register(branding())
 
   applyObservation(prefs)

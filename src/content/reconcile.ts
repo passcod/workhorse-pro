@@ -115,7 +115,7 @@ export class Reconciler {
   pass(): void {
     const context: Context = {
       prefs: this.prefs,
-      route: parseRoute(location.pathname, location.search),
+      route: parseRoute(location.pathname),
       schedule: this.schedule,
     }
     for (const feature of this.features) {

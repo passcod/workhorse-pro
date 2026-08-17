@@ -1,7 +1,7 @@
 import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { installDom, setBody } from './dom.ts'
-import { artefactPane, composerArea, prSection, sidebar } from './fixtures/app.ts'
+import { composerArea, prSection } from './fixtures/app.ts'
 
 installDom()
 const { anchors } = await import('../src/content/anchors.ts')
@@ -12,7 +12,7 @@ test('an anchor that resolves to nothing returns nothing rather than throwing', 
   // The normal state on a page the feature does not apply to. spec: INJ
   assert.equal(anchors.composer(), null)
   assert.equal(anchors.checksRow(), null)
-  assert.equal(anchors.conversationsHeader(), null)
+  assert.equal(anchors.prDetailToggle(), null)
   assert.equal(anchors.prDetailExpanded(), false)
 })
 
@@ -34,8 +34,8 @@ test('the pull request detail toggle resolves once a PR exists', () => {
   setBody(prSection({ hasPr: true }))
   const toggle = anchors.prDetailToggle()
   assert.equal(toggle?.tagName, 'BUTTON')
-  // The bar's own title row, not the kebab beside it: no title of its own, and
-  // its chevron inside.
+  // The bar's own title row, not the overflow menu beside it: no title of its
+  // own, and its chevron inside.
   assert.equal(toggle?.getAttribute('title'), null)
   assert.ok(toggle?.querySelector('[data-testid="pr-detail-chevron"]'))
 })
@@ -63,75 +63,35 @@ test('rows resolve by their visible label, not by position', () => {
   assert.notEqual(anchors.checksRow(), anchors.branchDropdown())
 })
 
-test('the Checks row is flat, not a disclosure', () => {
-  // The app renders it without aria-expanded, so it must resolve on structure
-  // and label rather than as a disclosure — the failure this card fixes.
-  setBody(prSection({ detailExpanded: true }))
-  const checks = anchors.checksRow()
-  assert.ok(checks)
-  assert.equal(checks.hasAttribute('aria-expanded'), false)
+test('the Checks row is a disclosure, carrying its own expanded state', () => {
+  // The app moved its own run breakdown inside the row, so it is a disclosure
+  // rather than the flat row it used to be — and the named jobs sit in there
+  // with it.
+  setBody(prSection({ detailExpanded: true, checksOpen: false }))
+  assert.equal(anchors.checksRow()?.getAttribute('aria-expanded'), 'false')
+  setBody(prSection({ detailExpanded: true, checksOpen: true }))
+  assert.equal(anchors.checksRow()?.getAttribute('aria-expanded'), 'true')
 })
 
-test('the Review Hero content exists only while its row is open', () => {
-  setBody(prSection({ detailExpanded: true, reviewOpen: false }))
+test('each row content exists only while that row is open', () => {
+  setBody(prSection({ detailExpanded: true, reviewOpen: false, checksOpen: false }))
   assert.equal(anchors.reviewContent(), null)
-  setBody(prSection({ detailExpanded: true, reviewOpen: true }))
-  assert.ok(anchors.reviewContent())
+  assert.equal(anchors.checksContent(), null)
+
+  setBody(prSection({ detailExpanded: true, reviewOpen: true, checksOpen: true }))
+  assert.equal(anchors.reviewContent()?.getAttribute('data-content'), 'pr-review-hero-row')
+  assert.equal(anchors.checksContent()?.getAttribute('data-content'), 'pr-checks-row')
 })
 
-test('the conversations header resolves to the row, not the label link', () => {
-  setBody(sidebar())
-  const header = anchors.conversationsHeader()
-  assert.ok(header)
-  assert.equal(header.className, 'nav-row group')
-})
-
-test('the conversations list resolves as the header’s sibling', () => {
-  setBody(sidebar())
-  assert.equal(anchors.conversationsList()?.className, 'conversations-list')
-})
-
-test('the app rendering no list at all resolves to nothing', () => {
-  setBody(sidebar({ withList: false }))
-  assert.equal(anchors.conversationsList(), null)
-})
-
-test('the extension’s own list is never mistaken for the app’s', () => {
-  // It sits in the same place, so without this the feature hides its own list
-  // — and nothing clears that, so the widened list never comes back.
-  setBody(sidebar({ withList: false }))
-  const header = anchors.conversationsHeader()!
-  const ours = document.createElement('div')
-  ours.setAttribute('data-whp', '')
-  ours.className = 'whp-list'
-  header.after(ours)
-
-  assert.equal(anchors.conversationsList(), null)
-})
-
-test('the app’s list is still found past the extension’s own', () => {
-  setBody(sidebar())
-  const header = anchors.conversationsHeader()!
-  const ours = document.createElement('div')
-  ours.setAttribute('data-whp', '')
-  header.after(ours)
-
-  assert.equal(anchors.conversationsList()?.className, 'conversations-list')
-})
-
-test('the header’s control cluster resolves, so the scope control has a home', () => {
-  // Placement is not cosmetic: injected outside the cluster the control either
-  // takes the label's layout or sits inside its link, where a click navigates
-  // instead of toggling — which leaves no way back to the narrow list.
-  setBody(sidebar())
-  const controls = anchors.conversationsControls()
-  assert.equal(controls?.className, 'nav-controls')
-  assert.ok(controls?.querySelector('button[title="New"]'))
-})
-
-test('the control cluster is absent when the header is', () => {
-  setBody('<div></div>')
-  assert.equal(anchors.conversationsControls(), null)
+test('the branch disclosure is not mistaken for a stat row', () => {
+  // It carries aria-expanded too, so a disclosure-by-label search must not
+  // reach it — and the detail's expanded state is read from its presence.
+  setBody(prSection({ detailExpanded: true }))
+  const branch = anchors.branchDropdown()
+  assert.ok(branch)
+  assert.equal(branch.getAttribute('title'), 'Branch detail')
+  assert.notEqual(branch, anchors.checksRow())
+  assert.notEqual(branch, anchors.reviewRow())
 })
 
 test('a data attribute is preferred over the fallback', () => {
@@ -147,71 +107,3 @@ test('a data attribute is preferred over the fallback', () => {
   assert.equal(anchors.composer()?.id, 'right')
 })
 
-test('the artefact toggle resolves by its segments', () => {
-  setBody(artefactPane())
-  const toggle = anchors.artefactToggle()
-  assert.ok(toggle)
-  assert.deepEqual(
-    [...toggle.children].map((child) => child.textContent),
-    ['File', 'Changes'],
-  )
-})
-
-test('the device toggle above a mockup is not the artefact toggle', () => {
-  // Same component, same markup, same corner of the same bar. Only the labels
-  // tell them apart, and a Diff segment on a mockup is what matching by
-  // position would produce. spec: DIFF
-  setBody(artefactPane({ segments: ['Desktop', 'Tablet', 'Mobile'] }))
-  assert.equal(anchors.artefactToggle(), null)
-})
-
-test('the artefact toggle still resolves once the extension has added a segment', () => {
-  setBody(artefactPane())
-  const toggle = anchors.artefactToggle()!
-  const injected = document.createElement('button')
-  injected.type = 'button'
-  injected.textContent = 'Diff'
-  injected.setAttribute('data-whp', '')
-  toggle.appendChild(injected)
-
-  assert.equal(anchors.artefactToggle(), toggle)
-  // The app's own segments are what the feature reads, and its own is not one.
-  assert.deepEqual(
-    anchors.artefactToggleSegments().map((node) => node.textContent),
-    ['File', 'Changes'],
-  )
-})
-
-test('the header bar is the ancestor holding both the toggle and the file stepper', () => {
-  setBody(artefactPane())
-  const bar = anchors.artefactHeaderBar()
-  assert.ok(bar)
-  assert.ok(bar.contains(anchors.artefactToggle()))
-  assert.ok(bar.querySelector('button[title="Previous file"]'))
-  // Not the whole column: the artefact view is a sibling of the bar, not inside it.
-  assert.equal(bar.querySelector('.artifact-view'), null)
-})
-
-test('the artefact view is the bar next sibling', () => {
-  setBody(artefactPane())
-  const view = anchors.artefactView()
-  assert.equal(view?.className, 'artifact-view')
-})
-
-test('the artefact view skips anything the extension put there', () => {
-  // Without this the panel would resolve as the app's view and hide itself.
-  setBody(artefactPane())
-  const bar = anchors.artefactHeaderBar()!
-  const panel = document.createElement('div')
-  panel.setAttribute('data-whp', '')
-  bar.after(panel)
-
-  assert.equal(anchors.artefactView()?.className, 'artifact-view')
-})
-
-test('the artefact anchors resolve to nothing off an artefact page', () => {
-  setBody(composerArea())
-  assert.equal(anchors.artefactToggle(), null)
-  assert.equal(anchors.artefactHeaderBar(), null)
-  assert.equal(anchors.artefactView(), null)
-})

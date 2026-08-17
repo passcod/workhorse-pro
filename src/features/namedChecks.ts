@@ -1,5 +1,5 @@
 import { anchors } from '../content/anchors.ts'
-import { ensureAfterOrdered, el, remove, statRow } from '../content/dom.ts'
+import { ensureOrdered, el, remove, statRow } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { branchStatus } from '../data/workhorse.ts'
 import { checkRuns, workflowNames } from '../data/github.ts'
@@ -14,32 +14,34 @@ import {
 /**
  * The jobs that failed or are still going, by name and by how long.
  *
- * These are *jobs*, where the breakdown above counts *workflows* — Workhorse
- * reads check suites, one per workflow run, while this reads check runs, one
- * per job. Three running workflows can be a hundred running jobs, so the two
- * are labelled rather than stacked and left to be reconciled by the reader.
+ * These are *jobs*, where the app's own Latest run breakdown counts
+ * *workflows* — Workhorse reads check suites, one per workflow run, while this
+ * reads check runs, one per job. Three running workflows can be a hundred
+ * running jobs, so the two are labelled rather than stacked and left to be
+ * reconciled by the reader.
  *
  * The duration is what makes the list worth its space: it says both that work
- * is happening and which of it has been happening too long. spec: STAT, GHUB
+ * is happening and which of it has been happening too long. spec: NJOB, GHUB
  */
 
 const CONTAINER = 'named-checks'
-/** After the breakdown, which counts the workflows these jobs belong to. */
+/** After the app's own readings inside the row. */
 const ORDER = 20
 
 export function namedChecks(): Feature {
   return {
     name: 'namedChecks',
     reconcile({ prefs, route }: Context) {
-      const checksRow = anchors.checksRow()
-      // The Checks row is on screen only while the pull request detail is
-      // expanded, so a collapsed detail resolves no row: no anchor, no GitHub
-      // request. That expansion is what keeps a section not on screen free.
-      // spec: GHUB
+      // The jobs sit inside the Checks row's own disclosure, alongside the
+      // readings the app puts there. That content block exists only while the
+      // pull request detail is expanded and the row itself is open, so a
+      // collapsed either way resolves nothing: no anchor, no GitHub request.
+      // That is what keeps a section not on screen free. spec: NJOB, GHUB
+      const checksContent = anchors.checksContent()
       if (
         !prefs.namedChecks ||
         !prefs.githubToken ||
-        !checksRow ||
+        !checksContent ||
         !route.card ||
         !route.workspace
       ) {
@@ -66,7 +68,7 @@ export function namedChecks(): Feature {
         return
       }
 
-      const container = ensureAfterOrdered(checksRow, CONTAINER, ORDER, () => el('div', 'whp-checks'))
+      const container = ensureOrdered(checksContent, CONTAINER, ORDER, () => el('div', 'whp-checks'))
 
       // Name the unit, so the workflow counts above and the job rows below
       // cannot be read as the same thing disagreeing.

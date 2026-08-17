@@ -2,8 +2,8 @@ import { ext } from './ext.ts'
 import { reportOnce } from './log.ts'
 
 /**
- * Everything held in the synced area: the feature switches, the GitHub token,
- * and the conversation scope control's own state.
+ * Everything held in the synced area: the feature switches and the GitHub
+ * token.
  *
  * Synced rather than device-local because these are small and are the same
  * wherever the user works — including the token, which is entered once rather
@@ -21,7 +21,6 @@ export interface Prefs {
   namedChecks: boolean
   inputHistory: boolean
   composerStash: boolean
-  crossWorkspaceConversations: boolean
   sortWorkspaces: boolean
   rawDiff: boolean
   /** Show the extension's own wordmark in the sidebar's top corner. */
@@ -29,8 +28,6 @@ export interface Prefs {
   observeFetches: boolean
   /** Read-only, checks-scoped. Empty when the user has not supplied one. */
   githubToken: string
-  /** Whether the conversations list is currently widened past the active workspace. */
-  scopeWide: boolean
   /** Written as `Ctrl+S`. Empty leaves the action unbound. */
   stashPushKey: string
   stashPopKey: string
@@ -47,13 +44,11 @@ export const PREF_DEFAULTS: Prefs = {
   namedChecks: true,
   inputHistory: true,
   composerStash: true,
-  crossWorkspaceConversations: true,
   sortWorkspaces: true,
   rawDiff: true,
   proWordmark: true,
   observeFetches: true,
   githubToken: '',
-  scopeWide: false,
   // Parking a draft is a save. Restoring takes Ctrl+P rather than the shifted
   // save, which collides with a common screenshot binding — and nobody prints
   // a Workhorse page.
@@ -121,13 +116,6 @@ export const SWITCHES: SwitchInfo[] = [
       'Park drafts on a stack and bring them back later, across any conversation. ' +
       'The keys are set below and can be changed. ' +
       'Popping into a composer that already has text swaps the two, so nothing is lost.',
-  },
-  {
-    key: 'crossWorkspaceConversations',
-    label: 'Cross-workspace conversations',
-    detail:
-      'Add a control to the sidebar’s Conversations header that widens the list to every ' +
-      'workspace you can see. Each row’s card code takes its workspace’s colour.',
   },
   {
     key: 'rawDiff',

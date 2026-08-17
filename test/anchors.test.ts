@@ -1,7 +1,7 @@
 import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { installDom, setBody } from './dom.ts'
-import { artefactPane, composerArea, prSection, sidebar } from './fixtures/app.ts'
+import { artefactPane, composerArea, prSection } from './fixtures/app.ts'
 
 installDom()
 const { anchors } = await import('../src/content/anchors.ts')
@@ -12,7 +12,7 @@ test('an anchor that resolves to nothing returns nothing rather than throwing', 
   // The normal state on a page the feature does not apply to. spec: INJ
   assert.equal(anchors.composer(), null)
   assert.equal(anchors.checksRow(), null)
-  assert.equal(anchors.conversationsHeader(), null)
+  assert.equal(anchors.prDetailToggle(), null)
   assert.equal(anchors.prDetailExpanded(), false)
 })
 
@@ -25,8 +25,8 @@ test('the pull request detail toggle resolves before a PR exists', () => {
   setBody(prSection({ hasPr: false }))
   const toggle = anchors.prDetailToggle()
   assert.equal(toggle?.tagName, 'BUTTON')
-  // The title row, reached through its chevron — not the Create button beside it.
-  assert.ok(toggle?.querySelector('[data-testid="pr-create-chevron"]'))
+  // The Branch details button, not the Create button beside it.
+  assert.equal(toggle?.getAttribute('title'), 'Branch details')
   assert.notEqual(toggle?.textContent?.trim(), 'Create PR')
 })
 
@@ -34,10 +34,10 @@ test('the pull request detail toggle resolves once a PR exists', () => {
   setBody(prSection({ hasPr: true }))
   const toggle = anchors.prDetailToggle()
   assert.equal(toggle?.tagName, 'BUTTON')
-  // The bar's own title row, not the kebab beside it: no title of its own, and
-  // its chevron inside.
+  // The bar's own title row, beside the Open on GitHub link: it carries no
+  // title of its own, and it is the title button rather than the link.
   assert.equal(toggle?.getAttribute('title'), null)
-  assert.ok(toggle?.querySelector('[data-testid="pr-detail-chevron"]'))
+  assert.ok(toggle?.textContent?.includes('Add the thing'))
 })
 
 test('the expanded state reads from the branch controls that only exist when open', () => {
@@ -77,61 +77,6 @@ test('the Review Hero content exists only while its row is open', () => {
   assert.equal(anchors.reviewContent(), null)
   setBody(prSection({ detailExpanded: true, reviewOpen: true }))
   assert.ok(anchors.reviewContent())
-})
-
-test('the conversations header resolves to the row, not the label link', () => {
-  setBody(sidebar())
-  const header = anchors.conversationsHeader()
-  assert.ok(header)
-  assert.equal(header.className, 'nav-row group')
-})
-
-test('the conversations list resolves as the header’s sibling', () => {
-  setBody(sidebar())
-  assert.equal(anchors.conversationsList()?.className, 'conversations-list')
-})
-
-test('the app rendering no list at all resolves to nothing', () => {
-  setBody(sidebar({ withList: false }))
-  assert.equal(anchors.conversationsList(), null)
-})
-
-test('the extension’s own list is never mistaken for the app’s', () => {
-  // It sits in the same place, so without this the feature hides its own list
-  // — and nothing clears that, so the widened list never comes back.
-  setBody(sidebar({ withList: false }))
-  const header = anchors.conversationsHeader()!
-  const ours = document.createElement('div')
-  ours.setAttribute('data-whp', '')
-  ours.className = 'whp-list'
-  header.after(ours)
-
-  assert.equal(anchors.conversationsList(), null)
-})
-
-test('the app’s list is still found past the extension’s own', () => {
-  setBody(sidebar())
-  const header = anchors.conversationsHeader()!
-  const ours = document.createElement('div')
-  ours.setAttribute('data-whp', '')
-  header.after(ours)
-
-  assert.equal(anchors.conversationsList()?.className, 'conversations-list')
-})
-
-test('the header’s control cluster resolves, so the scope control has a home', () => {
-  // Placement is not cosmetic: injected outside the cluster the control either
-  // takes the label's layout or sits inside its link, where a click navigates
-  // instead of toggling — which leaves no way back to the narrow list.
-  setBody(sidebar())
-  const controls = anchors.conversationsControls()
-  assert.equal(controls?.className, 'nav-controls')
-  assert.ok(controls?.querySelector('button[title="New"]'))
-})
-
-test('the control cluster is absent when the header is', () => {
-  setBody('<div></div>')
-  assert.equal(anchors.conversationsControls(), null)
 })
 
 test('a data attribute is preferred over the fallback', () => {

@@ -9,28 +9,19 @@ function ci(overrides: Partial<CheckStatus>): CheckStatus {
     total: 0,
     running: 0,
     failing: 0,
-    skipped: 0,
     repoRunsChecks: true,
     ...overrides,
   }
 }
 
 test('a clean run is all passed', () => {
+  // The app folds suites settled without running their work into the total, so
+  // they land in the passed count rather than being singled out.
   assert.deepEqual(checkBreakdown(ci({ status: 'passing', total: 12 })), {
     passed: 12,
     failed: 0,
     running: 0,
-    skipped: 0,
   })
-})
-
-test('a missing skipped count is read as none rather than turning counts to NaN', () => {
-  // The field reaches the client over the wire, so a response cached from
-  // before it existed is possible for a poll interval after a deploy.
-  const stale = { status: 'passing', total: 4, running: 0, failing: 0, repoRunsChecks: true }
-  const result = checkBreakdown(stale as unknown as CheckStatus)
-  assert.deepEqual(result, { passed: 4, failed: 0, running: 0, skipped: 0 })
-  for (const value of Object.values(result)) assert.equal(Number.isFinite(value), true)
 })
 
 test('a failure verdict with no detail still reports one failure', () => {
@@ -40,7 +31,6 @@ test('a failure verdict with no detail still reports one failure', () => {
     passed: 2,
     failed: 1,
     running: 0,
-    skipped: 0,
   })
 })
 
@@ -49,7 +39,6 @@ test('a pending verdict with no detail still reports one running', () => {
     passed: 2,
     failed: 0,
     running: 1,
-    skipped: 0,
   })
 })
 
@@ -60,16 +49,6 @@ test('the passed count never goes negative', () => {
     passed: 0,
     failed: 1,
     running: 0,
-    skipped: 0,
-  })
-})
-
-test('skipped runs come out of the passed count', () => {
-  assert.deepEqual(checkBreakdown(ci({ status: 'passing', total: 12, skipped: 3 })), {
-    passed: 9,
-    failed: 0,
-    running: 0,
-    skipped: 3,
   })
 })
 

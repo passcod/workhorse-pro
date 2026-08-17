@@ -6,7 +6,7 @@ const dom = installDom()
 const { startObserving } = await import('../src/data/observed.ts')
 const { peek, reset } = await import('../src/data/store.ts')
 const { OBSERVED_MESSAGE } = await import('../src/lib/messages.ts')
-const { branchStatusKey, SIDEBAR_DATA_KEY } = await import('../src/data/keys.ts')
+const { branchStatusKey } = await import('../src/data/keys.ts')
 
 /**
  * Everything reaching the receiver came through the page, so it is untrusted:
@@ -45,9 +45,6 @@ test('a payload of the wrong shape is discarded', () => {
 
   send({ source: OBSERVED_MESSAGE, url: BRANCH_STATUS_URL, body: 'a string' })
   assert.equal(peek(branchStatusKey('workhorse', 'WH-078')), null)
-
-  send({ source: OBSERVED_MESSAGE, url: `${ORIGIN}/api/sidebar-data`, body: { workspaces: 'no' } })
-  assert.equal(peek(SIDEBAR_DATA_KEY), null)
 })
 
 test('a message from another origin is ignored', () => {

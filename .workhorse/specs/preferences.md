@@ -18,7 +18,6 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 - [ ] Review run stats
 - [ ] Input history
 - [ ] Composer stash
-- [ ] Cross-workspace conversations
 - [ ] Alphabetical workspace switcher
 - [ ] Raw diff view for markdown artefacts
 - [ ] Remembered view selection, carrying the reader's choice of view from one artefact to the next

@@ -31,14 +31,6 @@ const VALIDATORS: { prefix: string; check: Validator }[] = [
     check: (body) => isObject(body) && 'branch' in body && 'loop' in body,
   },
   {
-    prefix: 'sidebar-data',
-    check: (body) => isObject(body) && Array.isArray(body.workspaces),
-  },
-  {
-    prefix: 'sessions-recent:',
-    check: (body) => isObject(body) && Array.isArray(body.sessions),
-  },
-  {
     prefix: 'card-files:',
     check: (body) => isObject(body) && Array.isArray(body.initialFiles),
   },

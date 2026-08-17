@@ -31,7 +31,7 @@ function status(overrides: Partial<BranchStatusData> = {}): BranchStatusData {
   return {
     prUrl: PR,
     prNumber: 78,
-    ci: { status: 'passing', total: 12, running: 0, failing: 0, skipped: 0, repoRunsChecks: true },
+    ci: { status: 'passing', total: 12, running: 0, failing: 0, repoRunsChecks: true },
     branch: { name: 'wh-078' },
     loop: { active: false, round: 0, paused: false },
     lastReview: null,
@@ -107,7 +107,7 @@ test('nothing is injected when the checks row is off screen', () => {
 })
 
 test('the named jobs hang beneath the breakdown, in order', () => {
-  store.put(branchStatusKey(WS, CARD), status({ ci: { status: 'failing', total: 3, running: 0, failing: 1, skipped: 0, repoRunsChecks: true } }))
+  store.put(branchStatusKey(WS, CARD), status({ ci: { status: 'failing', total: 3, running: 0, failing: 1, repoRunsChecks: true } }))
   seedGithub([failedRun(1, 'build')])
 
   // Whichever feature runs first, the breakdown stays above the jobs.
@@ -123,7 +123,7 @@ test('the named jobs hang beneath the breakdown, in order', () => {
 })
 
 test('a breakdown removed and re-added returns above the jobs', () => {
-  store.put(branchStatusKey(WS, CARD), status({ ci: { status: 'failing', total: 3, running: 0, failing: 1, skipped: 0, repoRunsChecks: true } }))
+  store.put(branchStatusKey(WS, CARD), status({ ci: { status: 'failing', total: 3, running: 0, failing: 1, repoRunsChecks: true } }))
   seedGithub([failedRun(1, 'build')])
 
   reconcileBreakdown()

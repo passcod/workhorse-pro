@@ -13,13 +13,6 @@ export interface CheckStatus {
   total: number
   running: number
   failing: number
-  /**
-   * Settled without running their work — skipped, neutral, cancelled, stale.
-   * A subset of those counting as passing, not a fourth bucket. Reaches the
-   * client over the wire, so it can be absent on a response cached from before
-   * the field existed.
-   */
-  skipped: number
   /** Whether the repo has any active workflow; null when the lookup failed. */
   repoRunsChecks: boolean | null
 }
@@ -66,60 +59,6 @@ export interface BaseFileData {
  */
 export interface CardDetailData {
   card: { id: string } | null
-}
-
-/**
- * A row's worth of a recent conversation, as `mapRecentSession` returns it.
- *
- * A row is not a conversation: card-bound conversations collapse to one row
- * per card and project conversations to one per project, so most rows stand
- * for a card and show the card's identity rather than the conversation's.
- * spec: SCOP
- */
-export interface RecentSession {
-  id: string
-  title: string | null
-  lastMessagePreview: string | null
-  messageCount: number
-  lastMessageAt: string
-  cardId: string | null
-  kind: string | null
-  waitingOnUser: boolean
-  /** Queued for review or waiting on a scheduled merge. */
-  waitingOnExternal: boolean
-  waitingOnMerge: boolean
-  cardIdentifier: string | null
-  cardTitle: string | null
-  /** Which status glyph the card's status draws, e.g. `almost-done`. */
-  cardStatusIconStyle: string | null
-  cardStatusColour: string | null
-  cardStatusLabel: string | null
-  projectId: string | null
-  projectName: string | null
-  projectHash: string | null
-  projectEmoji: string | null
-  projectColour: string | null
-  workspaceName: string | null
-}
-
-export interface SidebarData {
-  workspaces: { id: string; name: string }[]
-  recentSessions: RecentSession[]
-  myLocalInstance: { url: string; cardIds: string[] } | null
-}
-
-export interface SessionsResponse {
-  sessions: RecentSession[]
-  nextCursor: string | null
-}
-
-/** What the device reports for sessions it is running. */
-export interface SessionSummary {
-  id: string
-  lastMessagePreview?: string | null
-  messageCount?: number
-  lastMessageAt?: string
-  agentActiveAt?: string | null
 }
 
 /** A GitHub check run, narrowed to what the named-checks row renders. */

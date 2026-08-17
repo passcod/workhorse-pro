@@ -12,12 +12,6 @@ export function branchStatusKey(workspace: string, card: string): string {
   return `branch-status:${workspace}:${card}`
 }
 
-export const SIDEBAR_DATA_KEY = 'sidebar-data'
-
-export function recentSessionsKey(limit: number, workspace: string | null): string {
-  return `sessions-recent:${limit}:${workspace ?? ''}`
-}
-
 export function cardFilesKey(workspace: string, card: string): string {
   return `card-files:${workspace}:${card}`
 }
@@ -42,8 +36,6 @@ export function workflowRunsKey(owner: string, repo: string, ref: string): strin
 /** Paths worth observing. Anything else the app fetches is ignored. */
 export const OBSERVED_PATHS = [
   '/api/card-branch-status',
-  '/api/sidebar-data',
-  '/api/sessions',
   '/api/card-files',
   '/api/card-detail',
   '/api/base-file',
@@ -72,8 +64,6 @@ export function keyForUrl(url: string, base: string): string | null {
       if (!card || !workspace) return null
       return branchStatusKey(workspace, card)
     }
-    case '/api/sidebar-data':
-      return SIDEBAR_DATA_KEY
     case '/api/card-files': {
       const card = parsed.searchParams.get('cardId')
       const workspace = parsed.searchParams.get('workspace')
@@ -95,12 +85,6 @@ export function keyForUrl(url: string, base: string): string | null {
       // base-branch one is read from, so it is left alone.
       if (parsed.searchParams.get('prNumber') !== null) return null
       return baseFileKey(card, filePath)
-    }
-    case '/api/sessions': {
-      if (parsed.searchParams.get('recent') !== 'true') return null
-      const limit = Number(parsed.searchParams.get('limit') ?? '8')
-      if (!Number.isFinite(limit)) return null
-      return recentSessionsKey(limit, parsed.searchParams.get('workspace'))
     }
     default:
       return null

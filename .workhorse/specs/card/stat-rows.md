@@ -17,16 +17,16 @@ The checks row reports a verdict.
 The breakdown reports the counts behind it.
 
 - [ ] The breakdown hangs beneath the checks row, shown whenever that row is on screen
-- [ ] Runs are counted into passed, failed, running, and skipped
-- [ ] Only non-zero counts appear, so an ordinary clean run reads as a passed count alone rather than padding three zeroes around it
+- [ ] Runs are counted into passed, failed, and running
+- [ ] Only non-zero counts appear, so an ordinary clean run reads as a passed count alone rather than padding zeroes around it
 - [ ] Only the failed count is coloured, taking the same treatment the checks row gives its own failure verdict
 - [ ] The breakdown shows nothing at all when every count is zero
 
 The counts must agree with the row above them for the same head, which constrains how they are derived.
 
-- [ ] A missing skipped count is read as none, so a response that predates the field does not turn every count into nonsense
+- [ ] Runs settled without doing their work — skipped, neutral, cancelled, stale — are folded into the passed count rather than singled out, since the branch status counts them among the total behind its verdict
 - [ ] When the overall status reports failure, the failed count is at least one, and when it reports work in progress, the running count is at least one
-- [ ] The passed count is whatever remains after the other three, and never falls below zero
+- [ ] The passed count is whatever remains after the other two, and never falls below zero
 
 ### Named jobs
 

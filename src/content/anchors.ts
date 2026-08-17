@@ -83,15 +83,17 @@ export const anchors = {
   prDetailToggle(): HTMLElement | null {
     const hooked = document.querySelector<HTMLElement>('[data-wh-pr-toggle]')
     if (hooked) return hooked
-    // Fallback: the bar's title row is the toggle. It carries no title of its
-    // own, but its chevron carries the app's own test id — `pr-create-chevron`
-    // before a PR exists, `pr-detail-chevron` once one does. Resolving through
-    // the chevron and climbing to its button keeps the whole title row as the
-    // hit area, and never returns the Create button or the kebab beside it.
-    const chevron = document.querySelector(
-      '[data-testid="pr-detail-chevron"], [data-testid="pr-create-chevron"]',
-    )
-    const button = chevron?.closest('button')
+    // Fallback, before a pull request exists: the branch detail is opened by a
+    // button of its own, the only one carrying this title.
+    const branchDetails = document.querySelector<HTMLElement>('button[title="Branch details"]')
+    if (branchDetails) return branchDetails
+    // Fallback, once a pull request exists: the collapsed bar's title row is the
+    // toggle. It carries no title of its own, so it is resolved as the button
+    // beside the bar's "Open on GitHub" link. The previous-pull-requests list
+    // repeats that link further down, but it renders below the expanded detail,
+    // so the first one in the document is always the bar's.
+    const ghLink = document.querySelector('a[title="Open on GitHub"]')
+    const button = ghLink?.parentElement?.querySelector('button')
     return button instanceof HTMLElement ? button : null
   },
 
@@ -208,51 +210,6 @@ export const anchors = {
     return sibling as HTMLElement | null
   },
 
-  /** The sidebar's Conversations header row. */
-  conversationsHeader(): Element | null {
-    const hooked = document.querySelector('[data-wh-conversations]')
-    if (hooked) return hooked
-    for (const span of document.querySelectorAll('nav span, aside span')) {
-      if (span.textContent?.trim() === 'Conversations') {
-        // The row is the div wrapping the label and its controls. Deliberately
-        // not `closest('a, div')`: the label can sit inside a link, and the
-        // link is not the row.
-        return span.closest('div')
-      }
-    }
-    return null
-  },
-
-  /**
-   * The cluster of controls at the right of the Conversations header, where
-   * the app puts its own row buttons and where the scope control belongs.
-   *
-   * Injecting into this cluster rather than beside the header is what keeps
-   * the control reachable: appended anywhere else it inherits the label's
-   * layout, and inside the label's link a click navigates instead of toggling.
-   */
-  conversationsControls(): Element | null {
-    const header = this.conversationsHeader()
-    if (!header) return null
-    const hooked = header.querySelector('[data-wh-conversations-controls]')
-    if (hooked) return hooked
-    // The "New" button is the cluster's stable member; the row always has one.
-    const add = header.querySelector('button[title="New"], button[title="Starting…"]')
-    return add?.parentElement ?? null
-  },
-
-  /**
-   * The app's own conversations list, hidden while the scope is widened.
-   *
-   * Null when the app is rendering no list at all, which it does when the
-   * scoped list has nothing in it.
-   *
-   * The extension's own list sits in the same place, so this has to skip
-   * anything the extension put there. Without that check it returns the
-   * extension's container whenever the app's list is absent — and the caller
-   * then hides *that*, leaving the widened list invisible and no way to get it
-   * back, since nothing clears the style it was given.
-   */
   /**
    * The wordmark in the sidebar's top corner — the element holding the app's
    * own name, beside its brand mark.
@@ -362,20 +319,6 @@ export const anchors = {
    */
   workspaceRowName(row: Element): string {
     return labelOf(row) || (row.textContent?.trim() ?? '')
-  },
-
-  conversationsList(): HTMLElement | null {
-    const hooked = document.querySelector<HTMLElement>('[data-wh-conversations-list]')
-    if (hooked) return hooked
-    const header = this.conversationsHeader()
-    if (!header) return null
-    let sibling = header.nextElementSibling
-    // Skip the error paragraph the header can render before the list, and
-    // anything of the extension's own.
-    while (sibling && (sibling.tagName === 'P' || sibling.hasAttribute(MARK))) {
-      sibling = sibling.nextElementSibling
-    }
-    return sibling as HTMLElement | null
   },
 }
 

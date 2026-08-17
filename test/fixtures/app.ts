@@ -22,11 +22,11 @@
  *   block. It sits as a sibling of the Review Hero disclosure.
  * - The branch dropdown carries `aria-expanded` and `title="Advanced branch
  *   controls"`, and renders only inside the expanded detail.
- * - The detail is opened by the bar's title row: a button carrying no title of
- *   its own, whose chevron carries the app's own test id — `pr-create-chevron`
- *   before a pull request exists, `pr-detail-chevron` once one does. Beside it
- *   sit the Create button (before a PR) and the kebab `button[title="More"]`
- *   that holds Open in GitHub and the title actions.
+ * - Once a pull request exists, the detail is opened by the bar's title row: a
+ *   button carrying no title of its own, sitting beside the
+ *   `a[title="Open on GitHub"]` link that identifies it. Before a pull request
+ *   exists, it is opened by a `button[title="Branch details"]` beside the
+ *   Create button instead.
  *
  * spec: INJ
  */
@@ -52,20 +52,6 @@ function flatRow(label: string, value = ''): string {
   `
 }
 
-/** The bar's expand toggle: a button wrapping the title and a chevron that
- *  carries the app's own test id. */
-function barTitleRow(chevronTestId: string, inner: string): string {
-  return `
-    <button type="button">
-      ${inner}
-      <svg data-testid="${chevronTestId}"></svg>
-    </button>
-  `
-}
-
-/** The bar's kebab, holding Open in GitHub and the title actions. */
-const kebab = `<button type="button" title="More">⋯</button>`
-
 export interface PrSectionOptions {
   hasPr?: boolean
   detailExpanded?: boolean
@@ -81,15 +67,21 @@ export function prSection(options: PrSectionOptions = {}): string {
     reviewOpen = false,
   } = options
 
+  // Once a PR exists the title button carries no title of its own and sits
+  // beside the Open on GitHub link. Before one exists, a Branch details button
+  // opens the detail beside the Create button.
   const collapsedBar = hasPr
     ? `<div class="bar">
-         ${barTitleRow('pr-detail-chevron', '<span>Add the thing</span><span>#78</span>')}
-         ${kebab}
+         <button type="button">
+           <span>Add the thing</span>
+           <span>#78</span>
+           <svg class="chevron"></svg>
+         </button>
+         <a href="https://github.com/o/r/pull/78" title="Open on GitHub"><svg></svg></a>
        </div>`
     : `<div class="bar">
          <button type="button">Create PR</button>
-         ${barTitleRow('pr-create-chevron', '<span>Add the thing</span>')}
-         ${kebab}
+         <button type="button" title="Branch details"><svg class="chevron"></svg></button>
        </div>`
 
   const detail = detailExpanded
@@ -108,44 +100,6 @@ export function prSection(options: PrSectionOptions = {}): string {
     : ''
 
   return `<div class="pr-section">${collapsedBar}${detail}</div>`
-}
-
-/**
- * The Conversations section of the sidebar.
- *
- * Shape reproduced from `NavRow` and `ConversationsList`: the row is a div
- * wrapping a label element and a trailing cluster of control buttons, and the
- * list is the row's *sibling*, not its child. The scope control belongs in
- * that cluster — anywhere else and it either inherits the label's layout or,
- * inside the label's link, navigates instead of toggling.
- */
-export function sidebar(options: { withList?: boolean } = {}): string {
-  const { withList = true } = options
-  return `
-    <aside>
-      <nav>
-        <div class="nav-section">
-          <div class="nav-row group">
-            <span class="nav-label">
-              <svg class="icon"></svg>
-              <span class="truncate">Conversations</span>
-            </span>
-            <div class="nav-controls">
-              <button type="button" title="New">+</button>
-            </div>
-          </div>
-          ${
-            withList
-              ? `<div class="conversations-list">
-            <div class="row"><a href="/workhorse/cards/WH-1?session=one">One</a></div>
-            <div class="row"><a href="/workhorse/cards/WH-2?session=two">Two</a></div>
-          </div>`
-              : ''
-          }
-        </div>
-      </nav>
-    </aside>
-  `
 }
 
 /**

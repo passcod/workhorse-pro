@@ -4,16 +4,12 @@ import {
   branchStatusKey,
   cardDetailKey,
   cardFilesKey,
-  recentSessionsKey,
-  SIDEBAR_DATA_KEY,
 } from './keys.ts'
 import type {
   BaseFileData,
   BranchStatusData,
   CardDetailData,
   CardFilesData,
-  SessionsResponse,
-  SidebarData,
 } from './types.ts'
 
 /**
@@ -23,16 +19,12 @@ import type {
 
 /** Matches the staleness the app applies to branch status, and its poll. */
 const BRANCH_STATUS = { ttl: 10_000, poll: 15_000 }
-const SIDEBAR = { ttl: 30_000, poll: 60_000 }
-const SESSIONS = { ttl: 10_000, poll: 20_000 }
 /** The app polls the file listing tightly to keep the sidebar live during a turn. */
 const CARD_FILES = { ttl: 5_000, poll: 10_000 }
 /** A card's own id never changes, so this is read once and kept. */
 const CARD_DETAIL = { ttl: 300_000 }
 /** The base branch moves only on a merge, which the card page does not sit through. */
 const BASE_FILE = { ttl: 60_000, poll: 120_000 }
-
-import { WIDENED_FETCH } from '../lib/conversationScope.ts'
 
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path, { credentials: 'same-origin' })
@@ -106,48 +98,6 @@ export function diffSideFailed(
   if (failed(cardFilesKey(workspace, card))) return true
   if (failed(cardDetailKey(workspace, card))) return true
   return cardId !== null && failed(baseFileKey(cardId, filePath))
-}
-
-export function sidebarData(): SidebarData | null {
-  return read<SidebarData>(
-    SIDEBAR_DATA_KEY,
-    () => getJson<SidebarData>('/api/sidebar-data'),
-    SIDEBAR,
-  )
-}
-
-/** Conversations across every workspace the user can see. spec: SCOP */
-export function recentSessions(limit = WIDENED_FETCH): SessionsResponse | null {
-  return read<SessionsResponse>(
-    recentSessionsKey(limit, null),
-    () => getJson<SessionsResponse>(`/api/sessions?recent=true&limit=${limit}`),
-    SESSIONS,
-  )
-}
-
-/**
- * Dismiss a conversation from the recent list.
- *
- * The server dismisses every conversation the row stands for — all of a card's
- * — and echoes the ids it cleared, so the caller can drop exactly those rather
- * than guessing. Returns null when the write failed, which means the server
- * still has them and the rows should come back. spec: SCOP
- */
-export async function dismissSessions(sessionId: string): Promise<string[] | null> {
-  try {
-    const response = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ dismissedFromRecent: true }),
-    })
-    if (!response.ok) return null
-    const data = (await response.json().catch(() => null)) as { dismissedIds?: string[] } | null
-    const ids = data?.dismissedIds
-    return Array.isArray(ids) ? ids : [sessionId]
-  } catch {
-    return null
-  }
 }
 
 /**

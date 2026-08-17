@@ -25,23 +25,17 @@ const RUNS_ORDER = 10
 const LAST_RUN_ORDER = 20
 
 /** Comma-separated parts, with the failure count carrying the row's colour. */
-function breakdownNodes(counts: {
-  passed: number
-  failed: number
-  running: number
-  skipped: number
-}): Node[] {
+function breakdownNodes(counts: { passed: number; failed: number; running: number }): Node[] {
   const parts: Node[] = []
   const push = (node: Node) => {
     if (parts.length > 0) parts.push(document.createTextNode(', '))
     parts.push(node)
   }
   // Only non-zero buckets appear, so a clean run reads as a passed count alone
-  // rather than padding three zeroes around it. spec: STAT
+  // rather than padding zeroes around it. spec: STAT
   if (counts.passed > 0) push(document.createTextNode(`${counts.passed} passed`))
   if (counts.failed > 0) push(el('span', 'whp-amber', `${counts.failed} failed`))
   if (counts.running > 0) push(document.createTextNode(`${counts.running} running`))
-  if (counts.skipped > 0) push(document.createTextNode(`${counts.skipped} skipped`))
   return parts
 }
 

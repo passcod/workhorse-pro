@@ -24,6 +24,8 @@ export interface Prefs {
   crossWorkspaceConversations: boolean
   sortWorkspaces: boolean
   rawDiff: boolean
+  /** Show the extension's own wordmark in the sidebar's top corner. */
+  proWordmark: boolean
   observeFetches: boolean
   /** Read-only, checks-scoped. Empty when the user has not supplied one. */
   githubToken: string
@@ -48,6 +50,7 @@ export const PREF_DEFAULTS: Prefs = {
   crossWorkspaceConversations: true,
   sortWorkspaces: true,
   rawDiff: true,
+  proWordmark: true,
   observeFetches: true,
   githubToken: '',
   scopeWide: false,
@@ -139,6 +142,13 @@ export const SWITCHES: SwitchInfo[] = [
     label: 'Alphabetical workspace switcher',
     detail:
       'Order the sidebar’s workspace menu by name instead of the order it arrives in.',
+  },
+  {
+    key: 'proWordmark',
+    label: 'Prohorse wordmark',
+    detail:
+      'Show a horse and the word Prohorse in the sidebar’s top corner, in place of the app’s own ' +
+      'wordmark.',
   },
   {
     key: 'observeFetches',

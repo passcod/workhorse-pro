@@ -139,6 +139,32 @@ export function ensureAfter<T extends HTMLElement>(
   return element
 }
 
+/**
+ * Find or create a node placed immediately before `reference`.
+ *
+ * Used where the extension's own node leads what the app rendered rather than
+ * trailing it — the brand mark sits ahead of the wordmark, not after it.
+ */
+export function ensureBefore<T extends HTMLElement>(
+  reference: Element,
+  id: string,
+  create: () => T,
+): T {
+  const parent = reference.parentElement
+  if (!parent) throw new Error(`ensureBefore: ${id} has no parent to sit in`)
+  const existing = parent.querySelector<T>(`:scope > [${ID}="${CSS.escape(id)}"]`)
+  if (existing) {
+    // Keep it adjacent: the app can re-order the row around it.
+    if (existing.nextElementSibling !== reference) reference.before(existing)
+    return existing
+  }
+  const element = create()
+  element.setAttribute(ID, id)
+  marked(element)
+  reference.before(element)
+  return element
+}
+
 /** Remove an injected node wherever it is, if present. */
 export function remove(id: string, root: ParentNode = document): void {
   for (const node of root.querySelectorAll(`[${ID}="${CSS.escape(id)}"]`)) {

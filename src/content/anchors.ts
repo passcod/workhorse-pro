@@ -15,6 +15,14 @@
 
 import { MARK } from './reconcile.ts'
 
+/**
+ * Where the extension records the name the app's own wordmark carried, so it
+ * can put it back. It sits on the app's element rather than in the extension,
+ * because the app can rebuild that element at any time and a value held aside
+ * would then be restored onto the wrong node. spec: BRND
+ */
+export const BRAND_ORIGINAL = 'data-whp-brand'
+
 /** Text content of an element's first child element, trimmed. */
 function labelOf(element: Element): string {
   return element.firstElementChild?.textContent?.trim() ?? ''
@@ -245,6 +253,69 @@ export const anchors = {
    * then hides *that*, leaving the widened list invisible and no way to get it
    * back, since nothing clears the style it was given.
    */
+  /**
+   * The wordmark in the sidebar's top corner — the element holding the app's
+   * own name, beside its brand mark.
+   *
+   * Fallback: the app renders the name as a span reading `Workhorse`. Once the
+   * extension has rewritten it that text is gone, so a span carrying the
+   * original text the extension recorded resolves too — otherwise the anchor
+   * would stop resolving the moment the feature had done its work, and the
+   * feature could never restore what it changed.
+   *
+   * Spans inside a control are skipped. The wordmark is not interactive, while
+   * the workspace switcher's trigger reads a workspace name — and a workspace
+   * can be named `Workhorse`, which would otherwise put the extension's
+   * branding on the switcher. spec: BRND
+   */
+  wordmark(): HTMLElement | null {
+    const hooked = document.querySelector<HTMLElement>('[data-wh-wordmark]')
+    if (hooked) return hooked
+    for (const span of document.querySelectorAll<HTMLElement>('aside span, header span')) {
+      if (span.hasAttribute(MARK) || span.closest('button, a')) continue
+      const text = span.textContent?.trim() ?? ''
+      if (text === 'Workhorse' || span.hasAttribute(BRAND_ORIGINAL)) return span
+    }
+    return null
+  },
+
+  /**
+   * The brand mark beside that wordmark: a burnt-orange square carrying a "W".
+   *
+   * Fallback: the app renders it as an svg immediately before the wordmark. It
+   * is decorative and carries no label of its own, so its position beside the
+   * name is the only thing identifying it.
+   */
+  brandMark(): SVGElement | null {
+    const hooked = document.querySelector<SVGElement>('[data-wh-brand-mark]')
+    if (hooked) return hooked
+    const sibling = this.wordmark()?.previousElementSibling
+    return sibling instanceof SVGElement ? sibling : null
+  },
+
+  /**
+   * The same mark in the retracted rail, which is all the branding on show
+   * while the sidebar is minimised.
+   *
+   * Its own attribute rather than the header's: the rail carries no wordmark,
+   * so one attribute covering both would resolve the rail's mark as the
+   * header's too, and the extension would put two marks against the one node.
+   *
+   * Fallback: the rail is the control that reveals the sidebar again with the
+   * mark stacked above it, so the mark is the svg among that button's
+   * siblings. There is no wordmark in the rail to resolve from.
+   */
+  railBrandMark(): SVGElement | null {
+    const hooked = document.querySelector<SVGElement>('[data-wh-rail-mark]')
+    if (hooked) return hooked
+    const rail = document.querySelector('button[title="Show sidebar"]')?.parentElement
+    if (!rail) return null
+    for (const child of rail.children) {
+      if (child instanceof SVGElement && !child.hasAttribute(MARK)) return child
+    }
+    return null
+  },
+
   /**
    * The workspace switcher's open menu, or null while it is closed.
    *

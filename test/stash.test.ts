@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { popStash, pushStash } from '../src/lib/stash.ts'
+import { popStash, pushStash, stashPlaceholder } from '../src/lib/stash.ts'
 
 test('pushing moves the composer onto the stack and empties it', () => {
   const result = pushStash([], 'a draft')
@@ -59,4 +59,16 @@ test('the stack drops the oldest entry over its cap', () => {
   let stack: readonly string[] = []
   for (let i = 0; i < 4; i++) stack = pushStash(stack, `d${i}`, '', 2).stack
   assert.deepEqual(stack, ['d2', 'd3'])
+})
+
+test('the placeholder previews the first line of the most recent draft', () => {
+  assert.equal(stashPlaceholder(['older', 'newest\nmore']), 'newest')
+})
+
+test('a single-line draft previews whole', () => {
+  assert.equal(stashPlaceholder(['just this']), 'just this')
+})
+
+test('an empty stack has no preview', () => {
+  assert.equal(stashPlaceholder([]), '')
 })

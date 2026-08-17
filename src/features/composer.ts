@@ -3,7 +3,7 @@ import { ensureAfter, el, remove } from '../content/dom.ts'
 import type { Context, Feature } from '../content/reconcile.ts'
 import { stepHistory } from '../lib/history.ts'
 import { matchesBinding } from '../lib/keys.ts'
-import { popStash, pushStash } from '../lib/stash.ts'
+import { popStash, pushStash, stashPlaceholder } from '../lib/stash.ts'
 import { getHistory, getStash, recordSent, setStash } from '../localData.ts'
 import type { Prefs } from '../prefs.ts'
 
@@ -27,6 +27,13 @@ const nativeValue = Object.getOwnPropertyDescriptor(
 
 let composer: HTMLTextAreaElement | null = null
 let prefs: Prefs | null = null
+
+/**
+ * The app's own placeholder, captured when a composer is bound so it can be put
+ * back when the stash empties. Held aside on the extension rather than read off
+ * the node, because by then the node carries the stash preview. spec: STSH
+ */
+let originalPlaceholder: string | null = null
 
 /** Position in history while recalling; null when not. */
 let historyIndex: number | null = null
@@ -155,6 +162,24 @@ function onKeyDown(event: KeyboardEvent): void {
       pop(element)
       return
     }
+
+    // Tab restores when there is nothing to lose. The placeholder is already
+    // previewing the most recent draft, so Tab accepts it the way it accepts a
+    // completion — but only in an empty composer, so a draft in progress keeps
+    // Tab's ordinary behaviour. spec: STSH
+    if (
+      event.key === 'Tab' &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.shiftKey &&
+      !event.altKey &&
+      !element.value.trim() &&
+      getStash().length > 0
+    ) {
+      event.preventDefault()
+      pop(element)
+      return
+    }
   }
 
   if (
@@ -215,6 +240,9 @@ function onPageHide(): void {
 
 function attach(element: HTMLTextAreaElement): void {
   composer = element
+  // Captured before any preview overwrites it, so the app's own prompt can be
+  // put back when the stash empties. spec: STSH
+  originalPlaceholder = element.placeholder
   element.addEventListener('keydown', onKeyDown)
   element.addEventListener('input', onInput)
 }
@@ -245,6 +273,10 @@ export function composerFeature(): Feature {
 
       const depth = getStash().length
       if (current.composerStash && depth > 0) {
+        // Preview the most recent draft in the placeholder, so what a restore
+        // brings back is visible before restoring it — and what Tab accepts.
+        element.placeholder = stashPlaceholder(getStash())
+
         // The count doubles as the control: a stash whose only way back is a
         // binding is one the user has to remember, and the depth is already
         // sitting there saying there is something to bring back.
@@ -263,6 +295,8 @@ export function composerFeature(): Feature {
           ? `Restore the last stashed draft (${current.stashPopKey})`
           : 'Restore the last stashed draft'
       } else {
+        // No preview to show — put the app's own prompt back.
+        if (originalPlaceholder !== null) element.placeholder = originalPlaceholder
         remove(BADGE)
       }
     },

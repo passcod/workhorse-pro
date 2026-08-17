@@ -37,6 +37,13 @@ During recall the composer was holding the user's own draft before the recalled 
 - [ ] The count is also how a draft is restored, so the stash can be used without remembering a binding
 - [ ] It names the binding that does the same thing, so the binding is learned from using it
 
+While something is stashed, the empty composer previews it, so what is waiting to come back is visible without acting.
+
+- [ ] The composer's placeholder shows the first line of the most recent stashed draft while the stack is not empty
+- [ ] The app's own placeholder returns once the stack is empty
+- [ ] Pressing Tab in an empty composer restores the most recent stashed draft, accepting the preview the way a completion is accepted
+- [ ] Tab keeps its ordinary behaviour once the composer holds a draft, so only an empty composer restores
+
 ## Keys
 
 Every binding worth having is one something else already claims — a browser, a desktop, another editor — so the bindings are the user's to set rather than the extension's to insist on.

@@ -317,6 +317,47 @@ test('a binding matches whatever case the key arrives in', () => {
   assert.deepEqual([...local.getStash()], ['park me'])
 })
 
+test('Tab in an empty composer restores the last draft', () => {
+  const composer = reconcile()
+  type(composer, 'park me')
+  key(composer, { key: 's', ctrlKey: true })
+
+  assert.equal(key(composer, { key: 'Tab' }), true)
+  assert.equal(composer.value, 'park me')
+  assert.deepEqual([...local.getStash()], [])
+})
+
+test('Tab with an empty stash is left alone', () => {
+  const composer = reconcile()
+  assert.equal(key(composer, { key: 'Tab' }), false)
+})
+
+test('Tab keeps its ordinary behaviour once the composer holds a draft', () => {
+  const composer = reconcile()
+  type(composer, 'park me')
+  key(composer, { key: 's', ctrlKey: true })
+  type(composer, 'a fresh draft')
+
+  // A draft in progress: Tab is not the stash's to take.
+  assert.equal(key(composer, { key: 'Tab' }), false)
+  assert.equal(composer.value, 'a fresh draft')
+  assert.deepEqual([...local.getStash()], ['park me'])
+})
+
+test('the composer previews the most recent draft while something is stashed', () => {
+  const composer = reconcile()
+  const original = composer.placeholder
+  type(composer, 'first line\nsecond line')
+  key(composer, { key: 's', ctrlKey: true })
+  reconcile()
+
+  assert.equal(composer.placeholder, 'first line')
+
+  key(composer, { key: 'p', ctrlKey: true })
+  reconcile()
+  assert.equal(composer.placeholder, original)
+})
+
 test('the stash depth shows while something is held', () => {
   const composer = reconcile()
   type(composer, 'park me')

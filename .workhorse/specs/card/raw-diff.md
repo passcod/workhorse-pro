@@ -25,7 +25,7 @@ Finding what moved in one otherwise costs a scroll through everything that did n
 The toggle above a mockup is the same control with different segments, so a segment appended by position alone would land there.
 
 - [ ] Choosing Diff holds while that artefact stays open, the same way choosing File or Changes does
-- [ ] Opening a different artefact leaves the choice of view to the app, so the reader lands wherever the app would have put them
+- [ ] Choosing Diff carries to the next artefact opened, as `card/remembered-view.md` describes
 
 ## The comparison
 

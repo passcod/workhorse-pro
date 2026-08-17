@@ -4,9 +4,9 @@
  * WHAT THESE PROVE, AND WHAT THEY DO NOT
  *
  * These are hand-written from a reading of the app's components — the pull
- * request section's disclosure rows and collapsed bar, and the sidebar's
- * conversations header. They pin the anchors against a model of that markup,
- * which catches a selector broken by an edit to `anchors.ts`.
+ * request section's disclosure rows and collapsed bar. They pin the anchors
+ * against a model of that markup, which catches a selector broken by an edit to
+ * `anchors.ts`.
  *
  * They do NOT prove the anchors match the app as it actually renders. Only
  * markup captured from a running Workhorse does that. Replacing the strings
@@ -15,48 +15,53 @@
  *
  * The shapes reproduced here:
  *
- * - A disclosure row is a header carrying `aria-expanded` whose first child is
- *   the label, followed by a content div when open. Review Hero is one.
- * - The Checks row is flat: a div whose first child is the label and whose
- *   second is the verdict, with no `aria-expanded`, no toggle and no content
- *   block. It sits as a sibling of the Review Hero disclosure.
- * - The branch dropdown carries `aria-expanded` and `title="Advanced branch
- *   controls"`, and renders only inside the expanded detail.
- * - Once a pull request exists, the detail is opened by the bar's title row: a
- *   button carrying no title of its own, sitting beside the
- *   `a[title="Open on GitHub"]` link that identifies it. Before a pull request
- *   exists, it is opened by a `button[title="Branch details"]` beside the
- *   Create button instead.
+ * - A disclosure row (`DisclosureRow`) is a header carrying `aria-expanded` and
+ *   the app's own test id, whose first child is the label, followed by a content
+ *   div when open. Checks and Review Hero are both ones, and each holds its own
+ *   readings inside — which is where the extension's named jobs join them.
+ * - The branch disclosure (`IdentityRow`) carries `aria-expanded` and
+ *   `title="Branch detail"`, with `data-testid="pr-branch-chevron"` on its
+ *   chevron. It renders only inside the expanded detail, which is what makes its
+ *   presence the detail's own expanded state.
+ * - The detail is opened by the bar's title row: a button carrying no title of
+ *   its own, whose chevron carries the app's own test id — `pr-create-chevron`
+ *   before a pull request exists, `pr-detail-chevron` once one does. Beside it
+ *   sit the Create button (before a PR) and the bar's overflow menu trigger.
  *
  * spec: INJ
  */
 
-function disclosure(label: string, open: boolean, right = ''): string {
+/** A `DisclosureRow`: header with the app's test id, content div when open. */
+function disclosure(label: string, testId: string, open: boolean, right = ''): string {
   return `
-    <div tabindex="0" aria-expanded="${open}">
+    <div tabindex="0" aria-expanded="${open}" data-testid="${testId}">
       <span>${label}</span>
-      <span>${right}</span>
+      <span>${right}<svg data-testid="${testId}-chevron"></svg></span>
     </div>
-    ${open ? '<div class="disclosure-content"></div>' : ''}
+    ${open ? `<div class="disclosure-content" data-content="${testId}"></div>` : ''}
   `
 }
 
-/** A flat stat row: a label and a verdict, no disclosure. The Checks row is
- *  one — the extension's readings hang beneath it as siblings. */
-function flatRow(label: string, value = ''): string {
+/** The bar's expand toggle: a button wrapping the title and a chevron that
+ *  carries the app's own test id. */
+function barTitleRow(chevronTestId: string, inner: string): string {
   return `
-    <div class="stat-row">
-      <span>${label}</span>
-      <span>${value}</span>
-    </div>
+    <button type="button">
+      ${inner}
+      <svg data-testid="${chevronTestId}"></svg>
+    </button>
   `
 }
+
+/** The bar's overflow menu trigger, which L26 restored beside the title row. */
+const barMenu = `<button type="button" data-testid="pr-bar-menu-trigger">⋯</button>`
 
 export interface PrSectionOptions {
   hasPr?: boolean
   detailExpanded?: boolean
   branchDropdownOpen?: boolean
   reviewOpen?: boolean
+  checksOpen?: boolean
 }
 
 export function prSection(options: PrSectionOptions = {}): string {
@@ -65,35 +70,28 @@ export function prSection(options: PrSectionOptions = {}): string {
     detailExpanded = false,
     branchDropdownOpen = false,
     reviewOpen = false,
+    checksOpen = false,
   } = options
 
-  // Once a PR exists the title button carries no title of its own and sits
-  // beside the Open on GitHub link. Before one exists, a Branch details button
-  // opens the detail beside the Create button.
   const collapsedBar = hasPr
     ? `<div class="bar">
-         <button type="button">
-           <span>Add the thing</span>
-           <span>#78</span>
-           <svg class="chevron"></svg>
-         </button>
-         <a href="https://github.com/o/r/pull/78" title="Open on GitHub"><svg></svg></a>
+         ${barTitleRow('pr-detail-chevron', '<span>Add the thing</span><span>#78</span>')}
+         ${barMenu}
        </div>`
     : `<div class="bar">
          <button type="button">Create PR</button>
-         <button type="button" title="Branch details"><svg class="chevron"></svg></button>
+         ${barTitleRow('pr-create-chevron', '<span>Add the thing</span>')}
+         ${barMenu}
        </div>`
 
   const detail = detailExpanded
     ? `<div class="detail">
-         ${disclosure('Review Hero', reviewOpen, 'Run')}
-         ${flatRow('Checks', 'Passing')}
-         <div tabindex="0" aria-expanded="${branchDropdownOpen}" title="Advanced branch controls">
-           <span>wh-078-add-the-thing</span>
-         </div>
-         <div class="based-on">
-           <span>Based on</span>
+         ${disclosure('Review Hero', 'pr-review-hero-row', reviewOpen, 'Run')}
+         ${disclosure('Checks', 'pr-checks-row', checksOpen, 'Passing')}
+         <div tabindex="0" aria-expanded="${branchDropdownOpen}" title="Branch detail">
+           <span data-testid="pr-merge-into-row">Merge into</span>
            <span><button type="button">main</button></span>
+           <svg data-testid="pr-branch-chevron"></svg>
          </div>
          <div class="status-row"><span>Local</span><span>Clean</span></div>
        </div>`
@@ -196,47 +194,6 @@ export function workspaceSwitcher(
         </button>
         ${menu}
       </div>
-    </div>
-  `
-}
-
-/**
- * The artefact column: the header bar over the view the artefact renders into.
- *
- * Shape reproduced from `SpecHeaderBar` and the artifact column around it. The
- * parts the anchors depend on:
- *
- * - The toggle is a wrapper of `button[type="button"]`, carrying no attribute
- *   of its own. Only its segment labels distinguish it, which is why the
- *   mockup variant below matters: it is the same component, in the same corner
- *   of the same bar, with `Desktop/Tablet/Mobile` in it.
- * - The bar always renders the file-stepping controls, and
- *   `button[title="Previous file"]` is what identifies it.
- * - The artefact renders into the bar's next sibling.
- *
- * spec: DIFF
- */
-export function artefactPane(
-  options: { segments?: string[]; selected?: string } = {},
-): string {
-  const { segments = ['File', 'Changes'], selected = segments[0] } = options
-  const buttons = segments
-    .map(
-      (label) =>
-        `<button type="button" class="${label === selected ? 'bg-[var(--bg-surface)]' : 'text-[var(--text-muted)]'}">${label}</button>`,
-    )
-    .join('')
-
-  return `
-    <div class="artifact-column">
-      <div class="header-bar">
-        <button type="button" title="Previous file">^</button>
-        <button type="button" title="Next file">v</button>
-        <span class="file-name">overview.md</span>
-        <div class="segmented mr-1">${buttons}</div>
-        <button type="button" title="Expand">[]</button>
-      </div>
-      <div class="artifact-view"><p>rendered artefact</p></div>
     </div>
   `
 }

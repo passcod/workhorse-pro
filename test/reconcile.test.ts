@@ -47,7 +47,7 @@ test('turning a feature off removes what it added', () => {
   reconciler.register({
     name: 'test',
     reconcile({ prefs: current }) {
-      if (current.checksBreakdown) ensure(host(), 'thing', () => el('div'))
+      if (current.namedChecks) ensure(host(), 'thing', () => el('div'))
       else remove('thing')
     },
   })
@@ -55,11 +55,11 @@ test('turning a feature off removes what it added', () => {
   reconciler.pass()
   assert.equal(host().children.length, 1)
 
-  reconciler.setPrefs({ ...prefs, checksBreakdown: false })
+  reconciler.setPrefs({ ...prefs, namedChecks: false })
   reconciler.pass()
   assert.equal(host().children.length, 0)
 
-  reconciler.setPrefs({ ...prefs, checksBreakdown: true })
+  reconciler.setPrefs({ ...prefs, namedChecks: true })
   reconciler.pass()
   assert.equal(host().children.length, 1)
 })

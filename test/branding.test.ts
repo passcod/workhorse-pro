@@ -13,7 +13,7 @@ const feature = branding()
 function reconcile(overrides: Partial<typeof PREF_DEFAULTS> = {}): void {
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS, ...overrides },
-    route: { workspace: 'workhorse', card: null, filePath: null, view: null },
+    route: { workspace: 'workhorse', card: null },
     schedule: () => {},
   })
 }

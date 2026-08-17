@@ -16,7 +16,7 @@ const feature = composerFeature()
 function reconcile(): HTMLTextAreaElement {
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS },
-    route: { workspace: 'workhorse', card: 'WH-078', filePath: null, view: null },
+    route: { workspace: 'workhorse', card: 'WH-078' },
     schedule: () => {},
   })
   return document.querySelector('textarea')!
@@ -188,7 +188,7 @@ test('the composer being removed restores the draft too', () => {
   setBody('<div></div>')
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS },
-    route: { workspace: 'workhorse', card: null, filePath: null, view: null },
+    route: { workspace: 'workhorse', card: null },
     schedule: () => {},
   })
   assert.equal(dom.window.localStorage.getItem(DRAFTS_KEY), drafts)
@@ -275,7 +275,7 @@ test('an unbound action does nothing', () => {
   const composer = document.querySelector('textarea')!
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS, stashPushKey: '' },
-    route: { workspace: 'workhorse', card: 'WH-078', filePath: null, view: null },
+    route: { workspace: 'workhorse', card: 'WH-078' },
     schedule: () => {},
   })
   type(composer, 'park me')
@@ -288,7 +288,7 @@ test('a rebound key takes effect without anything being re-attached', () => {
   const composer = document.querySelector('textarea')!
   feature.reconcile({
     prefs: { ...PREF_DEFAULTS, stashPushKey: 'Alt+K' },
-    route: { workspace: 'workhorse', card: 'WH-078', filePath: null, view: null },
+    route: { workspace: 'workhorse', card: 'WH-078' },
     schedule: () => {},
   })
   type(composer, 'park me')

@@ -11,8 +11,7 @@ Detail Workhorse does not carry is read from GitHub instead — see `platform/gi
 
 ## What is read
 
-- [ ] Branch status for the card on screen supplies the check counts and the review run state
-- [ ] The card's file listing supplies the current content of the artefact on screen, and the base-file read supplies the same artefact's content on the base branch, which are the two sides of the raw diff
+- [ ] Branch status for the card on screen supplies the pull request the named jobs are read against
 
 Both branch-status parameters are taken from the card route, so the extension never has to discover which card it is looking at by any other means.
 

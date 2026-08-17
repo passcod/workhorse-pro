@@ -1,7 +1,7 @@
 import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { installDom, setBody } from './dom.ts'
-import { artefactPane, composerArea, prSection } from './fixtures/app.ts'
+import { composerArea, prSection } from './fixtures/app.ts'
 
 installDom()
 const { anchors } = await import('../src/content/anchors.ts')
@@ -25,8 +25,8 @@ test('the pull request detail toggle resolves before a PR exists', () => {
   setBody(prSection({ hasPr: false }))
   const toggle = anchors.prDetailToggle()
   assert.equal(toggle?.tagName, 'BUTTON')
-  // The Branch details button, not the Create button beside it.
-  assert.equal(toggle?.getAttribute('title'), 'Branch details')
+  // The title row, reached through its chevron — not the Create button beside it.
+  assert.ok(toggle?.querySelector('[data-testid="pr-create-chevron"]'))
   assert.notEqual(toggle?.textContent?.trim(), 'Create PR')
 })
 
@@ -34,10 +34,10 @@ test('the pull request detail toggle resolves once a PR exists', () => {
   setBody(prSection({ hasPr: true }))
   const toggle = anchors.prDetailToggle()
   assert.equal(toggle?.tagName, 'BUTTON')
-  // The bar's own title row, beside the Open on GitHub link: it carries no
-  // title of its own, and it is the title button rather than the link.
+  // The bar's own title row, not the overflow menu beside it: no title of its
+  // own, and its chevron inside.
   assert.equal(toggle?.getAttribute('title'), null)
-  assert.ok(toggle?.textContent?.includes('Add the thing'))
+  assert.ok(toggle?.querySelector('[data-testid="pr-detail-chevron"]'))
 })
 
 test('the expanded state reads from the branch controls that only exist when open', () => {
@@ -63,20 +63,35 @@ test('rows resolve by their visible label, not by position', () => {
   assert.notEqual(anchors.checksRow(), anchors.branchDropdown())
 })
 
-test('the Checks row is flat, not a disclosure', () => {
-  // The app renders it without aria-expanded, so it must resolve on structure
-  // and label rather than as a disclosure — the failure this card fixes.
-  setBody(prSection({ detailExpanded: true }))
-  const checks = anchors.checksRow()
-  assert.ok(checks)
-  assert.equal(checks.hasAttribute('aria-expanded'), false)
+test('the Checks row is a disclosure, carrying its own expanded state', () => {
+  // The app moved its own run breakdown inside the row, so it is a disclosure
+  // rather than the flat row it used to be — and the named jobs sit in there
+  // with it.
+  setBody(prSection({ detailExpanded: true, checksOpen: false }))
+  assert.equal(anchors.checksRow()?.getAttribute('aria-expanded'), 'false')
+  setBody(prSection({ detailExpanded: true, checksOpen: true }))
+  assert.equal(anchors.checksRow()?.getAttribute('aria-expanded'), 'true')
 })
 
-test('the Review Hero content exists only while its row is open', () => {
-  setBody(prSection({ detailExpanded: true, reviewOpen: false }))
+test('each row content exists only while that row is open', () => {
+  setBody(prSection({ detailExpanded: true, reviewOpen: false, checksOpen: false }))
   assert.equal(anchors.reviewContent(), null)
-  setBody(prSection({ detailExpanded: true, reviewOpen: true }))
-  assert.ok(anchors.reviewContent())
+  assert.equal(anchors.checksContent(), null)
+
+  setBody(prSection({ detailExpanded: true, reviewOpen: true, checksOpen: true }))
+  assert.equal(anchors.reviewContent()?.getAttribute('data-content'), 'pr-review-hero-row')
+  assert.equal(anchors.checksContent()?.getAttribute('data-content'), 'pr-checks-row')
+})
+
+test('the branch disclosure is not mistaken for a stat row', () => {
+  // It carries aria-expanded too, so a disclosure-by-label search must not
+  // reach it — and the detail's expanded state is read from its presence.
+  setBody(prSection({ detailExpanded: true }))
+  const branch = anchors.branchDropdown()
+  assert.ok(branch)
+  assert.equal(branch.getAttribute('title'), 'Branch detail')
+  assert.notEqual(branch, anchors.checksRow())
+  assert.notEqual(branch, anchors.reviewRow())
 })
 
 test('a data attribute is preferred over the fallback', () => {
@@ -92,71 +107,3 @@ test('a data attribute is preferred over the fallback', () => {
   assert.equal(anchors.composer()?.id, 'right')
 })
 
-test('the artefact toggle resolves by its segments', () => {
-  setBody(artefactPane())
-  const toggle = anchors.artefactToggle()
-  assert.ok(toggle)
-  assert.deepEqual(
-    [...toggle.children].map((child) => child.textContent),
-    ['File', 'Changes'],
-  )
-})
-
-test('the device toggle above a mockup is not the artefact toggle', () => {
-  // Same component, same markup, same corner of the same bar. Only the labels
-  // tell them apart, and a Diff segment on a mockup is what matching by
-  // position would produce. spec: DIFF
-  setBody(artefactPane({ segments: ['Desktop', 'Tablet', 'Mobile'] }))
-  assert.equal(anchors.artefactToggle(), null)
-})
-
-test('the artefact toggle still resolves once the extension has added a segment', () => {
-  setBody(artefactPane())
-  const toggle = anchors.artefactToggle()!
-  const injected = document.createElement('button')
-  injected.type = 'button'
-  injected.textContent = 'Diff'
-  injected.setAttribute('data-whp', '')
-  toggle.appendChild(injected)
-
-  assert.equal(anchors.artefactToggle(), toggle)
-  // The app's own segments are what the feature reads, and its own is not one.
-  assert.deepEqual(
-    anchors.artefactToggleSegments().map((node) => node.textContent),
-    ['File', 'Changes'],
-  )
-})
-
-test('the header bar is the ancestor holding both the toggle and the file stepper', () => {
-  setBody(artefactPane())
-  const bar = anchors.artefactHeaderBar()
-  assert.ok(bar)
-  assert.ok(bar.contains(anchors.artefactToggle()))
-  assert.ok(bar.querySelector('button[title="Previous file"]'))
-  // Not the whole column: the artefact view is a sibling of the bar, not inside it.
-  assert.equal(bar.querySelector('.artifact-view'), null)
-})
-
-test('the artefact view is the bar next sibling', () => {
-  setBody(artefactPane())
-  const view = anchors.artefactView()
-  assert.equal(view?.className, 'artifact-view')
-})
-
-test('the artefact view skips anything the extension put there', () => {
-  // Without this the panel would resolve as the app's view and hide itself.
-  setBody(artefactPane())
-  const bar = anchors.artefactHeaderBar()!
-  const panel = document.createElement('div')
-  panel.setAttribute('data-whp', '')
-  bar.after(panel)
-
-  assert.equal(anchors.artefactView()?.className, 'artifact-view')
-})
-
-test('the artefact anchors resolve to nothing off an artefact page', () => {
-  setBody(composerArea())
-  assert.equal(anchors.artefactToggle(), null)
-  assert.equal(anchors.artefactHeaderBar(), null)
-  assert.equal(anchors.artefactView(), null)
-})

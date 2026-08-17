@@ -6,4 +6,3 @@
  * isolated world the rest of the extension lives in.
  */
 import './observe.ts'
-import './navigate.ts'

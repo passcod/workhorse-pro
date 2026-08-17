@@ -7,58 +7,16 @@
  * surface means less to drift. spec: PKG
  */
 
-export interface CheckStatus {
-  status: 'passing' | 'failing' | 'pending' | null
-  /** Check suites plus legacy commit statuses found against the ref. */
-  total: number
-  running: number
-  failing: number
-  /** Whether the repo has any active workflow; null when the lookup failed. */
-  repoRunsChecks: boolean | null
-}
-
+/**
+ * Branch status, narrowed to the pull request the named jobs are read against.
+ *
+ * The app's own rows render the check counts and the review run state from the
+ * rest of this response, so the extension reads only what it still adds to.
+ */
 export interface BranchStatusData {
   prUrl: string | null
   prNumber: number | null
-  ci: CheckStatus | null
   branch: { name: string | null } | null
-  loop: { active: boolean; round: number; paused: boolean }
-  lastReview: {
-    round: number
-    counts: { critical: number; suggestion: number; nit: number }
-  } | null
-}
-
-/**
- * One artefact in a card's worktree, as the card-files listing carries it.
- *
- * `content` is the version on the card's branch, which is the "after" side of
- * the raw diff. spec: DIFF
- */
-export interface CardFile {
-  filePath: string
-  isNew: boolean
-  isDeleted: boolean
-  content: string
-}
-
-export interface CardFilesData {
-  initialFiles: CardFile[]
-}
-
-/** The artefact's content on the base branch. Null when it is not there. */
-export interface BaseFileData {
-  content: string | null
-}
-
-/**
- * Card detail, narrowed to the identifier-to-id mapping.
- *
- * The base-file read is keyed by the card's own id rather than the identifier
- * the route carries, and this is where that id comes from.
- */
-export interface CardDetailData {
-  card: { id: string } | null
 }
 
 /** A GitHub check run, narrowed to what the named-checks row renders. */

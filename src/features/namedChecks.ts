@@ -21,7 +21,7 @@ import {
  * reconciled by the reader.
  *
  * The duration is what makes the list worth its space: it says both that work
- * is happening and which of it has been happening too long. spec: GHUB
+ * is happening and which of it has been happening too long. spec: NJOB, GHUB
  */
 
 const CONTAINER = 'named-checks'
@@ -36,7 +36,7 @@ export function namedChecks(): Feature {
       // readings the app puts there. That content block exists only while the
       // pull request detail is expanded and the row itself is open, so a
       // collapsed either way resolves nothing: no anchor, no GitHub request.
-      // That is what keeps a section not on screen free. spec: GHUB
+      // That is what keeps a section not on screen free. spec: NJOB, GHUB
       const checksContent = anchors.checksContent()
       if (
         !prefs.namedChecks ||

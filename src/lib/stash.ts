@@ -51,3 +51,15 @@ export function popStash(stack: readonly string[], text = ''): StashResult {
   if (text.trim()) return { stack: [...rest, text], composer: top, changed: true }
   return { stack: rest, composer: top, changed: true }
 }
+
+/**
+ * The preview shown as the composer's placeholder while something is stashed:
+ * the first line of the most recent draft, so what a restore would bring back
+ * is visible before restoring it. Empty when the stack is empty. spec: STSH
+ */
+export function stashPlaceholder(stack: readonly string[]): string {
+  const top = stack[stack.length - 1]
+  if (top === undefined) return ''
+  const newline = top.indexOf('\n')
+  return newline === -1 ? top : top.slice(0, newline)
+}

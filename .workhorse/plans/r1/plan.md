@@ -82,6 +82,33 @@ Checks disclosure where the app now puts its own readings.
 
 autoExpand, namedChecks, composer (history + stash), workspaceOrder, branding.
 
+## 4. Rebased onto main (`16eb3a1`, Q1 #12)
+
+Q1 landed a spec-only feature, **Remembered view selection** (`card/remembered-view.md`,
+VIEW): the reader's choice of File or Changes carries to the next artefact opened.
+No implementation on main yet.
+
+Hard conflicts, both resolved to this card's side:
+
+- [x] `card/raw-diff.md` — Q1 edited a criterion; this card deleted the file. Kept deleted
+- [x] `preferences.md` — kept this card's removals, took Q1's Remembered view line
+
+Soft conflict: the VIEW spec was written against a Diff segment that no longer exists.
+Three criteria updated so the spec describes the system as it now stands:
+
+- [x] Dropped "The Diff segment is remembered alongside the app's own two"
+- [x] The can't-offer-that-view example now cites a code file with nothing to compare, not a missing Diff segment
+- [x] "switchable independently of the raw diff view" → "has its own switch"
+
+The feature itself is untouched: remembering File vs Changes stands on its own, and
+upstream's own raw/pretty toggle already persists across files (`workhorse:pretty-diff`).
+
+**Left for whoever implements VIEW:** this card deleted the artefact anchors
+(`artefactToggle`, `artefactToggleSegments`, `artefactHeaderBar`, `artefactView`) along
+with the raw diff feature that was their only caller. VIEW will need the toggle and its
+segments back. They were not kept, because dead code held for an unimplemented spec is
+worse than a deletion git can restore — see `f9b6e57:src/content/anchors.ts`.
+
 ## Verify
 - [x] `tsc --noEmit` clean, `node --test` 161 pass / 0 fail, `node build.mjs` clean
 - [ ] Manual pass with `web-ext run` — see test cases

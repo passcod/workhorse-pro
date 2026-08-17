@@ -16,14 +16,13 @@ The view the reader chose last is remembered instead, and every artefact opened 
 
 - [ ] Choosing a view on an artefact records it as how the reader wants artefacts read
 - [ ] Opening another artefact shows it in the remembered view rather than the one the app would have chosen
-- [ ] The Diff segment is remembered alongside the app's own two, so a reader working in diffs stays in them
 - [ ] Only a view the reader chooses is recorded, so a view arrived at because the app chose it is never mistaken for a preference
 
 Recording what the app chose would overwrite the reader's answer with a guess, and one artefact the app opened its own way would undo a preference the reader had set deliberately.
 
 - [ ] A remembered view an artefact cannot offer leaves the app's choice standing, and stays remembered for the next artefact that can offer it
 
-A code file has no Diff segment, so a reader who works in diffs passes through one without losing the view they came from.
+A code file with nothing to compare against offers no Changes view, so a reader who works in Changes passes through one without losing the view they came from.
 
 ## Where it does not apply
 
@@ -43,7 +42,7 @@ Holding the artefact hidden until the remembered view was applied would trade th
 
 ## The switch
 
-- [ ] The behaviour is switchable independently of the raw diff view, so either can be had without the other
+- [ ] The behaviour has its own switch
 - [ ] The switch starts on
 
 Nothing is remembered until the reader picks a view, and until then the app's own choices stand untouched.

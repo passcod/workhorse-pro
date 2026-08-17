@@ -14,15 +14,12 @@ import { reportOnce } from './log.ts'
 export interface Prefs {
   autoExpandPrDetail: boolean
   autoExpandBranchDropdown: boolean
-  /** Open the Review Hero row, where the review run stats sit. */
+  /** Open the Checks and Review Hero rows, where the app's own run stats sit. */
   autoExpandRows: boolean
-  checksBreakdown: boolean
-  reviewStats: boolean
   namedChecks: boolean
   inputHistory: boolean
   composerStash: boolean
   sortWorkspaces: boolean
-  rawDiff: boolean
   /** Show the extension's own wordmark in the sidebar's top corner. */
   proWordmark: boolean
   observeFetches: boolean
@@ -39,13 +36,10 @@ export const PREF_DEFAULTS: Prefs = {
   // Off by default: it opens a row the app leaves closed, which is a stronger
   // change to the section's shape than the other two.
   autoExpandRows: false,
-  checksBreakdown: true,
-  reviewStats: true,
   namedChecks: true,
   inputHistory: true,
   composerStash: true,
   sortWorkspaces: true,
-  rawDiff: true,
   proWordmark: true,
   observeFetches: true,
   githubToken: '',
@@ -78,14 +72,10 @@ export const SWITCHES: SwitchInfo[] = [
   },
   {
     key: 'autoExpandRows',
-    label: 'Auto-expand Review Hero',
+    label: 'Auto-expand Checks and Review Hero',
     detail:
-      'Open the Review Hero row when a card is shown, so the run stats sit in view without a click.',
-  },
-  {
-    key: 'checksBreakdown',
-    label: 'Check breakdown',
-    detail: 'Passed, failed, running and skipped counts beneath the Checks row.',
+      'Open the Checks and Review Hero rows when a card is shown, so what sits inside them is in ' +
+      'view without a click.',
   },
   {
     key: 'namedChecks',
@@ -93,12 +83,6 @@ export const SWITCHES: SwitchInfo[] = [
     detail:
       'List the checks that failed or are still running, by name, with links to their logs.',
     needsToken: true,
-  },
-  {
-    key: 'reviewStats',
-    label: 'Review run stats',
-    detail:
-      'Run count and last run findings under the Review Hero row. Shown when that row is open.',
   },
   {
     key: 'inputHistory',
@@ -116,14 +100,6 @@ export const SWITCHES: SwitchInfo[] = [
       'Park drafts on a stack and bring them back later, across any conversation. ' +
       'The keys are set below and can be changed. ' +
       'Popping into a composer that already has text swaps the two, so nothing is lost.',
-  },
-  {
-    key: 'rawDiff',
-    label: 'Raw diff view',
-    detail:
-      'Add a Diff segment to the File/Changes toggle above a markdown artefact, showing it as a ' +
-      'unified diff against the base branch. Only changed passages and a few lines either side ' +
-      'appear, so a long spec does not have to be scrolled through to find what moved.',
   },
   {
     key: 'sortWorkspaces',

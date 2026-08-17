@@ -41,22 +41,6 @@ function disclosureByLabel(label: string, root: ParentNode = document): Element 
   return null
 }
 
-/**
- * A row in the pull request section found by its visible label, whether or not
- * it is a disclosure.
- *
- * The app renders each stat row as a div whose first child is the label. The
- * Checks row is flat — no `aria-expanded`, no toggle, no content block — so it
- * is found this way rather than as a disclosure, and the extension's readings
- * hang beneath it as siblings rather than inside a block it does not have.
- */
-function rowByLabel(label: string, root: ParentNode = document): Element | null {
-  for (const candidate of root.querySelectorAll('div')) {
-    if (labelOf(candidate) === label) return candidate
-  }
-  return null
-}
-
 /** The content block a disclosure row reveals, or null when it is closed. */
 function disclosureContent(row: Element | null): Element | null {
   if (!row) return null
@@ -83,131 +67,74 @@ export const anchors = {
   prDetailToggle(): HTMLElement | null {
     const hooked = document.querySelector<HTMLElement>('[data-wh-pr-toggle]')
     if (hooked) return hooked
-    // Fallback, before a pull request exists: the branch detail is opened by a
-    // button of its own, the only one carrying this title.
-    const branchDetails = document.querySelector<HTMLElement>('button[title="Branch details"]')
-    if (branchDetails) return branchDetails
-    // Fallback, once a pull request exists: the collapsed bar's title row is the
-    // toggle. It carries no title of its own, so it is resolved as the button
-    // beside the bar's "Open on GitHub" link. The previous-pull-requests list
-    // repeats that link further down, but it renders below the expanded detail,
-    // so the first one in the document is always the bar's.
-    const ghLink = document.querySelector('a[title="Open on GitHub"]')
-    const button = ghLink?.parentElement?.querySelector('button')
+    // Fallback: the bar's title row is the toggle. It carries no title of its
+    // own, but its chevron carries the app's own test id — `pr-create-chevron`
+    // before a PR exists, `pr-detail-chevron` once one does. Resolving through
+    // the chevron and climbing to its button keeps the whole title row as the
+    // hit area, and never returns the Create button or the kebab beside it.
+    const chevron = document.querySelector(
+      '[data-testid="pr-detail-chevron"], [data-testid="pr-create-chevron"]',
+    )
+    const button = chevron?.closest('button')
     return button instanceof HTMLElement ? button : null
   },
 
   /**
    * Whether the pull request detail is open.
    *
-   * Fallback: the branch controls only render inside the expanded detail, so
-   * their presence is the state.
+   * Fallback: the branch rows only render inside the expanded detail, so the
+   * presence of the branch disclosure is the state.
    */
   prDetailExpanded(): boolean {
     const hooked = document.querySelector('[data-wh-pr-expanded]')
     if (hooked) return hooked.getAttribute('data-wh-pr-expanded') === 'true'
-    return document.querySelector('[title="Advanced branch controls"]') !== null
-  },
-
-  /** The branch diagnostics dropdown, which carries its own expanded state. */
-  branchDropdown(): HTMLElement | null {
-    return (
-      document.querySelector<HTMLElement>('[data-wh-branch-toggle]') ??
-      document.querySelector<HTMLElement>('[title="Advanced branch controls"]')
-    )
+    return this.branchDropdown() !== null
   },
 
   /**
-   * The Checks row, which the app renders flat: a label and a verdict, no
-   * disclosure. The extension's breakdown and named jobs hang beneath it as
-   * siblings.
+   * The branch diagnostics disclosure, which carries its own expanded state.
+   *
+   * Fallback: the app labels the row "Merge into" and gives the row itself the
+   * native tooltip "Branch detail", with its chevron carrying the app's own
+   * test id. The chevron is the surer handle — the tooltip is prose and the
+   * test id is not — so it is tried first and the row climbed to from it.
+   */
+  branchDropdown(): HTMLElement | null {
+    const hooked = document.querySelector<HTMLElement>('[data-wh-branch-toggle]')
+    if (hooked) return hooked
+    const chevron = document.querySelector('[data-testid="pr-branch-chevron"]')
+    const row = chevron?.closest('[aria-expanded]')
+    if (row instanceof HTMLElement) return row
+    return document.querySelector<HTMLElement>('[title="Branch detail"]')
+  },
+
+  /**
+   * The Checks row, which the app renders as a disclosure: a label and a
+   * verdict, with its CI toggles and its own run breakdown inside. The
+   * extension's named jobs hang inside that content block.
    */
   checksRow(): Element | null {
-    return document.querySelector('[data-wh-pr-row="checks"]') ?? rowByLabel('Checks')
+    return (
+      document.querySelector('[data-wh-pr-row="checks"]') ??
+      document.querySelector('[data-testid="pr-checks-row"]') ??
+      disclosureByLabel('Checks')
+    )
+  },
+
+  checksContent(): Element | null {
+    return disclosureContent(this.checksRow())
   },
 
   reviewRow(): Element | null {
     return (
       document.querySelector('[data-wh-pr-row="review-hero"]') ??
+      document.querySelector('[data-testid="pr-review-hero-row"]') ??
       disclosureByLabel('Review Hero')
     )
   },
 
   reviewContent(): Element | null {
     return disclosureContent(this.reviewRow())
-  },
-
-  /**
-   * The toggle above an open artefact, offering File and Changes.
-   *
-   * Identified by the segments in it rather than by where it sits. The app
-   * builds the device toggle above a mockup from the same component, with the
-   * same markup, in the same corner of the same bar — so anything positional
-   * would find that one too and put a Diff segment on a mockup. spec: DIFF
-   *
-   * The extension's own segment is skipped when reading the labels, so the
-   * anchor still resolves once the segment has been injected.
-   */
-  artefactToggle(): HTMLElement | null {
-    const hooked = document.querySelector<HTMLElement>('[data-wh-artefact-toggle]')
-    if (hooked) return hooked
-    for (const button of document.querySelectorAll('button[type="button"]')) {
-      if (button.hasAttribute(MARK)) continue
-      if ((button.textContent?.trim() ?? '') !== 'File') continue
-      const wrapper = button.parentElement
-      if (!wrapper) continue
-      const labels = [...wrapper.children]
-        .filter((child) => !child.hasAttribute(MARK))
-        .map((child) => child.textContent?.trim() ?? '')
-      if (labels.length === 2 && labels[0] === 'File' && labels[1] === 'Changes') {
-        return wrapper as HTMLElement
-      }
-    }
-    return null
-  },
-
-  /** The app's own segments in that toggle, in the order it renders them. */
-  artefactToggleSegments(): HTMLElement[] {
-    const toggle = this.artefactToggle()
-    if (!toggle) return []
-    return [...toggle.children].filter(
-      (child): child is HTMLElement => child instanceof HTMLElement && !child.hasAttribute(MARK),
-    )
-  },
-
-  /**
-   * The bar the artefact toggle sits in.
-   *
-   * Fallback: the bar always carries the control that steps to the previous
-   * file, so the bar is the nearest ancestor of the toggle holding both. Its
-   * own markup offers nothing else to go on, and climbing a fixed number of
-   * levels would break on any change to how the bar is laid out.
-   */
-  artefactHeaderBar(): HTMLElement | null {
-    const hooked = document.querySelector<HTMLElement>('[data-wh-artefact-header]')
-    if (hooked) return hooked
-    const toggle = this.artefactToggle()
-    if (!toggle) return null
-    let candidate = toggle.parentElement
-    while (candidate) {
-      if (candidate.querySelector('button[title="Previous file"]')) return candidate
-      candidate = candidate.parentElement
-    }
-    return null
-  },
-
-  /**
-   * What the app renders the open artefact into: the bar's next sibling.
-   *
-   * Anything the extension put there is skipped, so this cannot return the
-   * extension's own diff panel and have it hide itself.
-   */
-  artefactView(): HTMLElement | null {
-    const bar = this.artefactHeaderBar()
-    if (!bar) return null
-    let sibling = bar.nextElementSibling
-    while (sibling && sibling.hasAttribute(MARK)) sibling = sibling.nextElementSibling
-    return sibling as HTMLElement | null
   },
 
   /**

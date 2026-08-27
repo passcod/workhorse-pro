@@ -7,7 +7,7 @@ import {
   buildStack,
   markGeometry,
   ROWS,
-  runoutAt,
+  forecast,
   windowKeyFor,
   type MarkSegment,
   type Row,
@@ -101,7 +101,7 @@ function buildStackNode(): HTMLDivElement {
   // follows the hover that opens the stack, and no pass observes that — a
   // feature that swapped the text itself would need to watch the pointer.
   head.appendChild(el('span', 'whp-usage-value whp-usage-reset'))
-  head.appendChild(el('span', 'whp-usage-value whp-usage-runout'))
+  head.appendChild(el('span', 'whp-usage-value whp-usage-forecast'))
   root.appendChild(head)
 
   const window_ = el('div', 'whp-usage-rows')
@@ -237,8 +237,8 @@ function paintHead(
 ): void {
   const head = stack.querySelector<HTMLElement>('.whp-usage-head')
   const reset = stack.querySelector<HTMLElement>('.whp-usage-reset')
-  const runoutNode = stack.querySelector<HTMLElement>('.whp-usage-runout')
-  if (!head || !reset || !runoutNode) return
+  const ahead = stack.querySelector<HTMLElement>('.whp-usage-forecast')
+  if (!head || !reset || !ahead) return
 
   setClass(head, 'whp-usage-head-over', rows[ROWS - 1]?.over ?? false)
 
@@ -246,13 +246,21 @@ function paintHead(
   // states and the closed state is not the extension's to reword.
   setText(reset, `resets ${timeOf(resetsAt)}`)
 
-  // The runout belongs to the open stack. Once the allowance is expected to go
-  // before the window turns over, when it runs out is the actionable time — but
-  // it is read off the series, so it appears alongside the series rather than in
-  // place of the reset at rest. spec: UHST
-  const runout = runoutAt(getUsageSamples(), window, resetsAt, now)
-  setClass(head, 'whp-usage-runout-known', runout !== null)
-  setText(runoutNode, runout === null ? '' : `runout ${timeOf(runout)}`)
+  // The open stack states where the window is heading instead. Falling back to
+  // the reset there would say nothing the closed bar had not already said, so a
+  // forward reading is given wherever there is a rate to read one from — either
+  // when the allowance goes, or where it lands if the window turns over first.
+  // spec: UHST
+  const ahead_ = forecast(getUsageSamples(), window, resetsAt, now)
+  setClass(head, 'whp-usage-forecast-known', ahead_ !== null)
+  setText(
+    ahead,
+    ahead_ === null
+      ? ''
+      : ahead_.kind === 'runout'
+        ? `runout ${timeOf(ahead_.at)}`
+        : `ending ${Math.round(ahead_.percent)}%`,
+  )
 }
 
 /**

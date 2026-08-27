@@ -190,34 +190,46 @@ test('the reset is always rendered, for the closed bar', () => {
   assert.match(reset?.textContent ?? '', /^resets \d/)
 })
 
-test('a runout is rendered alongside the reset, for the open stack', () => {
-  // Both are present and the stylesheet picks one, because which applies follows
-  // the hover that opens the stack and no pass observes the pointer.
+test('a burn that spends the allowance first reads as a runout', () => {
+  // Both readings are present and the stylesheet picks one, because which applies
+  // follows the hover that opens the stack and no pass observes the pointer.
   recordUsage({ window: RESET, resetsAt: RESET, at: at(150), percent: 30 })
   recordUsage({ window: RESET, resetsAt: RESET, at: at(190), percent: 78 })
   reconcile()
 
   const head = document.querySelector<HTMLElement>('.whp-usage-head')!
-  assert.ok(head.classList.contains('whp-usage-runout-known'))
-  const runout = document.querySelector<HTMLElement>('.whp-usage-runout')
-  assert.match(runout?.textContent ?? '', /^runout \d/)
+  assert.ok(head.classList.contains('whp-usage-forecast-known'))
+  const ahead = document.querySelector<HTMLElement>('.whp-usage-forecast')
+  assert.match(ahead?.textContent ?? '', /^runout \d/)
   // "est" is dropped: it pushed the time out of a row that has to fit beside a
   // label.
-  assert.doesNotMatch(runout?.textContent ?? '', /est/)
+  assert.doesNotMatch(ahead?.textContent ?? '', /est/)
   // The reset stays rendered for the closed state.
   assert.match(document.querySelector('.whp-usage-reset')?.textContent ?? '', /^resets /)
 })
 
-test('no runout expected leaves the reset standing in both states', () => {
-  // A gentle rate that outlasts the window, so there is no second reading and
-  // nothing for the open stack to swap in.
+test('a gentle burn reads as where the window ends', () => {
+  // The rate outlasts the allowance, so there is no runout — but the open stack
+  // still owes a forward reading, or it says nothing the closed bar had not.
   recordUsage({ window: RESET, resetsAt: RESET, at: at(150), percent: 30 })
   recordUsage({ window: RESET, resetsAt: RESET, at: at(190), percent: 31 })
   reconcile()
 
   const head = document.querySelector<HTMLElement>('.whp-usage-head')!
-  assert.equal(head.classList.contains('whp-usage-runout-known'), false)
-  assert.equal(document.querySelector('.whp-usage-runout')?.textContent, '')
+  assert.ok(head.classList.contains('whp-usage-forecast-known'))
+  assert.match(
+    document.querySelector('.whp-usage-forecast')?.textContent ?? '',
+    /^ending \d+%$/,
+  )
+})
+
+test('no rate at all leaves the reset standing in both states', () => {
+  // One reading is no rate, which is the ordinary state for the first minutes
+  // after the feature is switched on.
+  reconcile()
+  const head = document.querySelector<HTMLElement>('.whp-usage-head')!
+  assert.equal(head.classList.contains('whp-usage-forecast-known'), false)
+  assert.equal(document.querySelector('.whp-usage-forecast')?.textContent, '')
 })
 
 test('how much is used stands where the reading age does', () => {

@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   buildStack,
+  forecast,
   RESET_DRIFT_MS,
   windowKeyFor,
   markGeometry,
@@ -318,4 +319,54 @@ test('no previous window means blank rows, not a borrowed one', () => {
     [null, null, null],
   )
   assert.equal(stack.segments.length, 1)
+})
+
+// ── What the open stack says is coming ───────────────────────────────────
+
+test('a burn that spends the allowance first forecasts a runout', () => {
+  const ahead = forecast(series(), RESET, RESET, NOW)
+  assert.equal(ahead?.kind, 'runout')
+  if (ahead?.kind !== 'runout') return
+  assert.ok(Math.abs(ahead.at - at(OPEN, 190 + 22 / 1.2)) < 1000)
+})
+
+test('a burn the window outlasts forecasts where it ends', () => {
+  // 30% to 31% over forty minutes is 0.025% a minute, and 110 minutes remain, so
+  // it lands a little under 34%.
+  const gentle = samplesFor(RESET, OPEN, [
+    [150, 30],
+    [190, 31],
+  ])
+  const ahead = forecast(gentle, RESET, RESET, NOW)
+  assert.equal(ahead?.kind, 'ending')
+  if (ahead?.kind !== 'ending') return
+  assert.ok(Math.abs(ahead.percent - (31 + 0.025 * 110)) < 0.01, `got ${ahead.percent}`)
+})
+
+test('a forecast that would overrun the allowance is capped', () => {
+  // Cannot report more than the whole window, however the arithmetic lands.
+  const steady = samplesFor(RESET, OPEN, [
+    [150, 80],
+    [190, 82],
+  ])
+  const ahead = forecast(steady, RESET, RESET, NOW)
+  assert.ok(ahead !== null)
+  if (ahead.kind === 'ending') assert.ok(ahead.percent <= 100)
+})
+
+test('no rate is no forecast rather than a guess', () => {
+  assert.equal(forecast(samplesFor(RESET, OPEN, [[190, 78]]), RESET, RESET, NOW), null)
+  const flat = samplesFor(RESET, OPEN, [
+    [150, 78],
+    [190, 78],
+  ])
+  assert.equal(forecast(flat, RESET, RESET, NOW), null)
+})
+
+test('an allowance already gone has nowhere to be heading', () => {
+  const spent = samplesFor(RESET, OPEN, [
+    [150, 98],
+    [190, 100],
+  ])
+  assert.equal(forecast(spent, RESET, RESET, NOW), null)
 })

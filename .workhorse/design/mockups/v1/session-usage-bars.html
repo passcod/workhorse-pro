@@ -1,0 +1,271 @@
+<!-- spec: sidebar/claude-usage-graph.md (not yet written) -->
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>Session usage bars</title>
+<style>
+  /* Tokens lifted from the app's own globals.css, light theme. */
+  :root {
+    --bg-sidebar: #f1efeb;
+    --bg-inset: #e8e5df;
+    --text-primary: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #776f6a;
+    --text-quiet: #938b84;
+    --border-subtle: #eae7e1;
+    --accent: #c2410c;
+    --accent-hover: #9a3412;
+    --amber: #b45309;
+    /* Mockup annotation only. Never rendered by the extension. */
+    --note: #b8b2ab;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 44px 44px 60px;
+    background: #faf9f7;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text-secondary);
+  }
+
+  h1 { margin: 0 0 6px; font-size: 15px; font-weight: 600; color: var(--text-primary); }
+  .lede { margin: 0 0 34px; font-size: 12px; line-height: 1.65; max-width: 640px; }
+  .lede b { color: var(--text-primary); font-weight: 600; }
+
+  .row { display: flex; gap: 44px; align-items: flex-start; }
+  .col { width: 276px; }
+
+  .state-label {
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--note); margin-bottom: 7px;
+  }
+
+  /* ── Sidebar, at its real width ───────────────────────────────── */
+  .sidebar {
+    position: relative;
+    width: 260px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+  }
+  .nav { padding: 12px; display: flex; flex-direction: column; gap: 9px; }
+  .nav-row { height: 26px; border-radius: 6px; background: rgba(28,25,23,0.045); }
+  .nav-row.w1 { width: 78%; } .nav-row.w2 { width: 62%; } .nav-row.w3 { width: 84%; }
+
+  /* ── The expanded meter ───────────────────────────────────────── */
+  .slot { padding: 12px 16px; border-top: 1px solid var(--border-subtle); }
+  .meter-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; margin-bottom: 7px;
+  }
+  .meter-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    flex-shrink: 0; white-space: nowrap;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
+  }
+  .meter-label.over { color: var(--amber); }
+  .meter-label.under { color: var(--text-muted); }
+  .meter-reset { white-space: nowrap; font-size: 11px; font-variant-numeric: tabular-nums; }
+  .meter-reset.over { color: rgba(180,83,9,0.8); }
+  .meter-reset.under { color: var(--text-quiet); }
+
+  .stack { display: block; }
+
+  .freshness {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; margin-top: 8px;
+  }
+  .age { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+  .update {
+    font-size: 11px; font-weight: 500; color: var(--accent);
+    background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit;
+  }
+  .update:hover { color: var(--accent-hover); }
+
+  .user-menu {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px 12px; border-top: 1px solid var(--border-subtle);
+  }
+  .avatar { width: 24px; height: 24px; border-radius: 999px; background: var(--bg-inset); }
+  .user-name { height: 9px; width: 84px; border-radius: 3px; background: rgba(28,25,23,0.09); }
+
+  .legend { margin-top: 12px; font-size: 11px; line-height: 1.75; }
+  .legend div { display: flex; gap: 8px; align-items: baseline; }
+  .legend .k { color: var(--note); white-space: nowrap; min-width: 52px; }
+  .verdict { margin-top: 12px; font-size: 12px; line-height: 1.6; }
+  .verdict b { font-weight: 600; color: var(--text-primary); }
+</style>
+</head>
+<body>
+
+<h1>Session usage bars</h1>
+<p class="lede">
+  The bar, repeated. One row per half hour, oldest at the top, <b>the present at
+  the bottom where the bar already sits</b>. Percent stays on x in every row, so
+  each one is the instrument people already read, and no axis moves. The clock
+  mark becomes a mask cut through the whole stack, which is what makes it slant
+  slightly on each row. No prediction line: the head row states the estimate
+  instead.
+</p>
+
+<div class="row">
+
+  <!-- ══ One hour in ═════════════════════════════════════════════ -->
+  <div class="col">
+    <div class="state-label">One hour in — two rows</div>
+    <div class="sidebar">
+      <div class="nav">
+        <div class="nav-row w1"></div><div class="nav-row w3"></div><div class="nav-row w2"></div>
+      </div>
+      <div class="slot">
+        <div class="meter-head">
+          <span class="meter-label under">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2v4M12 18v4M4.9 4.9l2.9 2.9M16.2 16.2l2.9 2.9M2 12h4M18 12h4"/>
+            </svg>
+            Claude usage
+          </span>
+          <!-- Nothing is running out, so the reset stands. -->
+          <span class="meter-reset under">resets 4:59 pm</span>
+        </div>
+
+        <svg class="stack" width="228" height="14" viewBox="0 0 228 14" role="img"
+             aria-label="5% of the five-hour plan window used, 20% of the window elapsed.">
+          <defs>
+            <clipPath id="rowsA">
+              <rect x="0" y="0" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="9" width="228" height="5" rx="2.5"/>
+            </clipPath>
+          </defs>
+
+          <rect x="0" y="0" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+          <rect x="0" y="9" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+
+          <!-- Under par throughout, so every row takes the quiet fill. -->
+          <rect x="0" y="0" width="4.6" height="5" rx="2.5" fill="#938b84"/>
+          <rect x="0" y="9" width="11.4" height="5" rx="2.5" fill="#938b84"/>
+
+          <!-- The mask. One straight cut through the stack, so each row carries a
+               slanted slot at its own par. -->
+          <g clip-path="url(#rowsA)" fill="#f1efeb">
+            <path d="M 0,0 L 3,0 L 25.8,5 L 22.8,5 Z"/>
+            <path d="M 22.8,9 L 25.8,9 L 48.6,14 L 45.6,14 Z"/>
+          </g>
+        </svg>
+
+        <div class="freshness">
+          <span class="age">updated 5m ago</span>
+          <button class="update" type="button">Update now</button>
+        </div>
+      </div>
+      <div class="user-menu"><div class="avatar"></div><div class="user-name"></div></div>
+    </div>
+
+    <div class="legend">
+      <div><span class="k">rows</span><span>2 of an eventual 10</span></div>
+      <div><span class="k">reading</span><span>5% used, 20% of the window gone</span></div>
+    </div>
+    <div class="verdict">
+      Early on there is barely anything to open. The expansion is a few pixels
+      taller than the bar, which is honest but close to <b>pointless for the first
+      hour</b>.
+    </div>
+  </div>
+
+  <!-- ══ Three hours ten in ══════════════════════════════════════ -->
+  <div class="col">
+    <div class="state-label">Three hours ten in — seven rows</div>
+    <div class="sidebar">
+      <div class="nav">
+        <div class="nav-row w1"></div><div class="nav-row w3"></div><div class="nav-row w2"></div>
+      </div>
+      <div class="slot">
+        <div class="meter-head">
+          <span class="meter-label over">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2v4M12 18v4M4.9 4.9l2.9 2.9M16.2 16.2l2.9 2.9M2 12h4M18 12h4"/>
+            </svg>
+            Claude usage
+          </span>
+          <!-- The prediction, as words. Replaces the reset while a runout is
+               expected before it. -->
+          <span class="meter-reset over">runout est 3:30 pm</span>
+        </div>
+
+        <svg class="stack" width="228" height="59" viewBox="0 0 228 59" role="img"
+             aria-label="78% of the five-hour plan window used, 63% of the window elapsed, spending faster than it refills. Runout estimated 3:30 pm.">
+          <defs>
+            <clipPath id="rowsB">
+              <rect x="0" y="0"  width="228" height="5" rx="2.5"/>
+              <rect x="0" y="9"  width="228" height="5" rx="2.5"/>
+              <rect x="0" y="18" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="27" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="36" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="45" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="54" width="228" height="5" rx="2.5"/>
+            </clipPath>
+          </defs>
+
+          <!-- Tracks. -->
+          <rect x="0" y="0"  width="228" height="5" rx="2.5" fill="#e8e5df"/>
+          <rect x="0" y="9"  width="228" height="5" rx="2.5" fill="#e8e5df"/>
+          <rect x="0" y="18" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+          <rect x="0" y="27" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+          <rect x="0" y="36" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+          <rect x="0" y="45" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+          <rect x="0" y="54" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+
+          <!-- Fills. Each row takes its colour from its own crossing at that
+               time, so the moment the session went over par is visible as the
+               row where the stack turns. -->
+          <rect x="0" y="0"  width="4.6"   height="5" rx="2.5" fill="#938b84"/>
+          <rect x="0" y="9"  width="11.4"  height="5" rx="2.5" fill="#938b84"/>
+          <rect x="0" y="18" width="20.5"  height="5" rx="2.5" fill="#938b84"/>
+          <rect x="0" y="27" width="31.9"  height="5" rx="2.5" fill="#938b84"/>
+          <rect x="0" y="36" width="68.4"  height="5" rx="2.5" fill="#938b84"/>
+          <rect x="0" y="45" width="141.4" height="5" rx="2.5" fill="#b45309"/>
+          <rect x="0" y="54" width="177.8" height="5" rx="2.5" fill="#b45309"/>
+
+          <!-- The mask: one continuous cut, 3px wide, sweeping right as the
+               window's clock advances. The bottom row's slot is shorter because
+               only ten of its thirty minutes have run. -->
+          <g clip-path="url(#rowsB)" fill="#f1efeb">
+            <path d="M 0,0      L 3,0      L 25.8,5   L 22.8,5 Z"/>
+            <path d="M 22.8,9   L 25.8,9   L 48.6,14  L 45.6,14 Z"/>
+            <path d="M 45.6,18  L 48.6,18  L 71.4,23  L 68.4,23 Z"/>
+            <path d="M 68.4,27  L 71.4,27  L 94.2,32  L 91.2,32 Z"/>
+            <path d="M 91.2,36  L 94.2,36  L 117,41   L 114,41 Z"/>
+            <path d="M 114,45   L 117,45   L 139.8,50 L 136.8,50 Z"/>
+            <path d="M 136.8,54 L 139.8,54 L 147.4,59 L 144.4,59 Z"/>
+          </g>
+        </svg>
+
+        <div class="freshness">
+          <span class="age">updated 5m ago</span>
+          <button class="update" type="button">Update now</button>
+        </div>
+      </div>
+      <div class="user-menu"><div class="avatar"></div><div class="user-name"></div></div>
+    </div>
+
+    <div class="legend">
+      <div><span class="k">rows</span><span>7 of an eventual 10</span></div>
+      <div><span class="k">reading</span><span>78% used, 63% of the window gone</span></div>
+      <div><span class="k">crossing</span><span>row 6 — where the stack turns amber</span></div>
+    </div>
+    <div class="verdict">
+      The bottom row is the bar, unmoved. What the stack adds is <b>when</b> it went
+      wrong: five quiet rows, then a jump. A curve says the same thing but this
+      names the half hour.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -9,6 +9,7 @@ import {
   ROWS,
   forecast,
   windowKeyFor,
+  type Forecast,
   type MarkSegment,
   type Row,
 } from '../lib/usageHistory.ts'
@@ -68,6 +69,48 @@ function claudeMark(): SVGElement {
 /** A local wall-clock time, as the app renders the reset. */
 function timeOf(ms: number): string {
   return new Date(ms).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+}
+
+/** What the open stack says is coming. Empty leaves the reset standing. */
+function forecastText(ahead: Forecast): string {
+  if (ahead === null) return ''
+  switch (ahead.kind) {
+    case 'runout':
+      return `runout ${timeOf(ahead.at)}`
+    case 'ontrack':
+      return `on track ${Math.round(ahead.percent)}%`
+    case 'estimating':
+      return 'estimating'
+  }
+}
+
+/**
+ * How much of the window has gone, over the app's own age reading.
+ *
+ * Placed from the age element's measured position rather than from a fixed offset
+ * below the bar. The app puts a credit readout between the two whenever turns are
+ * billing, so a fixed offset lands on that instead — which is what had "used
+ * 100%" printed over "A$3,000".
+ *
+ * Withheld at a hundred percent: a full bar already says the allowance is gone,
+ * and the figure would only be covering the age for nothing.
+ */
+function paintUsed(stack: HTMLElement, bar: HTMLElement, live: Row | undefined): void {
+  const used = stack.querySelector<HTMLElement>('.whp-usage-used')
+  const age = anchors.usageAge()
+  if (!used) return
+
+  const percent = live?.percent ?? null
+  const show = percent !== null && percent < 100
+  setText(used, show ? `used ${Math.round(percent)}%` : '')
+  // Only cover the age where there is something to put in its place.
+  if (age) setClass(age, 'whp-usage-age', show)
+
+  if (show && age) {
+    // Both offsets are against the slot, which the feature makes the positioned
+    // ancestor, so the difference is the age's top in the stack's own frame.
+    setVar(used, '--whp-used-top', `${age.offsetTop - bar.offsetTop}px`)
+  }
 }
 
 function buildRow(index: number): HTMLDivElement {
@@ -194,11 +237,6 @@ function paint(
     liveNode.setAttribute('aria-valuenow', String(Math.round(live.percent)))
   }
 
-  const used = stack.querySelector<HTMLElement>('.whp-usage-used')
-  if (used) {
-    setText(used, live?.percent === null || live === undefined ? '' : `used ${Math.round(live.percent)}%`)
-  }
-
   // The clock mark, one straight line per window. Its pivot is that window's own
   // clock, so closing folds every slice back into a single upright notch rather
   // than a staircase. spec: UHST
@@ -253,14 +291,11 @@ function paintHead(
   // spec: UHST
   const ahead_ = forecast(getUsageSamples(), window, resetsAt, now)
   setClass(head, 'whp-usage-forecast-known', ahead_ !== null)
-  setText(
-    ahead,
-    ahead_ === null
-      ? ''
-      : ahead_.kind === 'runout'
-        ? `runout ${timeOf(ahead_.at)}`
-        : `ending ${Math.round(ahead_.percent)}%`,
-  )
+  // Only a runout is a warning. Being on track is reassurance and estimating is
+  // an absence, so neither takes the amber the head row carries when the window
+  // is being overspent.
+  setClass(ahead, 'whp-usage-calm', ahead_ !== null && ahead_.kind !== 'runout')
+  setText(ahead, forecastText(ahead_))
 }
 
 /**
@@ -283,12 +318,6 @@ function takeOver(bar: HTMLElement, slot: HTMLElement): void {
   if (appHead && appHead.style.visibility !== 'hidden') {
     appHead.style.visibility = 'hidden'
   }
-
-  // Marked rather than styled structurally, so the stylesheet holds no knowledge
-  // of the app's markup. Only marked — whether it is hidden follows the hover,
-  // which is the stylesheet's business.
-  const age = anchors.usageAge()
-  if (age) setClass(age, 'whp-usage-age', true)
 
   // Recorded on the app's own element, not held aside: the app can rebuild this
   // block at any time, and a value kept in the extension would then be restored
@@ -375,6 +404,7 @@ export function usageHistory(): Feature {
 
       paint(stack, slot, rows, segments, width)
       paintHead(stack, rows, window, resetsAt, now)
+      paintUsed(stack, bar, rows[ROWS - 1])
 
       // Only once there is something drawn to replace them. Hiding the app's bar
       // and then failing to render leaves an empty footer, which is the one

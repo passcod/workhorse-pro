@@ -59,6 +59,10 @@ A spent previous window fills most of the stack with the warning colour while th
 - [ ] The live bar stays exactly where it is throughout; what moves is the label row above, riding up as the stack grows
 - [ ] With the stack open, the proportion of the window used stands where the reading's age does, and the age returns when it closes
 - [ ] The row carrying that reading keeps its shape either way, so the control beside it does not move
+- [ ] Where the whole allowance is spent, no proportion is stated and the age is left alone
+- [ ] That reading is placed against the age itself rather than at a fixed distance from the bar, because the app renders a credit figure between the two whenever turns are billing
+
+A full bar already says the allowance is gone, so restating it as a figure would only be covering the age for nothing — and it is exactly the state where the app has something of its own to say in that space.
 - [ ] The control that asks for a fresh reading stays available while the stack is open, and acts on the app's own control
 
 The age gives way rather than making room.
@@ -83,7 +87,15 @@ The bar's head row names the reading and states when the window resets.
 - [ ] With the stack open, it states where this window is heading, derived from the rate of recent readings
 - [ ] Where the allowance is expected to go before the window turns over, that reading is when it runs out
 - [ ] Where the window is expected to turn over first, it is the proportion the allowance will have reached by then
-- [ ] Where there is no rate to read — fewer than two recent readings, or a window that is not being spent — the reset stands in both states
+- [ ] Where there is not yet a rate to read from — fewer than two recent readings, or a window that is not being spent — it says that a reading is still being worked out
+- [ ] Where the allowance is already gone there is nothing ahead to state, and the reset stands in both states
+- [ ] Only the runout carries the warning colour; the others stay quiet even while the rest of the head row is coloured for a window being overspent
+
+A reading still settling is stated rather than hidden.
+The open stack owing a forward reading includes owing the fact that it does not have one yet, which is the ordinary state for the first minutes after the feature is switched on.
+
+Being on track is reassurance and a settling reading is an absence, and neither is news.
+Colouring them would spend the one signal the footer has on something that does not need acting on.
 
 The open stack always owes a forward reading.
 Falling back to the reset there says nothing the closed bar had not already said, which makes opening the stack pointless in exactly the ordinary case: a window being spent at a comfortable rate has no runout, and that is most of the time.

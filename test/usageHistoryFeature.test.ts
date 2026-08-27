@@ -190,34 +190,53 @@ test('the reset is always rendered, for the closed bar', () => {
   assert.match(reset?.textContent ?? '', /^resets \d/)
 })
 
-test('a runout is rendered alongside the reset, for the open stack', () => {
-  // Both are present and the stylesheet picks one, because which applies follows
-  // the hover that opens the stack and no pass observes the pointer.
+test('a burn that spends the allowance first reads as a runout', () => {
+  // Both readings are present and the stylesheet picks one, because which applies
+  // follows the hover that opens the stack and no pass observes the pointer.
   recordUsage({ window: RESET, resetsAt: RESET, at: at(150), percent: 30 })
   recordUsage({ window: RESET, resetsAt: RESET, at: at(190), percent: 78 })
   reconcile()
 
   const head = document.querySelector<HTMLElement>('.whp-usage-head')!
-  assert.ok(head.classList.contains('whp-usage-runout-known'))
-  const runout = document.querySelector<HTMLElement>('.whp-usage-runout')
-  assert.match(runout?.textContent ?? '', /^runout \d/)
+  assert.ok(head.classList.contains('whp-usage-forecast-known'))
+  const ahead = document.querySelector<HTMLElement>('.whp-usage-forecast')
+  assert.match(ahead?.textContent ?? '', /^runout \d/)
   // "est" is dropped: it pushed the time out of a row that has to fit beside a
   // label.
-  assert.doesNotMatch(runout?.textContent ?? '', /est/)
+  assert.doesNotMatch(ahead?.textContent ?? '', /est/)
   // The reset stays rendered for the closed state.
   assert.match(document.querySelector('.whp-usage-reset')?.textContent ?? '', /^resets /)
 })
 
-test('no runout expected leaves the reset standing in both states', () => {
-  // A gentle rate that outlasts the window, so there is no second reading and
-  // nothing for the open stack to swap in.
+test('a gentle burn reads as on track, and stays quiet', () => {
   recordUsage({ window: RESET, resetsAt: RESET, at: at(150), percent: 30 })
   recordUsage({ window: RESET, resetsAt: RESET, at: at(190), percent: 31 })
   reconcile()
 
-  const head = document.querySelector<HTMLElement>('.whp-usage-head')!
-  assert.equal(head.classList.contains('whp-usage-runout-known'), false)
-  assert.equal(document.querySelector('.whp-usage-runout')?.textContent, '')
+  const ahead = document.querySelector<HTMLElement>('.whp-usage-forecast')!
+  assert.equal(ahead.textContent, 'on track')
+  // Not a warning, so it does not take the head row's amber even where the head
+  // row has it.
+  assert.ok(ahead.classList.contains('whp-usage-calm'))
+})
+
+test('too few readings to project says so', () => {
+  // One reading is no rate, which is the ordinary state for the first minutes
+  // after the feature is switched on. The open stack owes a forward reading, and
+  // owing it includes owing the fact that there is not one yet.
+  reconcile()
+  const ahead = document.querySelector<HTMLElement>('.whp-usage-forecast')!
+  assert.equal(ahead.textContent, 'estimating')
+  assert.ok(ahead.classList.contains('whp-usage-calm'))
+})
+
+test('a runout is the one forward reading that carries colour', () => {
+  recordUsage({ window: RESET, resetsAt: RESET, at: at(150), percent: 30 })
+  recordUsage({ window: RESET, resetsAt: RESET, at: at(190), percent: 78 })
+  reconcile()
+  const ahead = document.querySelector<HTMLElement>('.whp-usage-forecast')!
+  assert.match(ahead.textContent ?? '', /^runout /)
+  assert.equal(ahead.classList.contains('whp-usage-calm'), false)
 })
 
 test('how much is used stands where the reading age does', () => {
@@ -230,6 +249,19 @@ test('how much is used stands where the reading age does', () => {
   // stylesheet's business. The row keeps its shape either way.
   assert.ok(age.classList.contains('whp-usage-age'))
   assert.ok(age.isConnected)
+})
+
+test('a spent allowance shows no used figure and leaves the age alone', () => {
+  // At a hundred percent the full bar already says the allowance is gone, and the
+  // app puts its credit readout between the bar and the age — so a figure placed
+  // there covered "spent this month" for nothing.
+  serve({
+    report: { percent: 100, resetsAt: new Date(RESET).toISOString(), windowMinutes: 300 },
+  })
+  reconcile()
+
+  assert.equal(document.querySelector('.whp-usage-used')?.textContent, '')
+  assert.equal(anchors.usageAge()!.classList.contains('whp-usage-age'), false)
 })
 
 test('the age anchor is the reading, not the refresh control', () => {

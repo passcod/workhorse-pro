@@ -399,17 +399,17 @@ a.whp-check:hover .whp-check-job {
 
    Swapped here rather than in the feature: which one applies follows the hover
    that opens the stack, and no reconcile pass observes the pointer. */
-.whp-usage-runout {
+.whp-usage-forecast {
   display: none;
 }
 
 /* Only where a runout is actually expected before the reset. Otherwise the reset
    stands in both states, because there is no second reading to give. */
-.whp-usage-slot:hover .whp-usage-runout-known .whp-usage-reset {
+.whp-usage-slot:hover .whp-usage-forecast-known .whp-usage-reset {
   display: none;
 }
 
-.whp-usage-slot:hover .whp-usage-runout-known .whp-usage-runout {
+.whp-usage-slot:hover .whp-usage-forecast-known .whp-usage-forecast {
   display: inline;
 }
 
@@ -422,7 +422,10 @@ a.whp-check:hover .whp-check-job {
 .whp-usage-used {
   position: absolute;
   left: 0;
-  top: calc(var(--whp-row-h, 5px) + 8px);
+  /* Measured from the age reading itself. The app slips a credit readout between
+     the bar and that row whenever turns are billing, so a fixed offset lands on
+     the readout instead. */
+  top: var(--whp-used-top, calc(var(--whp-row-h, 5px) + 8px));
   opacity: 0;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
@@ -450,6 +453,14 @@ a.whp-check:hover .whp-check-job {
 .whp-usage-head-over .whp-usage-value {
   color: var(--amber, #b45309);
   opacity: 0.8;
+}
+
+/* A forward reading that is not a warning stays quiet, even while the head row is
+   amber for a window being overspent. Being on track is reassurance, and
+   estimating is an absence — neither is news to colour. Only a runout is. */
+.whp-usage-head-over .whp-usage-calm {
+  color: var(--text-quiet, #938b84);
+  opacity: 1;
 }
 
 /* Asked for no motion: the stack is simply there when open and gone when

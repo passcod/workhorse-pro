@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   buildStack,
+  forecast,
   RESET_DRIFT_MS,
   windowKeyFor,
   markGeometry,
@@ -318,4 +319,45 @@ test('no previous window means blank rows, not a borrowed one', () => {
     [null, null, null],
   )
   assert.equal(stack.segments.length, 1)
+})
+
+// ── What the open stack says is coming ───────────────────────────────────
+
+test('a burn that spends the allowance first forecasts a runout', () => {
+  const ahead = forecast(series(), RESET, RESET, NOW)
+  assert.equal(ahead?.kind, 'runout')
+  if (ahead?.kind !== 'runout') return
+  assert.ok(Math.abs(ahead.at - at(OPEN, 190 + 22 / 1.2)) < 1000)
+})
+
+test('a burn the window outlasts reads as on track', () => {
+  // 30% to 31% over forty minutes leaves the allowance intact well past the
+  // reset. Where it lands is not stated: the stack already shows the run.
+  const gentle = samplesFor(RESET, OPEN, [
+    [150, 30],
+    [190, 31],
+  ])
+  assert.deepEqual(forecast(gentle, RESET, RESET, NOW), { kind: 'ontrack' })
+})
+
+test('no rate yet says so rather than falling silent', () => {
+  // The open stack owes a forward reading, and owing it includes owing the fact
+  // that there is not one yet.
+  const one = forecast(samplesFor(RESET, OPEN, [[190, 78]]), RESET, RESET, NOW)
+  assert.equal(one?.kind, 'estimating')
+  const flat = samplesFor(RESET, OPEN, [
+    [150, 78],
+    [190, 78],
+  ])
+  assert.equal(forecast(flat, RESET, RESET, NOW)?.kind, 'estimating')
+})
+
+test('an allowance already gone has nowhere to be heading', () => {
+  // Null, so the reset stands — which is also the one figure that matters once
+  // turns have stopped.
+  const spent = samplesFor(RESET, OPEN, [
+    [150, 98],
+    [190, 100],
+  ])
+  assert.equal(forecast(spent, RESET, RESET, NOW), null)
 })

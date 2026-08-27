@@ -59,6 +59,10 @@ A spent previous window fills most of the stack with the warning colour while th
 - [ ] The live bar stays exactly where it is throughout; what moves is the label row above, riding up as the stack grows
 - [ ] With the stack open, the proportion of the window used stands where the reading's age does, and the age returns when it closes
 - [ ] The row carrying that reading keeps its shape either way, so the control beside it does not move
+- [ ] Where the whole allowance is spent, no proportion is stated and the age is left alone
+- [ ] That reading is placed against the age itself rather than at a fixed distance from the bar, because the app renders a credit figure between the two whenever turns are billing
+
+A full bar already says the allowance is gone, so restating it as a figure would only be covering the age for nothing — and it is exactly the state where the app has something of its own to say in that space.
 - [ ] The control that asks for a fresh reading stays available while the stack is open, and acts on the app's own control
 
 The age gives way rather than making room.
@@ -80,12 +84,28 @@ The footer holds its height as data states swap so that the navigation above nev
 The bar's head row names the reading and states when the window resets.
 
 - [ ] With the stack closed, the head row states the reset
-- [ ] With the stack open, it states when the allowance is expected to run out, whenever that is expected before the reset
-- [ ] Where no runout is expected before the reset, the reset stands in both states
-- [ ] The expected runout is derived from the rate of recent readings
+- [ ] With the stack open, it states where this window is heading, derived from the rate of recent readings
+- [ ] Where the allowance is expected to go before the window turns over, that reading is when it runs out
+- [ ] Where the window is expected to turn over before the allowance is spent, it says so and no more: how much will have gone by then is not stated
+- [ ] Where there is not yet a rate to read from — fewer than two recent readings, or a window that is not being spent — it says that a reading is still being worked out
+- [ ] Where the allowance is already gone there is nothing ahead to state, and the reset stands in both states
+- [ ] Only the runout carries the warning colour; the others stay quiet even while the rest of the head row is coloured for a window being overspent
 
-The runout replaces the reset rather than joining it, and only while the stack is open.
-Once the allowance is going to be gone before the window turns over, when it runs out is the actionable time and the reset is not — but that figure is read off the recorded series, so it belongs with the series rather than standing in the closed bar, where the app's own reading is the reset.
+A reading still settling is stated rather than hidden.
+The open stack owing a forward reading includes owing the fact that it does not have one yet, which is the ordinary state for the first minutes after the feature is switched on.
+
+Being on track is reassurance and a settling reading is an absence, and neither is news.
+Colouring them would spend the one signal the footer has on something that does not need acting on.
+
+A projected figure is only given where it is actionable, which is the runout.
+Where the window will turn over first there is nothing to act on, and putting a projection there invites a guess being read as a measurement — the stack already shows the run it would have been derived from.
+
+The open stack always owes a forward reading.
+Falling back to the reset there says nothing the closed bar had not already said, which makes opening the stack pointless in exactly the ordinary case: a window being spent at a comfortable rate has no runout, and that is most of the time.
+
+Which of the two readings applies follows from the projection rather than from a preference.
+If the allowance goes first, when it goes is the actionable figure; if the window turns over first, where the allowance lands is.
+Both are read off the recorded series, which is why they belong with the series rather than in the closed bar, where the app's own reading is the reset.
 
 ## Recorded readings
 

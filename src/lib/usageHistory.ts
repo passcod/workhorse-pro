@@ -297,6 +297,31 @@ export function runoutAt(
   resetsAt: number,
   now: number,
 ): number | null {
+  const reading = rateOf(samples, window, now)
+  if (reading === null) return null
+  const remaining = 100 - reading.percent
+  if (remaining <= 0) return null
+
+  const at = now + remaining / reading.rate
+  // Past the reset there is no runout: the allowance returns before it is gone.
+  // Against the stated reset rather than the window's identity, which is only a
+  // key and drifts away from the real reset over a long window.
+  return at >= resetsAt ? null : at
+}
+
+/**
+ * How fast the allowance is going, from the recent readings, with the latest
+ * figure it was measured against. Null when there is no rate to read.
+ *
+ * A rate that is flat or negative is no answer rather than a wrong one: nothing
+ * can be projected from it, and a window that is not being spent has no forward
+ * reading to give.
+ */
+function rateOf(
+  samples: readonly Sample[],
+  window: number,
+  now: number,
+): { rate: number; percent: number } | null {
   const recent = samples
     .filter((s) => s.window === window && s.at <= now && s.at >= now - ESTIMATE_MS)
     .sort((a, b) => a.at - b.at)
@@ -310,13 +335,52 @@ export function runoutAt(
 
   const rate = (last.percent - first.percent) / span
   if (rate <= 0) return null
+  return { rate, percent: last.percent }
+}
 
-  const remaining = 100 - last.percent
-  if (remaining <= 0) return null
+/**
+ * What the open stack says about where this window is heading.
+ *
+ * Always a forward reading where there is a rate at all, because the reset is
+ * what the closed bar already states — an open panel falling back to it says
+ * nothing the reader did not have before opening it.
+ *
+ * Which of the two it is follows from the projection rather than from a setting:
+ * if the allowance goes first, when it goes is the actionable figure; if the
+ * window turns over first, where the allowance lands is. spec: UHST
+ */
+export type Forecast =
+  /** The allowance goes before the window turns over, at this time. */
+  | { kind: 'runout'; at: number }
+  /** The window turns over before the allowance is spent. */
+  | { kind: 'ontrack' }
+  /** Being spent, but not yet by enough readings to project from. */
+  | { kind: 'estimating' }
+  /** Nothing ahead to report: the allowance is already gone. */
+  | null
 
-  const at = now + remaining / rate
-  // Past the reset there is no runout: the allowance returns before it is gone.
-  // Against the stated reset rather than the window's identity, which is only a
-  // key and drifts away from the real reset over a long window.
-  return at >= resetsAt ? null : at
+export function forecast(
+  samples: readonly Sample[],
+  window: number,
+  resetsAt: number,
+  now: number,
+): Forecast {
+  // Already spent. There is nothing ahead but the reset, which is also the one
+  // figure that matters once turns have stopped.
+  const spent = totalAt(samples, window, now)
+  if (spent !== null && spent >= 100) return null
+
+  const runout = runoutAt(samples, window, resetsAt, now)
+  if (runout !== null) return { kind: 'runout', at: runout }
+
+  // One reading is no rate. Said rather than hidden: the open stack owing a
+  // forward reading includes owing the fact that it does not have one yet, which
+  // is the ordinary state for the first minutes after the feature is switched on.
+  const reading = rateOf(samples, window, now)
+  if (reading === null) return { kind: 'estimating' }
+
+  // Being spent, and the window turns over before the allowance does. Where it
+  // lands is not stated: the stack already shows the run, and a projected figure
+  // beside it invites reading a guess as a measurement.
+  return { kind: 'ontrack' }
 }

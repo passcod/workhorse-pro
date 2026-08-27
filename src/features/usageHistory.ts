@@ -7,8 +7,9 @@ import {
   buildStack,
   markGeometry,
   ROWS,
-  runoutAt,
+  forecast,
   windowKeyFor,
+  type Forecast,
   type MarkSegment,
   type Row,
 } from '../lib/usageHistory.ts'
@@ -70,6 +71,48 @@ function timeOf(ms: number): string {
   return new Date(ms).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 }
 
+/** What the open stack says is coming. Empty leaves the reset standing. */
+function forecastText(ahead: Forecast): string {
+  if (ahead === null) return ''
+  switch (ahead.kind) {
+    case 'runout':
+      return `runout ${timeOf(ahead.at)}`
+    case 'ontrack':
+      return 'on track'
+    case 'estimating':
+      return 'estimating'
+  }
+}
+
+/**
+ * How much of the window has gone, over the app's own age reading.
+ *
+ * Placed from the age element's measured position rather than from a fixed offset
+ * below the bar. The app puts a credit readout between the two whenever turns are
+ * billing, so a fixed offset lands on that instead — which is what had "used
+ * 100%" printed over "A$3,000".
+ *
+ * Withheld at a hundred percent: a full bar already says the allowance is gone,
+ * and the figure would only be covering the age for nothing.
+ */
+function paintUsed(stack: HTMLElement, bar: HTMLElement, live: Row | undefined): void {
+  const used = stack.querySelector<HTMLElement>('.whp-usage-used')
+  const age = anchors.usageAge()
+  if (!used) return
+
+  const percent = live?.percent ?? null
+  const show = percent !== null && percent < 100
+  setText(used, show ? `used ${Math.round(percent)}%` : '')
+  // Only cover the age where there is something to put in its place.
+  if (age) setClass(age, 'whp-usage-age', show)
+
+  if (show && age) {
+    // Both offsets are against the slot, which the feature makes the positioned
+    // ancestor, so the difference is the age's top in the stack's own frame.
+    setVar(used, '--whp-used-top', `${age.offsetTop - bar.offsetTop}px`)
+  }
+}
+
 function buildRow(index: number): HTMLDivElement {
   const row = el('div', 'whp-usage-row')
   row.style.setProperty('--i', String(index))
@@ -101,7 +144,7 @@ function buildStackNode(): HTMLDivElement {
   // follows the hover that opens the stack, and no pass observes that — a
   // feature that swapped the text itself would need to watch the pointer.
   head.appendChild(el('span', 'whp-usage-value whp-usage-reset'))
-  head.appendChild(el('span', 'whp-usage-value whp-usage-runout'))
+  head.appendChild(el('span', 'whp-usage-value whp-usage-forecast'))
   root.appendChild(head)
 
   const window_ = el('div', 'whp-usage-rows')
@@ -194,11 +237,6 @@ function paint(
     liveNode.setAttribute('aria-valuenow', String(Math.round(live.percent)))
   }
 
-  const used = stack.querySelector<HTMLElement>('.whp-usage-used')
-  if (used) {
-    setText(used, live?.percent === null || live === undefined ? '' : `used ${Math.round(live.percent)}%`)
-  }
-
   // The clock mark, one straight line per window. Its pivot is that window's own
   // clock, so closing folds every slice back into a single upright notch rather
   // than a staircase. spec: UHST
@@ -237,8 +275,8 @@ function paintHead(
 ): void {
   const head = stack.querySelector<HTMLElement>('.whp-usage-head')
   const reset = stack.querySelector<HTMLElement>('.whp-usage-reset')
-  const runoutNode = stack.querySelector<HTMLElement>('.whp-usage-runout')
-  if (!head || !reset || !runoutNode) return
+  const ahead = stack.querySelector<HTMLElement>('.whp-usage-forecast')
+  if (!head || !reset || !ahead) return
 
   setClass(head, 'whp-usage-head-over', rows[ROWS - 1]?.over ?? false)
 
@@ -246,13 +284,18 @@ function paintHead(
   // states and the closed state is not the extension's to reword.
   setText(reset, `resets ${timeOf(resetsAt)}`)
 
-  // The runout belongs to the open stack. Once the allowance is expected to go
-  // before the window turns over, when it runs out is the actionable time — but
-  // it is read off the series, so it appears alongside the series rather than in
-  // place of the reset at rest. spec: UHST
-  const runout = runoutAt(getUsageSamples(), window, resetsAt, now)
-  setClass(head, 'whp-usage-runout-known', runout !== null)
-  setText(runoutNode, runout === null ? '' : `runout ${timeOf(runout)}`)
+  // The open stack states where the window is heading instead. Falling back to
+  // the reset there would say nothing the closed bar had not already said, so a
+  // forward reading is given wherever there is a rate to read one from — either
+  // when the allowance goes, or where it lands if the window turns over first.
+  // spec: UHST
+  const ahead_ = forecast(getUsageSamples(), window, resetsAt, now)
+  setClass(head, 'whp-usage-forecast-known', ahead_ !== null)
+  // Only a runout is a warning. Being on track is reassurance and estimating is
+  // an absence, so neither takes the amber the head row carries when the window
+  // is being overspent.
+  setClass(ahead, 'whp-usage-calm', ahead_ !== null && ahead_.kind !== 'runout')
+  setText(ahead, forecastText(ahead_))
 }
 
 /**
@@ -275,12 +318,6 @@ function takeOver(bar: HTMLElement, slot: HTMLElement): void {
   if (appHead && appHead.style.visibility !== 'hidden') {
     appHead.style.visibility = 'hidden'
   }
-
-  // Marked rather than styled structurally, so the stylesheet holds no knowledge
-  // of the app's markup. Only marked — whether it is hidden follows the hover,
-  // which is the stylesheet's business.
-  const age = anchors.usageAge()
-  if (age) setClass(age, 'whp-usage-age', true)
 
   // Recorded on the app's own element, not held aside: the app can rebuild this
   // block at any time, and a value kept in the extension would then be restored
@@ -367,6 +404,7 @@ export function usageHistory(): Feature {
 
       paint(stack, slot, rows, segments, width)
       paintHead(stack, rows, window, resetsAt, now)
+      paintUsed(stack, bar, rows[ROWS - 1])
 
       // Only once there is something drawn to replace them. Hiding the app's bar
       // and then failing to render leaves an empty footer, which is the one

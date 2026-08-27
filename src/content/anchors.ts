@@ -259,6 +259,26 @@ export const anchors = {
   },
 
   /**
+   * The age of the reading, in the footer's freshness row — "updated 5m ago".
+   *
+   * Fallback: the freshness row is the last block the app renders in that
+   * footer, and the age is the reading at its start with the refresh control
+   * after it. Injected blocks are stepped over, so the extension's own stack
+   * cannot be mistaken for the row.
+   *
+   * Resolved here rather than reached for with a structural CSS selector,
+   * because that would put coupling to the app's markup in the stylesheet as
+   * well as this module. spec: INJ, UHST
+   */
+  usageAge(): HTMLElement | null {
+    const slot = this.usageSlot()
+    if (!slot) return null
+    const theirs = [...slot.children].filter((child) => !child.closest(`[${MARK}]`))
+    const age = theirs[theirs.length - 1]?.firstElementChild
+    return age instanceof HTMLElement ? age : null
+  },
+
+  /**
    * The workspace switcher's open menu, or null while it is closed.
    *
    * The menu is unmounted when the switcher closes, so "closed" and "not on

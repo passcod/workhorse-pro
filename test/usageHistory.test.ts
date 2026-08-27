@@ -330,7 +330,7 @@ test('a burn that spends the allowance first forecasts a runout', () => {
   assert.ok(Math.abs(ahead.at - at(OPEN, 190 + 22 / 1.2)) < 1000)
 })
 
-test('a burn the window outlasts forecasts where it ends', () => {
+test('a burn the window outlasts forecasts where it lands', () => {
   // 30% to 31% over forty minutes is 0.025% a minute, and 110 minutes remain, so
   // it lands a little under 34%.
   const gentle = samplesFor(RESET, OPEN, [
@@ -338,8 +338,8 @@ test('a burn the window outlasts forecasts where it ends', () => {
     [190, 31],
   ])
   const ahead = forecast(gentle, RESET, RESET, NOW)
-  assert.equal(ahead?.kind, 'ending')
-  if (ahead?.kind !== 'ending') return
+  assert.equal(ahead?.kind, 'ontrack')
+  if (ahead?.kind !== 'ontrack') return
   assert.ok(Math.abs(ahead.percent - (31 + 0.025 * 110)) < 0.01, `got ${ahead.percent}`)
 })
 
@@ -351,19 +351,24 @@ test('a forecast that would overrun the allowance is capped', () => {
   ])
   const ahead = forecast(steady, RESET, RESET, NOW)
   assert.ok(ahead !== null)
-  if (ahead.kind === 'ending') assert.ok(ahead.percent <= 100)
+  if (ahead.kind === 'ontrack') assert.ok(ahead.percent <= 100)
 })
 
-test('no rate is no forecast rather than a guess', () => {
-  assert.equal(forecast(samplesFor(RESET, OPEN, [[190, 78]]), RESET, RESET, NOW), null)
+test('no rate yet says so rather than falling silent', () => {
+  // The open stack owes a forward reading, and owing it includes owing the fact
+  // that there is not one yet.
+  const one = forecast(samplesFor(RESET, OPEN, [[190, 78]]), RESET, RESET, NOW)
+  assert.equal(one?.kind, 'estimating')
   const flat = samplesFor(RESET, OPEN, [
     [150, 78],
     [190, 78],
   ])
-  assert.equal(forecast(flat, RESET, RESET, NOW), null)
+  assert.equal(forecast(flat, RESET, RESET, NOW)?.kind, 'estimating')
 })
 
 test('an allowance already gone has nowhere to be heading', () => {
+  // Null, so the reset stands — which is also the one figure that matters once
+  // turns have stopped.
   const spent = samplesFor(RESET, OPEN, [
     [150, 98],
     [190, 100],

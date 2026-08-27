@@ -85,6 +85,16 @@ Once the allowance is going to be gone before the window turns over, when it run
 
 - [ ] Readings are recorded as they arrive, identified by the window they belong to and the time they were taken
 - [ ] A reading identical to the one already recorded for that moment is not recorded again
+
+A window's identity is not the reset time it states.
+That time moves while a window is live, and a reading whose stated reset has merely moved belongs to the window already running.
+
+- [ ] A reading joins the window the previous reading belonged to unless its stated reset has moved far enough that the window must have turned over
+- [ ] How far the stated reset has moved is judged between consecutive readings, so many small movements never accumulate into a turnover that did not happen
+- [ ] A window keeps one identity for its whole life, while what is drawn against it — how far the clock has reached, and when the allowance returns — follows the most recent reset stated for it
+
+Treating each stated reset as its own window is the failure this guards.
+It presents as a session's whole history appearing under a window that had already reset and a live window that has just begun, which is indistinguishable from history the feature could not have recorded.
 - [ ] Recordings survive the tab and the browser closing
 - [ ] At most two windows are kept: the one running and the one before it
 - [ ] A window older than that is discarded

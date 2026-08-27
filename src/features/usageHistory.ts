@@ -8,6 +8,7 @@ import {
   markGeometry,
   ROWS,
   runoutAt,
+  windowKeyFor,
   type MarkSegment,
   type Row,
 } from '../lib/usageHistory.ts'
@@ -214,7 +215,13 @@ function paint(
   setVar(slot, '--whp-row-h', `${ROW_H}px`)
 }
 
-function paintHead(stack: HTMLElement, rows: Row[], resetsAt: number, now: number): void {
+function paintHead(
+  stack: HTMLElement,
+  rows: Row[],
+  window: number,
+  resetsAt: number,
+  now: number,
+): void {
   const head = stack.querySelector<HTMLElement>('.whp-usage-head')
   const value = stack.querySelector<HTMLElement>('.whp-usage-value')
   if (!head || !value) return
@@ -223,7 +230,7 @@ function paintHead(stack: HTMLElement, rows: Row[], resetsAt: number, now: numbe
 
   // Once the allowance is expected to go before the window turns over, when it
   // runs out is the actionable time and the reset is not. spec: UHST
-  const runout = runoutAt(getUsageSamples(), resetsAt, now)
+  const runout = runoutAt(getUsageSamples(), window, resetsAt, now)
   setText(value, runout === null ? `resets ${timeOf(resetsAt)}` : `runout est ${timeOf(runout)}`)
 }
 
@@ -309,14 +316,19 @@ export function usageHistory(): Feature {
       // keeps recording working against a build that sends no stamp, at the cost
       // of bucketing by when we saw it rather than when it was taken.
       const readAt = usage?.readAt ? Date.parse(usage.readAt) : now
+      // Identity is decided once, against the last reading, and then carried.
+      // The stated reset drifts inside a window, so following it would make
+      // every drift look like a turnover. spec: UHST
+      const window = windowKeyFor(getUsageSamples(), resetsAt)
       recordUsage({
-        window: resetsAt,
+        window,
+        resetsAt,
         at: Number.isFinite(readAt) ? readAt : now,
         percent: report.percent,
       })
 
       const stack = ensureBefore(bar, STACK_ID, buildStackNode)
-      const { rows, segments } = buildStack(getUsageSamples(), resetsAt, now)
+      const { rows, segments } = buildStack(getUsageSamples(), window, resetsAt, now)
 
       // Measured, not assumed: the bar's width follows the sidebar's, and both
       // the mask's angle and its width across the line depend on it. Our own
@@ -325,7 +337,7 @@ export function usageHistory(): Feature {
       const width = bar.clientWidth || stack.clientWidth || slot.clientWidth
 
       paint(stack, slot, rows, segments, width)
-      paintHead(stack, rows, resetsAt, now)
+      paintHead(stack, rows, window, resetsAt, now)
 
       // Only once there is something drawn to replace them. Hiding the app's bar
       // and then failing to render leaves an empty footer, which is the one

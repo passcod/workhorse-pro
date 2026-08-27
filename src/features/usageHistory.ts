@@ -97,7 +97,11 @@ function buildStackNode(): HTMLDivElement {
   label.appendChild(claudeMark())
   label.appendChild(el('span', undefined, 'Claude usage'))
   head.appendChild(label)
-  head.appendChild(el('span', 'whp-usage-value'))
+  // Both readings are rendered and the stylesheet shows one. Which is on screen
+  // follows the hover that opens the stack, and no pass observes that — a
+  // feature that swapped the text itself would need to watch the pointer.
+  head.appendChild(el('span', 'whp-usage-value whp-usage-reset'))
+  head.appendChild(el('span', 'whp-usage-value whp-usage-runout'))
   root.appendChild(head)
 
   const window_ = el('div', 'whp-usage-rows')
@@ -223,15 +227,23 @@ function paintHead(
   now: number,
 ): void {
   const head = stack.querySelector<HTMLElement>('.whp-usage-head')
-  const value = stack.querySelector<HTMLElement>('.whp-usage-value')
-  if (!head || !value) return
+  const reset = stack.querySelector<HTMLElement>('.whp-usage-reset')
+  const runoutNode = stack.querySelector<HTMLElement>('.whp-usage-runout')
+  if (!head || !reset || !runoutNode) return
 
   setClass(head, 'whp-usage-head-over', rows[ROWS - 1]?.over ?? false)
 
-  // Once the allowance is expected to go before the window turns over, when it
-  // runs out is the actionable time and the reset is not. spec: UHST
+  // The reset is what the closed bar states, because it is what the app's own bar
+  // states and the closed state is not the extension's to reword.
+  setText(reset, `resets ${timeOf(resetsAt)}`)
+
+  // The runout belongs to the open stack. Once the allowance is expected to go
+  // before the window turns over, when it runs out is the actionable time — but
+  // it is read off the series, so it appears alongside the series rather than in
+  // place of the reset at rest. spec: UHST
   const runout = runoutAt(getUsageSamples(), window, resetsAt, now)
-  setText(value, runout === null ? `resets ${timeOf(resetsAt)}` : `runout est ${timeOf(runout)}`)
+  setClass(head, 'whp-usage-runout-known', runout !== null)
+  setText(runoutNode, runout === null ? '' : `runout ${timeOf(runout)}`)
 }
 
 /**

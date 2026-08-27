@@ -182,6 +182,73 @@ function at(minutes: number): number {
   return OPEN + minutes * MIN
 }
 
+// ── The head row ─────────────────────────────────────────────────────────
+
+test('the reset is always rendered, for the closed bar', () => {
+  reconcile()
+  const reset = document.querySelector<HTMLElement>('.whp-usage-reset')
+  assert.match(reset?.textContent ?? '', /^resets \d/)
+})
+
+test('a runout is rendered alongside the reset, for the open stack', () => {
+  // Both are present and the stylesheet picks one, because which applies follows
+  // the hover that opens the stack and no pass observes the pointer.
+  recordUsage({ window: RESET, resetsAt: RESET, at: at(150), percent: 30 })
+  recordUsage({ window: RESET, resetsAt: RESET, at: at(190), percent: 78 })
+  reconcile()
+
+  const head = document.querySelector<HTMLElement>('.whp-usage-head')!
+  assert.ok(head.classList.contains('whp-usage-runout-known'))
+  const runout = document.querySelector<HTMLElement>('.whp-usage-runout')
+  assert.match(runout?.textContent ?? '', /^runout \d/)
+  // "est" is dropped: it pushed the time out of a row that has to fit beside a
+  // label.
+  assert.doesNotMatch(runout?.textContent ?? '', /est/)
+  // The reset stays rendered for the closed state.
+  assert.match(document.querySelector('.whp-usage-reset')?.textContent ?? '', /^resets /)
+})
+
+test('no runout expected leaves the reset standing in both states', () => {
+  // A gentle rate that outlasts the window, so there is no second reading and
+  // nothing for the open stack to swap in.
+  recordUsage({ window: RESET, resetsAt: RESET, at: at(150), percent: 30 })
+  recordUsage({ window: RESET, resetsAt: RESET, at: at(190), percent: 31 })
+  reconcile()
+
+  const head = document.querySelector<HTMLElement>('.whp-usage-head')!
+  assert.equal(head.classList.contains('whp-usage-runout-known'), false)
+  assert.equal(document.querySelector('.whp-usage-runout')?.textContent, '')
+})
+
+test('how much is used stands where the reading age does', () => {
+  const age = anchors.usageAge()!
+  assert.match(age.textContent ?? '', /updated/)
+  reconcile()
+
+  assert.equal(document.querySelector('.whp-usage-used')?.textContent, 'used 78%')
+  // Marked, not removed: whether it is hidden follows the hover, which is the
+  // stylesheet's business. The row keeps its shape either way.
+  assert.ok(age.classList.contains('whp-usage-age'))
+  assert.ok(age.isConnected)
+})
+
+test('the age anchor is the reading, not the refresh control', () => {
+  const age = anchors.usageAge()!
+  assert.equal(age.tagName, 'SPAN')
+  reconcile()
+  // Still resolves once the stack is injected, which is what stepping over
+  // injected blocks buys.
+  assert.equal(anchors.usageAge(), age)
+})
+
+test('turning the feature off unmarks the age', () => {
+  reconcile()
+  const age = anchors.usageAge()!
+  assert.ok(age.classList.contains('whp-usage-age'))
+  reconcile({ usageHistory: false })
+  assert.equal(age.classList.contains('whp-usage-age'), false)
+})
+
 // ── An unmeasurable footer ───────────────────────────────────────────────
 
 test('the app bar is never hidden without a stack drawn over it', () => {

@@ -97,7 +97,11 @@ function buildStackNode(): HTMLDivElement {
   label.appendChild(claudeMark())
   label.appendChild(el('span', undefined, 'Claude usage'))
   head.appendChild(label)
-  head.appendChild(el('span', 'whp-usage-value'))
+  // Both readings are rendered and the stylesheet shows one. Which is on screen
+  // follows the hover that opens the stack, and no pass observes that — a
+  // feature that swapped the text itself would need to watch the pointer.
+  head.appendChild(el('span', 'whp-usage-value whp-usage-reset'))
+  head.appendChild(el('span', 'whp-usage-value whp-usage-runout'))
   root.appendChild(head)
 
   const window_ = el('div', 'whp-usage-rows')
@@ -105,6 +109,10 @@ function buildStackNode(): HTMLDivElement {
   for (let i = 0; i < ROWS - 1; i++) inner.appendChild(buildRow(i))
   window_.appendChild(inner)
   root.appendChild(window_)
+
+  // Sits over the app's own age reading while the stack is open, because with the
+  // series on screen the figure behind it is the more useful of the two.
+  root.appendChild(el('span', 'whp-usage-used'))
 
   const live = buildRow(ROWS - 1)
   live.classList.add('whp-usage-live')
@@ -186,6 +194,11 @@ function paint(
     liveNode.setAttribute('aria-valuenow', String(Math.round(live.percent)))
   }
 
+  const used = stack.querySelector<HTMLElement>('.whp-usage-used')
+  if (used) {
+    setText(used, live?.percent === null || live === undefined ? '' : `used ${Math.round(live.percent)}%`)
+  }
+
   // The clock mark, one straight line per window. Its pivot is that window's own
   // clock, so closing folds every slice back into a single upright notch rather
   // than a staircase. spec: UHST
@@ -223,15 +236,23 @@ function paintHead(
   now: number,
 ): void {
   const head = stack.querySelector<HTMLElement>('.whp-usage-head')
-  const value = stack.querySelector<HTMLElement>('.whp-usage-value')
-  if (!head || !value) return
+  const reset = stack.querySelector<HTMLElement>('.whp-usage-reset')
+  const runoutNode = stack.querySelector<HTMLElement>('.whp-usage-runout')
+  if (!head || !reset || !runoutNode) return
 
   setClass(head, 'whp-usage-head-over', rows[ROWS - 1]?.over ?? false)
 
-  // Once the allowance is expected to go before the window turns over, when it
-  // runs out is the actionable time and the reset is not. spec: UHST
+  // The reset is what the closed bar states, because it is what the app's own bar
+  // states and the closed state is not the extension's to reword.
+  setText(reset, `resets ${timeOf(resetsAt)}`)
+
+  // The runout belongs to the open stack. Once the allowance is expected to go
+  // before the window turns over, when it runs out is the actionable time — but
+  // it is read off the series, so it appears alongside the series rather than in
+  // place of the reset at rest. spec: UHST
   const runout = runoutAt(getUsageSamples(), window, resetsAt, now)
-  setText(value, runout === null ? `resets ${timeOf(resetsAt)}` : `runout est ${timeOf(runout)}`)
+  setClass(head, 'whp-usage-runout-known', runout !== null)
+  setText(runoutNode, runout === null ? '' : `runout ${timeOf(runout)}`)
 }
 
 /**
@@ -255,6 +276,12 @@ function takeOver(bar: HTMLElement, slot: HTMLElement): void {
     appHead.style.visibility = 'hidden'
   }
 
+  // Marked rather than styled structurally, so the stylesheet holds no knowledge
+  // of the app's markup. Only marked — whether it is hidden follows the hover,
+  // which is the stylesheet's business.
+  const age = anchors.usageAge()
+  if (age) setClass(age, 'whp-usage-age', true)
+
   // Recorded on the app's own element, not held aside: the app can rebuild this
   // block at any time, and a value kept in the extension would then be restored
   // onto the wrong node. Same reasoning as the wordmark's. spec: BRND
@@ -269,6 +296,8 @@ function restore(bar: HTMLElement | null, slot: HTMLElement | null): void {
     bar.style.removeProperty('visibility')
     const appHead = anchors.usageHead()
     if (appHead) appHead.style.removeProperty('visibility')
+    const age = anchors.usageAge()
+    if (age) setClass(age, 'whp-usage-age', false)
   }
   if (!slot) return
   setClass(slot, 'whp-usage-slot', false)

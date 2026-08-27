@@ -56,8 +56,13 @@ A spent previous window fills most of the stack with the warning colour while th
 
 - [ ] Hovering the footer opens the stack, and leaving it closes it again
 - [ ] The stack is drawn over the navigation above the footer, and nothing already on screen moves to accommodate it
-- [ ] The live bar and the reading's age stay exactly where they are throughout; what moves is the label row above, riding up as the stack grows
+- [ ] The live bar stays exactly where it is throughout; what moves is the label row above, riding up as the stack grows
+- [ ] With the stack open, the proportion of the window used stands where the reading's age does, and the age returns when it closes
+- [ ] The row carrying that reading keeps its shape either way, so the control beside it does not move
 - [ ] The control that asks for a fresh reading stays available while the stack is open, and acts on the app's own control
+
+The age gives way rather than making room.
+With the series on screen the figure is the more useful of the two, and the age is already what the closed bar carries.
 - [ ] The app's own tooltip on the footer does not appear while the stack is open or opening, because the stack states everything the tooltip did
 
 The footer holds its height as data states swap so that the navigation above never moves, and an expansion that pushed the navigation would give that up.
@@ -74,12 +79,13 @@ The footer holds its height as data states swap so that the navigation above nev
 
 The bar's head row names the reading and states when the window resets.
 
-- [ ] While the allowance is expected to run out before the window resets, the head row states the estimated time it runs out instead of the reset
-- [ ] Otherwise the head row states the reset, as it does with the stack closed
-- [ ] The estimate is derived from the rate of recent readings
+- [ ] With the stack closed, the head row states the reset
+- [ ] With the stack open, it states when the allowance is expected to run out, whenever that is expected before the reset
+- [ ] Where no runout is expected before the reset, the reset stands in both states
+- [ ] The expected runout is derived from the rate of recent readings
 
-The estimate replaces the reset rather than joining it.
-Once the allowance is going to be gone before the window turns over, when it runs out is the actionable time and the reset is not.
+The runout replaces the reset rather than joining it, and only while the stack is open.
+Once the allowance is going to be gone before the window turns over, when it runs out is the actionable time and the reset is not — but that figure is read off the recorded series, so it belongs with the series rather than standing in the closed bar, where the app's own reading is the reset.
 
 ## Recorded readings
 

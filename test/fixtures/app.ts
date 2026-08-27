@@ -206,3 +206,72 @@ export function composerArea(): string {
     </div>
   `
 }
+
+/**
+ * The sidebar footer's Claude usage meter.
+ *
+ * Shape reproduced from `ClaudeUsageMeter`: a fixed-height block carrying the
+ * app's own native tooltip, a head row pairing the label with the window's
+ * reset, then the bar — a rounded track holding a fill and a notch cut out of it
+ * — and a freshness row with the control that asks for a fresh reading.
+ *
+ * The track is the only element carrying anything naming it: `role="meter"` with
+ * an accessible name. It is absent altogether when the five-hour figure could
+ * not be read, which is the `unreadable` case below.
+ *
+ * spec: UHST
+ */
+export function usageMeter(
+  options: { percent?: number | null; clock?: number; reset?: string } = {},
+): string {
+  const { percent = 78, clock = 63.3, reset = 'resets 4:59 pm' } = options
+
+  const bar =
+    percent === null
+      ? ''
+      : `
+        <div
+          class="relative h-[5px] rounded-full bg-[var(--bg-inset)] overflow-hidden"
+          role="meter"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="${Math.round(percent)}"
+          aria-label="Claude plan usage"
+        >
+          <div class="h-full rounded-full" style="width: ${percent}%"></div>
+          <div class="absolute top-0 bottom-0 w-[3px]" style="left: ${clock}%"></div>
+        </div>
+      `
+
+  return `
+    <div class="group px-4 pt-3 pb-3 min-h-[80px]" title="${Math.round(
+      percent ?? 0,
+    )}% of your Claude 5-hour plan window used, resets 4:59 pm">
+      <div class="flex items-center justify-between gap-2 mb-[7px]">
+        <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold">
+          <svg width="12" height="12" aria-hidden="true"></svg>
+          Claude usage
+        </span>
+        <span class="text-[11px] tabular-nums">${reset}</span>
+      </div>
+      ${bar}
+      <div class="flex items-center justify-between gap-2 mt-2">
+        <span class="text-[11px] tabular-nums">updated 5m ago</span>
+        <button type="button" title="Read the Claude usage endpoint now.">Update now</button>
+      </div>
+    </div>
+  `
+}
+
+/** The footer with no reading at all, only a reason. */
+export function usageUnavailable(): string {
+  return `
+    <div class="group px-4 pt-3 pb-3 min-h-[80px]">
+      <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold">
+        <svg width="12" height="12" aria-hidden="true"></svg>
+        Claude usage
+      </span>
+      <span class="block text-[11px] mt-1">Device offline</span>
+    </div>
+  `
+}

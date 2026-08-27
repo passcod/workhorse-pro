@@ -19,6 +19,29 @@ export interface BranchStatusData {
   branch: { name: string | null } | null
 }
 
+/**
+ * The acting user's Claude subscription position, narrowed to the five-hour
+ * window the sidebar bar draws.
+ *
+ * `report` and `unavailable` are exclusive: the app names why there is no
+ * reading rather than sending a bare null, and the usage stack has nothing to
+ * record whenever `report` is absent.
+ */
+export interface SubscriptionUsageData {
+  report: {
+    /** Utilisation of the five-hour window, 0-100. Null when unreadable. */
+    percent: number | null
+    /** When the window resets, ISO 8601. Null when the payload does not say. */
+    resetsAt: string | null
+    /** How long the window runs, in minutes. */
+    windowMinutes: number | null
+  } | null
+  /** Why there is no reading, when there is none. */
+  unavailable: string | null
+  /** When the paired device took the reading, ISO 8601. */
+  readAt: string | null
+}
+
 /** A GitHub check run, narrowed to what the named-checks row renders. */
 export interface CheckRun {
   id: number

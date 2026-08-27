@@ -22,6 +22,8 @@ export interface Prefs {
   sortWorkspaces: boolean
   /** Show the extension's own wordmark in the sidebar's top corner. */
   proWordmark: boolean
+  /** Expand the sidebar's Claude usage bar into a stack of half-hourly bars. */
+  usageHistory: boolean
   observeFetches: boolean
   /** Read-only, checks-scoped. Empty when the user has not supplied one. */
   githubToken: string
@@ -41,6 +43,7 @@ export const PREF_DEFAULTS: Prefs = {
   composerStash: true,
   sortWorkspaces: true,
   proWordmark: true,
+  usageHistory: true,
   observeFetches: true,
   githubToken: '',
   // Parking a draft is a save. Restoring takes Ctrl+P rather than the shifted
@@ -113,6 +116,15 @@ export const SWITCHES: SwitchInfo[] = [
     detail:
       'Show a horse and the word Prohorse in the sidebar’s top corner, in place of the app’s own ' +
       'wordmark.',
+  },
+  {
+    key: 'usageHistory',
+    label: 'Claude usage history',
+    detail:
+      'Hover the sidebar’s Claude usage bar to expand it into ten half-hourly bars, so you can ' +
+      'see when the allowance went rather than only how much is left. Each bar is shaded by ' +
+      'whether it was ahead of the window’s clock at the time, and history runs back past the ' +
+      'last reset. Readings are recorded on this device as they arrive.',
   },
   {
     key: 'observeFetches',

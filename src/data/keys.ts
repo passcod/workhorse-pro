@@ -20,8 +20,19 @@ export function workflowRunsKey(owner: string, repo: string, ref: string): strin
   return `workflow-runs:${owner}/${repo}@${ref}`
 }
 
+/**
+ * The acting user's subscription position. Takes no parameters — it is whoever
+ * the session says it is — so there is one key for it. spec: DATA
+ */
+export function subscriptionUsageKey(): string {
+  return 'subscription-usage'
+}
+
 /** Paths worth observing. Anything else the app fetches is ignored. */
-export const OBSERVED_PATHS = ['/api/card-branch-status'] as const
+export const OBSERVED_PATHS = [
+  '/api/card-branch-status',
+  '/api/me/subscription-usage',
+] as const
 
 /**
  * The cache key a fetched URL corresponds to, or null when the extension has
@@ -46,6 +57,12 @@ export function keyForUrl(url: string, base: string): string | null {
       if (!card || !workspace) return null
       return branchStatusKey(workspace, card)
     }
+    // The app POSTs to this path as well, to ask its device for a fresh
+    // reading. That response carries no figure, so only the GET is of interest
+    // — but the method is not visible here, and the shape check is what rejects
+    // the other one.
+    case '/api/me/subscription-usage':
+      return subscriptionUsageKey()
     default:
       return null
   }

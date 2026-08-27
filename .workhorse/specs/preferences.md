@@ -19,6 +19,7 @@ Preferences live in the browser's own add-on settings rather than in a panel the
 - [ ] Alphabetical workspace switcher
 - [ ] Remembered view selection, carrying the reader's choice of view from one artefact to the next
 - [ ] The extension's own branding wordmark in the sidebar's top corner
+- [ ] Claude usage history, expanding the sidebar's usage bar into a stack of half-hourly bars
 - [ ] Named checks, alongside where the GitHub token is entered and a reading of whether it currently works
 - [ ] Reading responses the app has already fetched
 
@@ -55,9 +56,9 @@ A feature that is off has nothing as its desired state, and the reconcile pass t
 
 ## Stored data
 
-- [ ] The preferences page reports what the extension has stored and can clear the recorded input history, the stash, and the GitHub token independently
-- [ ] Recorded input history and stashed drafts stay on the device that wrote them
+- [ ] The preferences page reports what the extension has stored and can clear the recorded input history, the stash, the recorded usage readings, and the GitHub token independently
+- [ ] Recorded input history, stashed drafts, and recorded usage readings stay on the device that wrote them
 
-History and stashed drafts are working state at a scale that synced settings storage is not sized for, and they are tied to what the user was doing on that machine.
+History, stashed drafts and usage readings are working state at a scale that synced settings storage is not sized for, and they are tied to what the user was doing on that machine.
 Settings and the token are small and are the same wherever the user works, so they follow.
 

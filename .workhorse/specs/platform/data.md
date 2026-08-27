@@ -12,8 +12,10 @@ Detail Workhorse does not carry is read from GitHub instead — see `platform/gi
 ## What is read
 
 - [ ] Branch status for the card on screen supplies the pull request the named jobs are read against
+- [ ] The acting user's Claude subscription position supplies the readings the usage history records
 
 Both branch-status parameters are taken from the card route, so the extension never has to discover which card it is looking at by any other means.
+The subscription position takes no parameters at all: it is the acting user's own, and the session decides whose.
 
 ## Cache
 

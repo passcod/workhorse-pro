@@ -1,6 +1,6 @@
 import { read } from './store.ts'
-import { branchStatusKey } from './keys.ts'
-import type { BranchStatusData } from './types.ts'
+import { branchStatusKey, subscriptionUsageKey } from './keys.ts'
+import type { BranchStatusData, SubscriptionUsageData } from './types.ts'
 
 /**
  * Reads against the app's own endpoints. Same-origin, so the session cookie
@@ -24,6 +24,32 @@ export function branchStatus(workspace: string, card: string): BranchStatusData 
     branchStatusKey(workspace, card),
     () => getJson<BranchStatusData>(path),
     BRANCH_STATUS,
+  )
+}
+
+/**
+ * Matches the app's own cadence for this key.
+ *
+ * The figure only moves when the paired device reports, and it reads every five
+ * minutes, so asking faster re-fetches a payload that cannot have changed. The
+ * app polls at a third of that interval to keep the age on screen close to
+ * true, and the extension follows it rather than setting its own pace.
+ */
+const SUBSCRIPTION_USAGE = { ttl: 60_000, poll: 100_000 }
+
+/**
+ * The acting user's Claude subscription position.
+ *
+ * Almost always served from an observed response: the app polls this itself
+ * while its meter is on screen, which is exactly when the usage stack wants it.
+ * The extension's own read is the fallback for when observation is off or has
+ * ceased to work. spec: DATA
+ */
+export function subscriptionUsage(): SubscriptionUsageData | null {
+  return read<SubscriptionUsageData>(
+    subscriptionUsageKey(),
+    () => getJson<SubscriptionUsageData>('/api/me/subscription-usage'),
+    SUBSCRIPTION_USAGE,
   )
 }
 

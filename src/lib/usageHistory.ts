@@ -350,8 +350,13 @@ function rateOf(
  * window turns over first, where the allowance lands is. spec: UHST
  */
 export type Forecast =
+  /** The allowance goes before the window turns over, at this time. */
   | { kind: 'runout'; at: number }
-  | { kind: 'ending'; percent: number }
+  /** The window turns over first, with the allowance having reached this much. */
+  | { kind: 'ontrack'; percent: number }
+  /** Being spent, but not yet by enough readings to project from. */
+  | { kind: 'estimating' }
+  /** Nothing ahead to report: the allowance is already gone. */
   | null
 
 export function forecast(
@@ -360,15 +365,20 @@ export function forecast(
   resetsAt: number,
   now: number,
 ): Forecast {
+  // Already spent. There is nothing ahead but the reset, which is also the one
+  // figure that matters once turns have stopped.
+  const spent = totalAt(samples, window, now)
+  if (spent !== null && spent >= 100) return null
+
   const runout = runoutAt(samples, window, resetsAt, now)
   if (runout !== null) return { kind: 'runout', at: runout }
 
+  // One reading is no rate. Said rather than hidden: the open stack owing a
+  // forward reading includes owing the fact that it does not have one yet, which
+  // is the ordinary state for the first minutes after the feature is switched on.
   const reading = rateOf(samples, window, now)
-  if (reading === null) return null
-  // Already spent. The allowance is gone rather than heading anywhere, and the
-  // app's own readout carries that.
-  if (reading.percent >= 100) return null
+  if (reading === null) return { kind: 'estimating' }
 
   const ending = Math.min(100, reading.percent + reading.rate * Math.max(0, resetsAt - now))
-  return { kind: 'ending', percent: ending }
+  return { kind: 'ontrack', percent: ending }
 }

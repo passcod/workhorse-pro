@@ -32,11 +32,11 @@
   }
 
   h1 { margin: 0 0 6px; font-size: 15px; font-weight: 600; color: var(--text-primary); }
-  .lede { margin: 0 0 34px; font-size: 12px; line-height: 1.65; max-width: 640px; }
+  .lede { margin: 0 0 34px; font-size: 12px; line-height: 1.65; max-width: 660px; }
   .lede b { color: var(--text-primary); font-weight: 600; }
 
   .row { display: flex; gap: 44px; align-items: flex-start; }
-  .col { width: 276px; }
+  .col { width: 280px; }
 
   .state-label {
     font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
@@ -94,7 +94,7 @@
 
   .legend { margin-top: 12px; font-size: 11px; line-height: 1.75; }
   .legend div { display: flex; gap: 8px; align-items: baseline; }
-  .legend .k { color: var(--note); white-space: nowrap; min-width: 52px; }
+  .legend .k { color: var(--note); white-space: nowrap; min-width: 62px; }
   .verdict { margin-top: 12px; font-size: 12px; line-height: 1.6; }
   .verdict b { font-weight: 600; color: var(--text-primary); }
 </style>
@@ -103,26 +103,28 @@
 
 <h1>Session usage bars</h1>
 <p class="lede">
-  The bar, repeated. One row per half hour, oldest at the top, <b>the present at
-  the bottom where the bar already sits</b>. Percent stays on x in every row, so
-  each one is the instrument people already read, and no axis moves. The clock
-  mark becomes <b>one line</b>, from the window opening at the top left to where
-  the clock stands now at the bottom right, masked through the rows it crosses at
-  the notch's own thickness. No prediction line: the head row states the estimate
-  instead.
+  Ten rows always, one per half hour, the present at the bottom where the bar
+  already sits. Percent stays on x in every row, so each one is the instrument
+  people already read. History runs back through the window's reset, so the stack
+  is a <b>rolling five hours</b> rather than this session alone — and the reset
+  climbs the stack as the session runs, leaving less of the previous one. The clock
+  mark is one line per session, masked through the rows it crosses at the notch's
+  own 3px; <b>its snap back to the left is the reset</b>.
 </p>
 
 <div class="row">
 
   <!-- ══ One hour in ═════════════════════════════════════════════ -->
   <div class="col">
-    <div class="state-label">One hour in — two rows</div>
+    <div class="state-label">One hour in — reset near the bottom</div>
     <div class="sidebar">
       <div class="nav">
-        <div class="nav-row w1"></div><div class="nav-row w3"></div><div class="nav-row w2"></div>
+        <div class="nav-row w1"></div><div class="nav-row w3"></div>
       </div>
       <div class="slot">
         <div class="meter-head">
+          <!-- Under par right now, so the head takes the muted tone even though
+               the session above it ran hot. -->
           <span class="meter-label under">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -130,32 +132,64 @@
             </svg>
             Claude usage
           </span>
-          <!-- Nothing is running out, so the reset stands. -->
           <span class="meter-reset under">resets 4:59 pm</span>
         </div>
 
-        <svg class="stack" width="228" height="14" viewBox="0 0 228 14" role="img"
-             aria-label="5% of the five-hour plan window used, 20% of the window elapsed.">
+        <svg class="stack" width="228" height="90" viewBox="0 0 228 90" role="img"
+             aria-label="5% of the five-hour plan window used, 20% of the window elapsed. The previous window, above the reset, was spent in full.">
           <defs>
             <clipPath id="rowsA">
-              <rect x="0" y="0" width="228" height="5" rx="2.5"/>
-              <rect x="0" y="9" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="0"  width="228" height="5" rx="2.5"/>
+              <rect x="0" y="9"  width="228" height="5" rx="2.5"/>
+              <rect x="0" y="18" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="27" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="36" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="45" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="54" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="63" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="76" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="85" width="228" height="5" rx="2.5"/>
             </clipPath>
           </defs>
 
-          <rect x="0" y="0" width="228" height="5" rx="2.5" fill="#e8e5df"/>
-          <rect x="0" y="9" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+          <!-- Tracks. The wider gap between row 8 and row 9 is the reset. -->
+          <g fill="#e8e5df">
+            <rect x="0" y="0"  width="228" height="5" rx="2.5"/>
+            <rect x="0" y="9"  width="228" height="5" rx="2.5"/>
+            <rect x="0" y="18" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="27" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="36" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="45" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="54" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="63" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="76" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="85" width="228" height="5" rx="2.5"/>
+          </g>
 
-          <!-- Under par throughout, so every row takes the quiet fill. -->
-          <rect x="0" y="0" width="4.6" height="5" rx="2.5" fill="#938b84"/>
-          <rect x="0" y="9" width="11.4" height="5" rx="2.5" fill="#938b84"/>
+          <!-- The previous window: over par throughout, spent in full by its end. -->
+          <g fill="#b45309">
+            <rect x="0" y="0"  width="70.7"  height="5" rx="2.5"/>
+            <rect x="0" y="9"  width="100.3" height="5" rx="2.5"/>
+            <rect x="0" y="18" width="132.2" height="5" rx="2.5"/>
+            <rect x="0" y="27" width="159.6" height="5" rx="2.5"/>
+            <rect x="0" y="36" width="180.1" height="5" rx="2.5"/>
+            <rect x="0" y="45" width="200.6" height="5" rx="2.5"/>
+            <rect x="0" y="54" width="221.2" height="5" rx="2.5"/>
+            <rect x="0" y="63" width="228"   height="5" rx="2.5"/>
+          </g>
 
-          <!-- The mask: one line, from the window opening at the top left to the
-               clock's position now at the bottom right, cut through the rows it
-               crosses. 3px thick measured across the line, like the bar's own
-               notch — which needs a 10.2px horizontal offset at this slope. The
-               edges stay vertical so the slot cuts each row's full height. -->
-          <path d="M 0,0 L 10.2,0 L 55.8,14 L 45.6,14 Z" clip-path="url(#rowsA)" fill="#f1efeb"/>
+          <!-- This window so far: quiet. -->
+          <g fill="#938b84">
+            <rect x="0" y="76" width="4.6"  height="5" rx="2.5"/>
+            <rect x="0" y="85" width="11.4" height="5" rx="2.5"/>
+          </g>
+
+          <!-- The clock mark: one line per window. 3px measured across the line,
+               which needs a wider horizontal offset the shallower it runs. -->
+          <g clip-path="url(#rowsA)" fill="#f1efeb">
+            <path d="M 45.6,0 L 54.2,0 L 236.6,68 L 228,68 Z"/>
+            <path d="M 0,76 L 10.2,76 L 55.8,90 L 45.6,90 Z"/>
+          </g>
         </svg>
 
         <div class="freshness">
@@ -167,22 +201,24 @@
     </div>
 
     <div class="legend">
-      <div><span class="k">rows</span><span>2 of an eventual 10</span></div>
-      <div><span class="k">reading</span><span>5% used, 20% of the window gone</span></div>
+      <div><span class="k">this window</span><span>2 rows, 5% used</span></div>
+      <div><span class="k">previous</span><span>8 rows, spent in full</span></div>
+      <div><span class="k">reset</span><span>between rows 8 and 9</span></div>
     </div>
     <div class="verdict">
-      Early on there is barely anything to open. The expansion is a few pixels
-      taller than the bar, which is honest but close to <b>pointless for the first
-      hour</b>.
+      Constant height solves the empty opening, and the fresh start reads clearly
+      against what came before. But note the <b>stack is mostly amber while the
+      head row is muted</b> — the two disagree, because they describe different
+      windows.
     </div>
   </div>
 
   <!-- ══ Three hours ten in ══════════════════════════════════════ -->
   <div class="col">
-    <div class="state-label">Three hours ten in — seven rows</div>
+    <div class="state-label">Three hours ten in — reset near the top</div>
     <div class="sidebar">
       <div class="nav">
-        <div class="nav-row w1"></div><div class="nav-row w3"></div><div class="nav-row w2"></div>
+        <div class="nav-row w1"></div><div class="nav-row w3"></div>
       </div>
       <div class="slot">
         <div class="meter-head">
@@ -193,52 +229,66 @@
             </svg>
             Claude usage
           </span>
-          <!-- The prediction, as words. Replaces the reset while a runout is
-               expected before it. -->
           <span class="meter-reset over">runout est 3:30 pm</span>
         </div>
 
-        <svg class="stack" width="228" height="59" viewBox="0 0 228 59" role="img"
+        <svg class="stack" width="228" height="90" viewBox="0 0 228 90" role="img"
              aria-label="78% of the five-hour plan window used, 63% of the window elapsed, spending faster than it refills. Runout estimated 3:30 pm.">
           <defs>
             <clipPath id="rowsB">
               <rect x="0" y="0"  width="228" height="5" rx="2.5"/>
               <rect x="0" y="9"  width="228" height="5" rx="2.5"/>
               <rect x="0" y="18" width="228" height="5" rx="2.5"/>
-              <rect x="0" y="27" width="228" height="5" rx="2.5"/>
-              <rect x="0" y="36" width="228" height="5" rx="2.5"/>
-              <rect x="0" y="45" width="228" height="5" rx="2.5"/>
-              <rect x="0" y="54" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="31" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="40" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="49" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="58" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="67" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="76" width="228" height="5" rx="2.5"/>
+              <rect x="0" y="85" width="228" height="5" rx="2.5"/>
             </clipPath>
           </defs>
 
-          <!-- Tracks. -->
-          <rect x="0" y="0"  width="228" height="5" rx="2.5" fill="#e8e5df"/>
-          <rect x="0" y="9"  width="228" height="5" rx="2.5" fill="#e8e5df"/>
-          <rect x="0" y="18" width="228" height="5" rx="2.5" fill="#e8e5df"/>
-          <rect x="0" y="27" width="228" height="5" rx="2.5" fill="#e8e5df"/>
-          <rect x="0" y="36" width="228" height="5" rx="2.5" fill="#e8e5df"/>
-          <rect x="0" y="45" width="228" height="5" rx="2.5" fill="#e8e5df"/>
-          <rect x="0" y="54" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+          <!-- Tracks. The wider gap between row 3 and row 4 is the reset. -->
+          <g fill="#e8e5df">
+            <rect x="0" y="0"  width="228" height="5" rx="2.5"/>
+            <rect x="0" y="9"  width="228" height="5" rx="2.5"/>
+            <rect x="0" y="18" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="31" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="40" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="49" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="58" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="67" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="76" width="228" height="5" rx="2.5"/>
+            <rect x="0" y="85" width="228" height="5" rx="2.5"/>
+          </g>
 
-          <!-- Fills. Each row takes its colour from its own crossing at that
-               time, so the moment the session went over par is visible as the
-               row where the stack turns. -->
-          <rect x="0" y="0"  width="4.6"   height="5" rx="2.5" fill="#938b84"/>
-          <rect x="0" y="9"  width="11.4"  height="5" rx="2.5" fill="#938b84"/>
-          <rect x="0" y="18" width="20.5"  height="5" rx="2.5" fill="#938b84"/>
-          <rect x="0" y="27" width="31.9"  height="5" rx="2.5" fill="#938b84"/>
-          <rect x="0" y="36" width="68.4"  height="5" rx="2.5" fill="#938b84"/>
-          <rect x="0" y="45" width="141.4" height="5" rx="2.5" fill="#b45309"/>
-          <rect x="0" y="54" width="177.8" height="5" rx="2.5" fill="#b45309"/>
+          <!-- The tail of the previous window, spent in full. -->
+          <g fill="#b45309">
+            <rect x="0" y="0"  width="200.6" height="5" rx="2.5"/>
+            <rect x="0" y="9"  width="221.2" height="5" rx="2.5"/>
+            <rect x="0" y="18" width="228"   height="5" rx="2.5"/>
+          </g>
 
-          <!-- The mask: one line, from the window opening at the top left to the
-               clock's position now at the bottom right, cut through the rows it
-               crosses. 3px thick measured across the line, like the bar's own
-               notch — which needs a 7.9px horizontal offset at this slope. The
-               edges stay vertical so the slot cuts each row's full height, and
-               its lower end lands on 63.3%, where the bar's notch sits. -->
-          <path d="M 0,0 L 7.9,0 L 152.3,59 L 144.4,59 Z" clip-path="url(#rowsB)" fill="#f1efeb"/>
+          <!-- This window: five quiet half hours, then the crossing. -->
+          <g fill="#938b84">
+            <rect x="0" y="31" width="4.6"  height="5" rx="2.5"/>
+            <rect x="0" y="40" width="11.4" height="5" rx="2.5"/>
+            <rect x="0" y="49" width="20.5" height="5" rx="2.5"/>
+            <rect x="0" y="58" width="31.9" height="5" rx="2.5"/>
+            <rect x="0" y="67" width="68.4" height="5" rx="2.5"/>
+          </g>
+          <g fill="#b45309">
+            <rect x="0" y="76" width="141.4" height="5" rx="2.5"/>
+            <rect x="0" y="85" width="177.8" height="5" rx="2.5"/>
+          </g>
+
+          <!-- The clock mark: one line per window. The lower line's end lands on
+               63.3%, where the bar's own notch sits. -->
+          <g clip-path="url(#rowsB)" fill="#f1efeb">
+            <path d="M 159.6,0 L 169.0,0 L 237.4,23 L 228,23 Z"/>
+            <path d="M 0,31 L 7.9,31 L 152.3,90 L 144.4,90 Z"/>
+          </g>
         </svg>
 
         <div class="freshness">
@@ -250,14 +300,14 @@
     </div>
 
     <div class="legend">
-      <div><span class="k">rows</span><span>7 of an eventual 10</span></div>
-      <div><span class="k">reading</span><span>78% used, 63% of the window gone</span></div>
-      <div><span class="k">crossing</span><span>row 6 — where the stack turns amber</span></div>
+      <div><span class="k">this window</span><span>7 rows, 78% used</span></div>
+      <div><span class="k">previous</span><span>3 rows, its tail only</span></div>
+      <div><span class="k">crossing</span><span>row 9 — where this window turns</span></div>
     </div>
     <div class="verdict">
-      The bottom row is the bar, unmoved. What the stack adds is <b>when</b> it went
-      wrong: five quiet rows, then a jump. A curve says the same thing but this
-      names the half hour.
+      The reset has walked up the stack and the previous window is down to its tail.
+      The bottom row is the bar, unmoved, and what the stack adds is <b>which half
+      hour it went wrong in</b> — here, two rows back.
     </div>
   </div>
 

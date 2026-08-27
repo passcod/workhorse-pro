@@ -392,6 +392,27 @@ a.whp-check:hover .whp-check-job {
   color: var(--text-quiet, #938b84);
 }
 
+/* Closed, the head row states the reset — the same reading the app's own bar
+   gives, since the closed state is not the extension's to reword. Open, it
+   states when the allowance runs out, which is read off the series and so
+   belongs with the series.
+
+   Swapped here rather than in the feature: which one applies follows the hover
+   that opens the stack, and no reconcile pass observes the pointer. */
+.whp-usage-runout {
+  display: none;
+}
+
+/* Only where a runout is actually expected before the reset. Otherwise the reset
+   stands in both states, because there is no second reading to give. */
+.whp-usage-slot:hover .whp-usage-runout-known .whp-usage-reset {
+  display: none;
+}
+
+.whp-usage-slot:hover .whp-usage-runout-known .whp-usage-runout {
+  display: inline;
+}
+
 /* Amber once the window is being spent faster than it refills, which is the
    app's own rule for its label and reset. */
 .whp-usage-head-over .whp-usage-label {

@@ -74,12 +74,13 @@ The footer holds its height as data states swap so that the navigation above nev
 
 The bar's head row names the reading and states when the window resets.
 
-- [ ] While the allowance is expected to run out before the window resets, the head row states the estimated time it runs out instead of the reset
-- [ ] Otherwise the head row states the reset, as it does with the stack closed
-- [ ] The estimate is derived from the rate of recent readings
+- [ ] With the stack closed, the head row states the reset
+- [ ] With the stack open, it states when the allowance is expected to run out, whenever that is expected before the reset
+- [ ] Where no runout is expected before the reset, the reset stands in both states
+- [ ] The expected runout is derived from the rate of recent readings
 
-The estimate replaces the reset rather than joining it.
-Once the allowance is going to be gone before the window turns over, when it runs out is the actionable time and the reset is not.
+The runout replaces the reset rather than joining it, and only while the stack is open.
+Once the allowance is going to be gone before the window turns over, when it runs out is the actionable time and the reset is not — but that figure is read off the recorded series, so it belongs with the series rather than standing in the closed bar, where the app's own reading is the reset.
 
 ## Recorded readings
 

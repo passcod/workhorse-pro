@@ -110,6 +110,10 @@ function buildStackNode(): HTMLDivElement {
   window_.appendChild(inner)
   root.appendChild(window_)
 
+  // Sits over the app's own age reading while the stack is open, because with the
+  // series on screen the figure behind it is the more useful of the two.
+  root.appendChild(el('span', 'whp-usage-used'))
+
   const live = buildRow(ROWS - 1)
   live.classList.add('whp-usage-live')
   // The reading the app's meter announced, which is hidden while this is on.
@@ -190,6 +194,11 @@ function paint(
     liveNode.setAttribute('aria-valuenow', String(Math.round(live.percent)))
   }
 
+  const used = stack.querySelector<HTMLElement>('.whp-usage-used')
+  if (used) {
+    setText(used, live?.percent === null || live === undefined ? '' : `used ${Math.round(live.percent)}%`)
+  }
+
   // The clock mark, one straight line per window. Its pivot is that window's own
   // clock, so closing folds every slice back into a single upright notch rather
   // than a staircase. spec: UHST
@@ -267,6 +276,12 @@ function takeOver(bar: HTMLElement, slot: HTMLElement): void {
     appHead.style.visibility = 'hidden'
   }
 
+  // Marked rather than styled structurally, so the stylesheet holds no knowledge
+  // of the app's markup. Only marked — whether it is hidden follows the hover,
+  // which is the stylesheet's business.
+  const age = anchors.usageAge()
+  if (age) setClass(age, 'whp-usage-age', true)
+
   // Recorded on the app's own element, not held aside: the app can rebuild this
   // block at any time, and a value kept in the extension would then be restored
   // onto the wrong node. Same reasoning as the wordmark's. spec: BRND
@@ -281,6 +296,8 @@ function restore(bar: HTMLElement | null, slot: HTMLElement | null): void {
     bar.style.removeProperty('visibility')
     const appHead = anchors.usageHead()
     if (appHead) appHead.style.removeProperty('visibility')
+    const age = anchors.usageAge()
+    if (age) setClass(age, 'whp-usage-age', false)
   }
   if (!slot) return
   setClass(slot, 'whp-usage-slot', false)

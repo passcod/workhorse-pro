@@ -413,6 +413,34 @@ a.whp-check:hover .whp-check-job {
   display: inline;
 }
 
+/* How much of the window has gone, standing where the reading's age does while
+   the stack is open. With the series on screen the figure is the more useful of
+   the two, and the age is what the closed bar already carries.
+
+   Placed from the bar's top edge — its own height, then the app's gap above the
+   freshness row — so it lands on that row without measuring anything. */
+.whp-usage-used {
+  position: absolute;
+  left: 0;
+  top: calc(var(--whp-row-h, 5px) + 8px);
+  opacity: 0;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted, #776f6a);
+  pointer-events: none;
+  transition: opacity var(--whp-open, 400ms) var(--whp-ease, ease-in-out);
+}
+
+.whp-usage-slot:hover .whp-usage-used {
+  opacity: 1;
+}
+
+/* `visibility`, so the row keeps its shape and the refresh control beside it does
+   not move. */
+.whp-usage-slot:hover .whp-usage-age {
+  visibility: hidden;
+}
+
 /* Amber once the window is being spent faster than it refills, which is the
    app's own rule for its label and reset. */
 .whp-usage-head-over .whp-usage-label {
@@ -432,6 +460,7 @@ a.whp-check:hover .whp-check-job {
   .whp-usage-rows,
   .whp-usage-head,
   .whp-usage-mark,
+  .whp-usage-used,
   .whp-usage-rows .whp-usage-row {
     transition: none;
   }

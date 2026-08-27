@@ -170,8 +170,8 @@ test('rows with nothing recorded for their window are blank', () => {
 })
 
 test('a row turns on its own crossing', () => {
-  recordUsage({ window: RESET, at: at(30), percent: 2 })
-  recordUsage({ window: RESET, at: at(180), percent: 62 })
+  recordUsage({ window: RESET, resetsAt: RESET, at: at(30), percent: 2 })
+  recordUsage({ window: RESET, resetsAt: RESET, at: at(180), percent: 62 })
   reconcile()
   // 2% against 10% of the window elapsed is under; 62% against 60% is over.
   assert.equal(rows()[3]!.classList.contains('whp-usage-over'), false)

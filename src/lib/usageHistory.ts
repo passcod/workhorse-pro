@@ -33,13 +33,64 @@ export const MAX_WINDOWS = 2
  */
 export const ESTIMATE_MS = 45 * 60_000
 
+/**
+ * How far a window's stated reset may move between two readings and still be the
+ * same window.
+ *
+ * The reset time is not a stable identity. Observed drifting by a minute inside
+ * one window — whether because the endpoint recomputes it, or because the window
+ * slides, is not something the payload says. Keying identity on the exact
+ * millisecond made every drift look like a turnover, which orphaned a whole
+ * session into a "previous window" and restarted the live one empty.
+ *
+ * Compared between consecutive readings rather than against the window's first
+ * reset, so drift cannot accumulate its way past the limit. A real turnover
+ * moves the reset by hours, so it stays far clear of this either way.
+ */
+export const RESET_DRIFT_MS = 30 * 60_000
+
 export interface Sample {
-  /** The window this belongs to, as its reset time in epoch ms. */
+  /**
+   * Stable identity for the window this belongs to. Derived once by
+   * `windowKeyFor` and then carried, so it does not move when the reset does.
+   */
   window: number
+  /** The reset this particular reading stated, which may drift. */
+  resetsAt: number
   /** When the reading was taken, epoch ms. */
   at: number
   /** Utilisation of that window, 0-100. */
   percent: number
+}
+
+/** The most recently taken reading, or null when there are none. */
+function newestSample(samples: readonly Sample[]): Sample | null {
+  let best: Sample | null = null
+  for (const s of samples) if (best === null || s.at > best.at) best = s
+  return best
+}
+
+/**
+ * The identity to record a reading under, given the reset it states.
+ *
+ * Reuses the window the last reading belonged to whenever the stated reset has
+ * only drifted; a jump beyond the drift limit is a turnover and starts a new
+ * one. This is the only place a window's identity is decided.
+ */
+export function windowKeyFor(samples: readonly Sample[], resetsAt: number): number {
+  const newest = newestSample(samples)
+  if (newest === null) return resetsAt
+  return Math.abs(resetsAt - newest.resetsAt) <= RESET_DRIFT_MS ? newest.window : resetsAt
+}
+
+/** The reset most recently stated for a window, which is the one to draw against. */
+function resetOf(samples: readonly Sample[], window: number): number | null {
+  let best: Sample | null = null
+  for (const s of samples) {
+    if (s.window !== window) continue
+    if (best === null || s.at > best.at) best = s
+  }
+  return best?.resetsAt ?? null
 }
 
 /**
@@ -51,6 +102,7 @@ export interface Sample {
  */
 export function record(samples: readonly Sample[], next: Sample): readonly Sample[] {
   if (!Number.isFinite(next.percent) || !Number.isFinite(next.at)) return samples
+  if (!Number.isFinite(next.resetsAt) || !Number.isFinite(next.window)) return samples
   // Identified by the moment it was taken, not by its value: the same reading is
   // served to every poll until the device takes another, and a reading that
   // genuinely repeats a percentage is still a new data point.
@@ -146,6 +198,7 @@ function rowFor(
  */
 export function buildStack(
   samples: readonly Sample[],
+  window: number,
   resetsAt: number,
   now: number,
 ): Stack {
@@ -154,10 +207,15 @@ export function buildStack(
   const liveRows = Math.min(ROWS, Math.max(1, Math.ceil(elapsed / ROW_MS)))
   const pastRows = ROWS - liveRows
 
-  // Whichever retained window is not the live one. Absent on a first run, which
-  // leaves the top rows as empty track rather than shortening the stack.
-  const previous = windowsOf(samples).find((w) => w !== resetsAt) ?? null
-  const prevOpen = previous === null ? 0 : previous - WINDOW_MS
+  // Whichever retained window is not the live one. Absent until a turnover has
+  // actually been seen, which leaves the top rows as empty track rather than
+  // shortening the stack — and is the ordinary state for the first five hours
+  // after the feature is switched on.
+  const previous = windowsOf(samples).find((w) => w !== window) ?? null
+  // Drawn against the last reset that window stated, not against its identity:
+  // the two differ by however far the reset drifted while it was live.
+  const prevReset = previous === null ? null : resetOf(samples, previous)
+  const prevOpen = prevReset === null ? 0 : prevReset - WINDOW_MS
 
   const rows: Row[] = []
 
@@ -166,7 +224,7 @@ export function buildStack(
     const bucket = ROWS - pastRows + k
     const end = prevOpen + (bucket + 1) * ROW_MS
     rows.push(
-      previous === null
+      previous === null || prevReset === null
         ? { percent: null, par: 0, over: false, past: true }
         : rowFor(samples, previous, prevOpen, end, true),
     )
@@ -176,11 +234,11 @@ export function buildStack(
     // The last row ends now rather than at its half hour's close, so the bar it
     // corresponds to is the live one.
     const end = j === liveRows - 1 ? now : open + (j + 1) * ROW_MS
-    rows.push(rowFor(samples, resetsAt, open, end, false))
+    rows.push(rowFor(samples, window, open, end, false))
   }
 
   const segments: MarkSegment[] = []
-  if (pastRows > 0 && previous !== null) {
+  if (pastRows > 0 && previous !== null && prevReset !== null) {
     const firstBucket = ROWS - pastRows
     segments.push({
       from: 0,
@@ -236,6 +294,7 @@ export function markGeometry(
 export function runoutAt(
   samples: readonly Sample[],
   window: number,
+  resetsAt: number,
   now: number,
 ): number | null {
   const recent = samples
@@ -257,5 +316,7 @@ export function runoutAt(
 
   const at = now + remaining / rate
   // Past the reset there is no runout: the allowance returns before it is gone.
-  return at >= window ? null : at
+  // Against the stated reset rather than the window's identity, which is only a
+  // key and drifts away from the real reset over a long window.
+  return at >= resetsAt ? null : at
 }

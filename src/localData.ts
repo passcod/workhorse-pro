@@ -41,7 +41,9 @@ function asStrings(value: unknown): string[] {
  *
  * Checked rather than trusted: this is the extension's own storage, but a build
  * that wrote a different shape leaves it behind, and a malformed entry would
- * otherwise render as a row at NaN percent.
+ * otherwise render as a row at NaN percent. Requiring every field also discards
+ * readings written before a window's identity was held apart from its stated
+ * reset, which is the right outcome — those carry a key that moved.
  */
 function asSamples(value: unknown): Sample[] {
   if (!Array.isArray(value)) return []
@@ -50,6 +52,7 @@ function asSamples(value: unknown): Sample[] {
       typeof v === 'object' &&
       v !== null &&
       Number.isFinite((v as Sample).window) &&
+      Number.isFinite((v as Sample).resetsAt) &&
       Number.isFinite((v as Sample).at) &&
       Number.isFinite((v as Sample).percent),
   )

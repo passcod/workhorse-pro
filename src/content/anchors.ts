@@ -241,6 +241,24 @@ export const anchors = {
   },
 
   /**
+   * The app's own head row above that bar — the label paired with the window's
+   * reset, which the extension hides and replaces because the text differs.
+   *
+   * Fallback: it is the element before the bar. Injected nodes are stepped over,
+   * which is the whole point of resolving it here: the extension's own stack is
+   * inserted immediately before the bar, so a bare `previousElementSibling`
+   * returns the stack from the second pass onward — and the feature then hides
+   * its own work. spec: UHST
+   */
+  usageHead(): HTMLElement | null {
+    let sibling = this.usageBar()?.previousElementSibling ?? null
+    while (sibling instanceof HTMLElement && sibling.closest(`[${MARK}]`)) {
+      sibling = sibling.previousElementSibling
+    }
+    return sibling instanceof HTMLElement ? sibling : null
+  },
+
+  /**
    * The workspace switcher's open menu, or null while it is closed.
    *
    * The menu is unmounted when the switcher closes, so "closed" and "not on

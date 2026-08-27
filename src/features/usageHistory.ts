@@ -188,7 +188,10 @@ function paint(
   // The clock mark, one straight line per window. Its pivot is that window's own
   // clock, so closing folds every slice back into a single upright notch rather
   // than a staircase. spec: UHST
-  for (const segment of segments) {
+  //
+  // Skipped with no width to lean it over: an angle derived from zero would put
+  // every slice at the same place, which reads as a fault in the bar.
+  for (const segment of barWidth <= 0 ? [] : segments) {
     const geometry = segmentGeometry(segment, barWidth)
     const pivot = segment.bottomAt * barWidth
     for (let index = segment.from; index <= segment.to; index++) {
@@ -237,8 +240,11 @@ function takeOver(bar: HTMLElement, slot: HTMLElement): void {
   if (bar.style.visibility !== 'hidden') bar.style.visibility = 'hidden'
   setClass(slot, 'whp-usage-slot', true)
 
-  const appHead = bar.previousElementSibling
-  if (appHead instanceof HTMLElement && appHead.style.visibility !== 'hidden') {
+  // Through the anchor, which steps over injected nodes. The stack sits between
+  // this row and the bar, so reaching for the bar's previous sibling directly
+  // hides the stack instead.
+  const appHead = anchors.usageHead()
+  if (appHead && appHead.style.visibility !== 'hidden') {
     appHead.style.visibility = 'hidden'
   }
 
@@ -254,8 +260,8 @@ function takeOver(bar: HTMLElement, slot: HTMLElement): void {
 function restore(bar: HTMLElement | null, slot: HTMLElement | null): void {
   if (bar) {
     bar.style.removeProperty('visibility')
-    const appHead = bar.previousElementSibling
-    if (appHead instanceof HTMLElement) appHead.style.removeProperty('visibility')
+    const appHead = anchors.usageHead()
+    if (appHead) appHead.style.removeProperty('visibility')
   }
   if (!slot) return
   setClass(slot, 'whp-usage-slot', false)
@@ -276,7 +282,7 @@ function stand_down(bar: HTMLElement | null, slot: HTMLElement | null): void {
 export function usageHistory(): Feature {
   return {
     name: 'usageHistory',
-    reconcile({ prefs }: Context) {
+    reconcile({ prefs, schedule }: Context) {
       const bar = anchors.usageBar()
       const slot = anchors.usageSlot()
 
@@ -309,17 +315,27 @@ export function usageHistory(): Feature {
         percent: report.percent,
       })
 
-      takeOver(bar, slot)
-
-      // Measured, not assumed: the bar's width follows the sidebar's, and both
-      // the mask's angle and its width across the line depend on it.
-      const barWidth = bar.clientWidth
-      if (barWidth <= 0) return
-
       const stack = ensureBefore(bar, STACK_ID, buildStackNode)
       const { rows, segments } = buildStack(getUsageSamples(), resetsAt, now)
-      paint(stack, slot, rows, segments, barWidth)
+
+      // Measured, not assumed: the bar's width follows the sidebar's, and both
+      // the mask's angle and its width across the line depend on it. Our own
+      // block is a sibling of the bar, so it measures the same — which covers
+      // the bar being unmeasurable while the app has it mid-render.
+      const width = bar.clientWidth || stack.clientWidth || slot.clientWidth
+
+      paint(stack, slot, rows, segments, width)
       paintHead(stack, rows, resetsAt, now)
+
+      // Only once there is something drawn to replace them. Hiding the app's bar
+      // and then failing to render leaves an empty footer, which is the one
+      // outcome worse than not running at all. spec: WXP
+      takeOver(bar, slot)
+
+      // No width to lean the mask over yet. The rows are proportional so they
+      // stand regardless; ask for another pass to finish the mark once the app
+      // has laid the footer out.
+      if (width <= 0) schedule()
     },
   }
 }

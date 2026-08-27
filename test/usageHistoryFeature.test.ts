@@ -8,10 +8,13 @@ installExtStub()
 
 // jsdom does not lay out, so the bar reports no width and the mask's geometry —
 // which is derived from it — would have nothing to work from. A fixed width
-// stands in for layout.
+// stands in for layout, and is settable so the unmeasurable case can be driven:
+// that is the state the real page was found in, and the one that used to leave
+// the app's bar hidden with nothing drawn over it.
 const BAR_W = 228
+let width = BAR_W
 Object.defineProperty(dom.window.HTMLElement.prototype, 'clientWidth', {
-  get: () => BAR_W,
+  get: () => width,
   configurable: true,
 })
 
@@ -67,6 +70,7 @@ function rows(): HTMLElement[] {
 beforeEach(async () => {
   resetStore()
   await clearUsage()
+  width = BAR_W
   setBody(`<aside>${usageMeter()}</aside>`)
   serve()
 })
@@ -113,7 +117,7 @@ test('the stack sits immediately before the app bar', () => {
 
 test('the app bar and head row are hidden in place, not removed', () => {
   const bar = anchors.usageBar()!
-  const head = bar.previousElementSibling as HTMLElement
+  const head = anchors.usageHead()!
   reconcile()
 
   // Still on the page: detaching a node React holds makes the app throw when it
@@ -178,7 +182,77 @@ function at(minutes: number): number {
   return OPEN + minutes * MIN
 }
 
+// ── An unmeasurable footer ───────────────────────────────────────────────
+
+test('the app bar is never hidden without a stack drawn over it', () => {
+  // The failure this guards is the worst one available: the app's own bar hidden
+  // and nothing in its place, so the footer reads as empty. spec: WXP
+  width = 0
+  reconcile()
+  const bar = anchors.usageBar()!
+  assert.equal(bar.style.visibility === 'hidden' && stack() === null, false)
+})
+
+test('rows still stand when the bar cannot be measured', () => {
+  width = 0
+  reconcile()
+  // The rows are proportional, so only the mask needs a pixel width.
+  assert.equal(rows().length, 10)
+  const head = document.querySelector<HTMLElement>('.whp-usage-label')
+  assert.match(head?.textContent ?? '', /Claude usage/)
+})
+
+test('the mask is left off rather than drawn at a bad angle', () => {
+  width = 0
+  reconcile()
+  const mark = rows()[9]!.querySelector<HTMLElement>('.whp-usage-mark')!
+  // An angle derived from no width would put every slice in one place, which
+  // reads as a fault in the bar rather than as a clock.
+  assert.equal(mark.style.getPropertyValue('--a'), '')
+})
+
+test('another pass is asked for once there is no width', () => {
+  width = 0
+  let scheduled = 0
+  feature.reconcile({
+    prefs: { ...PREF_DEFAULTS },
+    route: { workspace: 'workhorse', card: null },
+    schedule: () => {
+      scheduled++
+    },
+  })
+  assert.equal(scheduled, 1)
+})
+
+test('a later pass with a width finishes the mark', () => {
+  width = 0
+  reconcile()
+  width = BAR_W
+  reconcile()
+  const mark = rows()[9]!.querySelector<HTMLElement>('.whp-usage-mark')!
+  assert.ok(Number.parseFloat(mark.style.getPropertyValue('--a')) > 0)
+})
+
 // ── Reconciling ──────────────────────────────────────────────────────────
+
+test('the stack survives a second pass', () => {
+  // The stack is inserted immediately before the bar, so the app's head row is
+  // no longer the bar's previous sibling. Reaching for it that way hid the stack
+  // itself from the second pass on: the bars appeared once and then vanished.
+  reconcile()
+  reconcile()
+  reconcile()
+  assert.equal(stack()!.style.visibility, '')
+  assert.equal(anchors.usageHead()!.style.visibility, 'hidden')
+})
+
+test('the head row anchor steps over the injected stack', () => {
+  const head = anchors.usageHead()!
+  reconcile()
+  assert.equal(anchors.usageHead(), head)
+  // Which is precisely what a bare sibling walk would get wrong.
+  assert.equal(anchors.usageBar()!.previousElementSibling, stack())
+})
 
 test('a second pass changes nothing', () => {
   reconcile()

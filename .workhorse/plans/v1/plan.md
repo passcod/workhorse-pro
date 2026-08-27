@@ -130,11 +130,12 @@ Injected markup takes the app's tokens, so over par uses the app's `--amber` (`#
 - [x] Anchors — the usage bar by its meter role and name, and the footer block through it
 - [x] Device-local persistence of recorded readings, with its own clear
 - [x] The preference switch
-- [ ] `features/usageHistory.ts` — the injection and the motion
-- [ ] Stylesheet
-- [ ] Registration in the content script
-- [ ] The preferences page's stored-data row for readings
-- [ ] A jsdom fixture test for the anchor and for an idempotent pass
+- [x] `features/usageHistory.ts` — the injection and the motion
+- [x] Stylesheet
+- [x] Registration in the content script
+- [x] The preferences page's stored-data row for readings
+- [x] A jsdom fixture test for the anchor and for an idempotent pass
+- [ ] Verify under `web-ext run`: the motion, the mask's angle against a real bar width, the tooltip staying silent, and the reading actually accumulating over a window
 
 ### Decided while building
 
@@ -142,14 +143,16 @@ Injected markup takes the app's tokens, so over par uses the app's `--amber` (`#
 - **The extension renders its own head row and hides the app's in place**, with `visibility` rather than `display` so the block keeps its height and the bar does not move. Needed regardless of the stack: the runout estimate replaces the reset, which means the head row's text is ours either way
 - **The app's `title` is blanked rather than removed**, with the original recorded on the app's own element the way the wordmark's is, so it can be put back when the switch goes off
 
-### Open in the build
+### The app's bar is hidden and all ten rows are redrawn
 
-The app draws the bar's notch as an upright 3px band, and our line should continue through the bottom row as an angled slice.
+Settled: rather than reach inside the track to replace the app's upright notch — an element carrying nothing that names it — the whole bar is hidden and every row is the extension's own, the bottom one placed back over it.
 
-Reaching it means resolving an unnamed child of the track — the notch carries no attribute, it is simply the element after the fill. Either:
+This costs nothing in coupling, since the bar already had an anchor, and it is what lets the clock mark be one unbroken line through all ten rows.
 
-1. Take over the bar's notch: hide the app's and draw ours, so the line runs unbroken to the bottom edge as the mockup has it. Costs one more structural anchor on an unnamed node
-2. Leave the app's notch upright and end our line at the bar's top edge. No extra coupling, but the mark stops one row short and the bottom row's mark stays vertical while the rest lean
+Two things follow from it:
+
+- **The live row carries the reading's semantics.** Hiding the app's meter takes its role, value and accessible name out of the accessibility tree, so the bottom row carries them instead
+- **Which means the bar anchor can match the extension's own row.** It resolves on the meter role and name, and the extension's bottom row has both. The anchor skips injected nodes by `closest`, not by the attribute itself, because only the injected root is marked and the row is nested inside it. This is exactly the case `INJ` warns about, and it was a live bug until the fixture test caught it
 
 ## Open
 

@@ -1,7 +1,15 @@
 import { ext } from '../ext.ts'
 import { BINDINGS, loadPrefs, setPref, SWITCHES, type Prefs } from '../prefs.ts'
 import { bindingFromEvent, bindingProblem, formatBinding, isModifierKey } from '../lib/keys.ts'
-import { clearHistory, clearStash, getHistory, getStash, loadLocalData } from '../localData.ts'
+import {
+  clearHistory,
+  clearStash,
+  clearUsage,
+  getHistory,
+  getStash,
+  getUsageSamples,
+  loadLocalData,
+} from '../localData.ts'
 import { TOKEN_STATUS_KEY, verifyToken, type TokenStatus } from '../data/github.ts'
 
 /**
@@ -183,7 +191,10 @@ async function refresh(): Promise<void> {
 }
 
 function describeData(): string {
-  return `${getHistory().length} messages, ${getStash().length} stashed`
+  return (
+    `${getHistory().length} messages, ${getStash().length} stashed, ` +
+    `${getUsageSamples().length} usage readings`
+  )
 }
 
 async function main(): Promise<void> {
@@ -231,6 +242,12 @@ async function main(): Promise<void> {
 
   byId('clear-stash').addEventListener('click', () => {
     void clearStash().then(() => {
+      byId('data-status').textContent = describeData()
+    })
+  })
+
+  byId('clear-usage').addEventListener('click', () => {
+    void clearUsage().then(() => {
       byId('data-status').textContent = describeData()
     })
   })

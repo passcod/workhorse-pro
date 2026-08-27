@@ -159,3 +159,225 @@ a.whp-check:hover .whp-check-job {
   line-height: 1;
   user-select: none;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Claude usage history: the sidebar's usage bar, expanded into ten half-hourly
+   bars on hover.
+
+   Every row is the app's own bar repeated — same height, same track, same fills
+   — so nothing has to be learned to read one, and the bottom row lands exactly
+   where the app drew its bar. The app's bar and head row are hidden by the
+   feature with `visibility`, so they keep their space and nothing moves.
+
+   Geometry arrives as custom properties, because the mask's angle and its width
+   across the line both depend on the bar's measured width. spec: UHST */
+
+.whp-usage-slot {
+  /* The containing block for the stack, and for the backdrop below. Relative
+     with no offsets moves nothing. */
+  position: relative;
+}
+
+/* The backdrop over the navigation. Drawn by the slot rather than by the stack
+   because it has to span the slot's full width including the app's padding,
+   which the bar does not. */
+.whp-usage-slot::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 0;
+  background: var(--bg-sidebar, #f1efeb);
+  pointer-events: none;
+  transition: height var(--whp-open, 400ms) var(--whp-ease, ease-in-out);
+}
+
+.whp-usage-slot:hover::before {
+  height: var(--whp-rows-h, 77px);
+  box-shadow: 0 -6px 20px rgb(28 25 23 / 7%);
+}
+
+/* Zero-height, so its own bottom edge is the bar's top edge. Everything is
+   placed from there: no measuring, and no positioning written onto the app's
+   block. */
+.whp-usage {
+  position: relative;
+  height: 0;
+}
+
+.whp-usage-row {
+  position: relative;
+  height: var(--whp-row-h, 5px);
+  border-radius: 999px;
+  background: var(--bg-inset, #e8e5df);
+  /* Clips the fill's and the mask's rounded ends, exactly as the app's track
+     clips its own. */
+  overflow: hidden;
+}
+
+.whp-usage-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--w, 0%);
+  border-radius: 999px;
+  background: var(--text-quiet, #938b84);
+}
+
+/* At or past the clock mark: spending faster than the window refills. The
+   app's own crossing, so the stack turns colour at the half hour it happened. */
+.whp-usage-over .whp-usage-fill {
+  background: var(--amber, #b45309);
+}
+
+/* A window that has already reset. Faded well back so it reads as context
+   rather than as the position — a spent previous window would otherwise fill
+   the footer with the warning colour while the current position is fine. Each
+   row keeps whichever colour its own crossing gave it. */
+.whp-usage-past .whp-usage-fill {
+  opacity: 0.3;
+}
+
+/* Nothing was ever recorded for this row's window before its half hour closed.
+   Bare track, which is not the same as zero. */
+.whp-usage-blank .whp-usage-fill {
+  display: none;
+}
+
+/* The clock mark. Upright at rest, exactly as the bar draws its notch, and
+   skewed back into the line as the stack opens.
+
+   Vertical edges rather than a rotated bar or a perpendicular stroke, so the gap
+   spans the row's full height wherever the line crosses it. `--w` is wider than
+   the notch because it is measured horizontally while the mark reads across the
+   line; the feature computes one from the other. */
+.whp-usage-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--w, 3px);
+  margin-left: calc(var(--x, 0px) - var(--w, 3px) / 2);
+  background: var(--bg-sidebar, #f1efeb);
+  transform-origin: 50% 100%;
+  transform: translateX(var(--dx, 0px)) skewX(0deg) scaleX(var(--s, 1));
+  transition: transform var(--whp-open, 400ms) var(--whp-ease, ease-in-out);
+}
+
+.whp-usage-slot:hover .whp-usage-mark {
+  transform: translateX(0) skewX(var(--a, 0deg)) scaleX(1);
+}
+
+/* The live row, back over the app's own bar. */
+.whp-usage-live {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+/* The window the history grows into, clipped so rows are revealed upward from
+   the bar rather than the bar being pushed down. */
+.whp-usage-rows {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--whp-gap, 4px);
+  height: 0;
+  overflow: hidden;
+  transition: height var(--whp-open, 400ms) var(--whp-ease, ease-in-out);
+}
+
+.whp-usage-slot:hover .whp-usage-rows {
+  height: var(--whp-rows-h, 77px);
+}
+
+.whp-usage-rows-inner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--whp-gap, 4px);
+}
+
+/* Each row appears whole rather than being wiped or grown, staggered from the
+   bar upward. Closing runs the other way, so the stack peels off from its far
+   end rather than collapsing into the bar. */
+.whp-usage-rows .whp-usage-row {
+  opacity: 0;
+  transition: opacity 90ms var(--whp-ease, ease-in-out);
+  transition-delay: calc(var(--i) * 18ms);
+}
+
+.whp-usage-slot:hover .whp-usage-rows .whp-usage-row {
+  opacity: 1;
+  transition-delay: calc((9 - var(--i)) * 22ms);
+}
+
+/* The head row, in the app's own head row's place, riding up as the stack grows.
+   Ours because the text differs: the reset gives way to the runout estimate. */
+.whp-usage-head {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: bottom var(--whp-open, 400ms) var(--whp-ease, ease-in-out);
+}
+
+.whp-usage-slot:hover .whp-usage-head {
+  bottom: calc(var(--whp-rows-h, 77px) + var(--whp-gap, 4px) + 7px);
+}
+
+.whp-usage-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-muted, #776f6a);
+}
+
+.whp-usage-asterisk {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.whp-usage-value {
+  white-space: nowrap;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-quiet, #938b84);
+}
+
+/* Amber once the window is being spent faster than it refills, which is the
+   app's own rule for its label and reset. */
+.whp-usage-head-over .whp-usage-label {
+  color: var(--amber, #b45309);
+}
+
+.whp-usage-head-over .whp-usage-value {
+  color: var(--amber, #b45309);
+  opacity: 0.8;
+}
+
+/* Asked for no motion: the stack is simply there when open and gone when
+   closed, with the mark already angled. */
+@media (prefers-reduced-motion: reduce) {
+  .whp-usage-slot::before,
+  .whp-usage-rows,
+  .whp-usage-head,
+  .whp-usage-mark,
+  .whp-usage-rows .whp-usage-row {
+    transition: none;
+  }
+}

@@ -210,13 +210,22 @@ export const anchors = {
    *
    * The app renders no meter at all when the five-hour figure could not be read,
    * which is what makes "no reading to expand" resolve as absent rather than
-   * needing a state of its own. spec: UHST
+   * needing a state of its own.
+   *
+   * The extension's own bottom row carries the same role and name, because it
+   * takes over the reading the app's meter announced. So injected nodes are
+   * skipped: an anchor that could return one would have the feature hiding its
+   * own bar and redrawing over itself. spec: UHST, INJ
    */
   usageBar(): HTMLElement | null {
-    return (
-      document.querySelector<HTMLElement>('[data-wh-usage-meter]') ??
-      document.querySelector<HTMLElement>('[role="meter"][aria-label="Claude plan usage"]')
-    )
+    for (const candidate of document.querySelectorAll<HTMLElement>(
+      '[data-wh-usage-meter], [role="meter"][aria-label="Claude plan usage"]',
+    )) {
+      // `closest`, not the attribute itself: only the injected root is marked,
+      // and the row carrying this role is nested inside it.
+      if (!candidate.closest(`[${MARK}]`)) return candidate
+    }
+    return null
   },
 
   /**

@@ -106,8 +106,9 @@
   The bar, repeated. One row per half hour, oldest at the top, <b>the present at
   the bottom where the bar already sits</b>. Percent stays on x in every row, so
   each one is the instrument people already read, and no axis moves. The clock
-  mark becomes a mask cut through the whole stack, which is what makes it slant
-  slightly on each row. No prediction line: the head row states the estimate
+  mark becomes <b>one line</b>, from the window opening at the top left to where
+  the clock stands now at the bottom right, masked through the rows it crosses at
+  the notch's own thickness. No prediction line: the head row states the estimate
   instead.
 </p>
 
@@ -149,12 +150,10 @@
           <rect x="0" y="0" width="4.6" height="5" rx="2.5" fill="#938b84"/>
           <rect x="0" y="9" width="11.4" height="5" rx="2.5" fill="#938b84"/>
 
-          <!-- The mask. One straight cut through the stack, so each row carries a
-               slanted slot at its own par. -->
-          <g clip-path="url(#rowsA)" fill="#f1efeb">
-            <path d="M 0,0 L 3,0 L 25.8,5 L 22.8,5 Z"/>
-            <path d="M 22.8,9 L 25.8,9 L 48.6,14 L 45.6,14 Z"/>
-          </g>
+          <!-- The mask: one line, from the window opening at the top left to the
+               clock's position now at the bottom right, cut through the rows it
+               crosses. Same 3px thickness as the bar's own notch. -->
+          <path d="M 0,0 L 3,0 L 48.6,14 L 45.6,14 Z" clip-path="url(#rowsA)" fill="#f1efeb"/>
         </svg>
 
         <div class="freshness">
@@ -231,18 +230,11 @@
           <rect x="0" y="45" width="141.4" height="5" rx="2.5" fill="#b45309"/>
           <rect x="0" y="54" width="177.8" height="5" rx="2.5" fill="#b45309"/>
 
-          <!-- The mask: one continuous cut, 3px wide, sweeping right as the
-               window's clock advances. The bottom row's slot is shorter because
-               only ten of its thirty minutes have run. -->
-          <g clip-path="url(#rowsB)" fill="#f1efeb">
-            <path d="M 0,0      L 3,0      L 25.8,5   L 22.8,5 Z"/>
-            <path d="M 22.8,9   L 25.8,9   L 48.6,14  L 45.6,14 Z"/>
-            <path d="M 45.6,18  L 48.6,18  L 71.4,23  L 68.4,23 Z"/>
-            <path d="M 68.4,27  L 71.4,27  L 94.2,32  L 91.2,32 Z"/>
-            <path d="M 91.2,36  L 94.2,36  L 117,41   L 114,41 Z"/>
-            <path d="M 114,45   L 117,45   L 139.8,50 L 136.8,50 Z"/>
-            <path d="M 136.8,54 L 139.8,54 L 147.4,59 L 144.4,59 Z"/>
-          </g>
+          <!-- The mask: one line, from the window opening at the top left to the
+               clock's position now at the bottom right, cut through the rows it
+               crosses. Same 3px thickness as the bar's own notch. Its lower end
+               lands on 63.3%, which is exactly where the bar's notch sits. -->
+          <path d="M 0,0 L 3,0 L 147.4,59 L 144.4,59 Z" clip-path="url(#rowsB)" fill="#f1efeb"/>
         </svg>
 
         <div class="freshness">

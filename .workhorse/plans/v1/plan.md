@@ -49,7 +49,7 @@ The expansion is a stack of bars, not a line chart.
 - **One line per window**, from where the window opened at the top left to where its clock stands at the bottom right, masked through the rows it crosses
 - **3px measured across the line**, matching the bar's own notch. That needs a wider horizontal offset the shallower the line runs, computed from the stack's dimensions rather than hard-coded — at seven rows it is about 7.9px, at two rows about 10.2px
 - **Vertical edges, not a stroke.** A 3px SVG stroke is perpendicular by definition but only spans about 3.2px of a 5px row at this angle, leaving slivers of fill above and below. Vertical edges guarantee a full-height gap at every point, which is what the app's notch does
-- **The line's snap back to the left is the reset.** No separate boundary marker is needed beyond a doubled gap between the rows either side
+- **The line's snap back to the left is the reset**, and it is the only thing marking it. Rows are evenly pitched throughout: the fill dropping back to near nothing and the mark jumping left already say where the window turned over, so a wider gap or a rule between the two windows would be restating it
 
 A single straight line per window cannot be exact on every row, because rows are not uniformly spaced in time — there are gaps between them, and the bottom row occupies a full row's height while representing only part of its half hour. Accepted: each row's own fill colour carries the verdict independently of where the line falls, and the line's job is to show the clock sweeping.
 

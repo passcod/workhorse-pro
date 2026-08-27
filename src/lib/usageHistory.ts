@@ -352,8 +352,8 @@ function rateOf(
 export type Forecast =
   /** The allowance goes before the window turns over, at this time. */
   | { kind: 'runout'; at: number }
-  /** The window turns over first, with the allowance having reached this much. */
-  | { kind: 'ontrack'; percent: number }
+  /** The window turns over before the allowance is spent. */
+  | { kind: 'ontrack' }
   /** Being spent, but not yet by enough readings to project from. */
   | { kind: 'estimating' }
   /** Nothing ahead to report: the allowance is already gone. */

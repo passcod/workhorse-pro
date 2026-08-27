@@ -180,7 +180,14 @@ a.whp-check:hover .whp-check-job {
 
 /* The backdrop over the navigation. Drawn by the slot rather than by the stack
    because it has to span the slot's full width including the app's padding,
-   which the bar does not. */
+   which the bar does not.
+
+   Deliberately not `pointer-events: none`. The open stack reaches above the
+   slot's own box, and this is the only thing making that area hoverable — a
+   generated box is hit-tested as its originating element, so hovering it holds
+   the slot hovered. Without it, moving up into the gap under the label left the
+   slot, closed the stack, and put the pointer back over the slot, which opened
+   it again: a shudder rather than a hover. */
 .whp-usage-slot::before {
   content: '';
   position: absolute;
@@ -189,13 +196,39 @@ a.whp-check:hover .whp-check-job {
   bottom: 100%;
   height: 0;
   background: var(--bg-sidebar, #f1efeb);
-  pointer-events: none;
   transition: height var(--whp-open, 400ms) var(--whp-ease, ease-in-out);
 }
 
 .whp-usage-slot:hover::before {
   height: var(--whp-rows-h, 77px);
-  box-shadow: 0 -6px 20px rgb(28 25 23 / 7%);
+}
+
+/* The open stack's upper edge, softened against the navigation behind it.
+
+   A gradient strip sitting on that edge rather than a box shadow on the panel: a
+   shadow spreads sideways as well as up, and with nothing clipping the sidebar it
+   read as the footer bleeding out past its own edge. This is bounded by the
+   slot's width, so it cannot. */
+.whp-usage-slot::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 10px;
+  opacity: 0;
+  background: linear-gradient(to top, rgb(28 25 23 / 6%), transparent);
+  /* Above the panel rather than part of it, so it must not hold the hover — that
+     would extend the hover region past anything the reader can see. */
+  pointer-events: none;
+  transition:
+    bottom var(--whp-open, 400ms) var(--whp-ease, ease-in-out),
+    opacity var(--whp-open, 400ms) var(--whp-ease, ease-in-out);
+}
+
+.whp-usage-slot:hover::after {
+  bottom: calc(100% + var(--whp-rows-h, 77px));
+  opacity: 1;
 }
 
 /* Zero-height, so its own bottom edge is the bar's top edge. Everything is
@@ -374,6 +407,7 @@ a.whp-check:hover .whp-check-job {
    closed, with the mark already angled. */
 @media (prefers-reduced-motion: reduce) {
   .whp-usage-slot::before,
+  .whp-usage-slot::after,
   .whp-usage-rows,
   .whp-usage-head,
   .whp-usage-mark,

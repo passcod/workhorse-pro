@@ -152,8 +152,10 @@
 
           <!-- The mask: one line, from the window opening at the top left to the
                clock's position now at the bottom right, cut through the rows it
-               crosses. Same 3px thickness as the bar's own notch. -->
-          <path d="M 0,0 L 3,0 L 48.6,14 L 45.6,14 Z" clip-path="url(#rowsA)" fill="#f1efeb"/>
+               crosses. 3px thick measured across the line, like the bar's own
+               notch — which needs a 10.2px horizontal offset at this slope. The
+               edges stay vertical so the slot cuts each row's full height. -->
+          <path d="M 0,0 L 10.2,0 L 55.8,14 L 45.6,14 Z" clip-path="url(#rowsA)" fill="#f1efeb"/>
         </svg>
 
         <div class="freshness">
@@ -232,9 +234,11 @@
 
           <!-- The mask: one line, from the window opening at the top left to the
                clock's position now at the bottom right, cut through the rows it
-               crosses. Same 3px thickness as the bar's own notch. Its lower end
-               lands on 63.3%, which is exactly where the bar's notch sits. -->
-          <path d="M 0,0 L 3,0 L 147.4,59 L 144.4,59 Z" clip-path="url(#rowsB)" fill="#f1efeb"/>
+               crosses. 3px thick measured across the line, like the bar's own
+               notch — which needs a 7.9px horizontal offset at this slope. The
+               edges stay vertical so the slot cuts each row's full height, and
+               its lower end lands on 63.3%, where the bar's notch sits. -->
+          <path d="M 0,0 L 7.9,0 L 152.3,59 L 144.4,59 Z" clip-path="url(#rowsB)" fill="#f1efeb"/>
         </svg>
 
         <div class="freshness">

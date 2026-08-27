@@ -68,9 +68,18 @@ Ten rows always, running back through the reset, so the stack is a rolling five 
 - **Rows before the reset are faded well back** (about 30% fill opacity), so they read as context rather than as the position. Without this the footer's first read was "amber" from a spent previous window while the current position was fine. Each past row still takes the colour its own crossing gives it; the fade applies to whichever that is
 - **Non-adjacent windows are left as they are.** The next window opens when work resumes, so the row above the reset could be twenty minutes or three days old, and the stack renders both the same. Deliberate: the gap reads as "a while ago" and precision is not the point. Revisit only if it misleads in practice
 
-Knock-on: with the previous window visible by default, a separate "look back at previous windows" mode has little left to do. It likely collapses into how many windows of history the stack holds.
+### Retention
 
-The typical-curve idea needs rethinking under this shape — a faint curve behind a live curve does not translate to a stack of bars. Possibly a per-row marker of typical usage at that point in a window.
+**Two windows at most** — the one running and the one before it. Ten rows can never reach further back than that, so a third would be data nothing can display.
+
+**Readings must survive the tab and the browser closing.** The stack is a record built up over hours, and an in-memory series would reset every time the tab was closed, which is exactly when the gaps it has to bridge occur. So it persists to the device-local area alongside input history and the stash, and the store's in-memory cache is not the record.
+
+### Dropped
+
+- **Walking back through previous windows.** The stack already carries everything ten rows can reach, so there is nothing left to walk to
+- **The typical-session curve.** A faint curve behind a live curve does not translate to a stack of bars, and there is no room for a second mark per row
+
+Both were provisional switches. Neither survives, which leaves the feature with one switch.
 
 ## Motion
 
@@ -82,7 +91,7 @@ Opening and closing are one transition run in both directions, eased in and out 
 
 Implemented as a vertical rect with an animated `skewX`, so "straight" is the untransformed state rather than a second shape to interpolate towards. Each row carries its own slice of the line at the shared angle, which means no clip path is needed to keep the mark inside its rows, and a row's slice hides and reveals with the row. The slices translate from the window's own pivot — the live bar's notch for the current window, its end for a past one — so the mark fans out of one vertical line rather than appearing as a staircase.
 
-`prefers-reduced-motion` needs a resting answer: the open state without the stagger or the skew animation.
+`prefers-reduced-motion` disables the animation altogether: the stack is simply there when open and gone when closed, with the mark already angled.
 
 ## Interaction
 
@@ -113,9 +122,38 @@ The running total carries forward, so such a row shows the last known percent an
 
 Injected markup takes the app's tokens, so over par uses the app's `--amber` (`#b45309`) rather than Prohorse's brighter `--accent` (`#c2410c`) — the stack is the bar's own crossing repeated and should agree with it. Under par takes `--text-quiet` (`#938b84`), the fill colour the bar already uses.
 
+## Build
+
+- [x] `lib/usageHistory.ts` — the recorded series and everything derived: recording with per-moment dedup, two-window retention, the ten rows with carry-forward, the clock mark's segments, the mask geometry, the runout estimate
+- [x] `test/usageHistory.test.ts` — 22 cases over that logic
+- [x] Data layer — `SubscriptionUsageData`, the cache key and URL mapping, the observation validator, and the read at the app's own cadence
+- [x] Anchors — the usage bar by its meter role and name, and the footer block through it
+- [x] Device-local persistence of recorded readings, with its own clear
+- [x] The preference switch
+- [ ] `features/usageHistory.ts` — the injection and the motion
+- [ ] Stylesheet
+- [ ] Registration in the content script
+- [ ] The preferences page's stored-data row for readings
+- [ ] A jsdom fixture test for the anchor and for an idempotent pass
+
+### Decided while building
+
+- **A zero-height positioned wrapper immediately before the bar** is what the stack hangs from. Its bottom edge is the bar's top edge with no measuring and no mutation of the app's block, and the rows grow upward out of it inside a clipped window
+- **The extension renders its own head row and hides the app's in place**, with `visibility` rather than `display` so the block keeps its height and the bar does not move. Needed regardless of the stack: the runout estimate replaces the reset, which means the head row's text is ours either way
+- **The app's `title` is blanked rather than removed**, with the original recorded on the app's own element the way the wordmark's is, so it can be put back when the switch goes off
+
+### Open in the build
+
+The app draws the bar's notch as an upright 3px band, and our line should continue through the bottom row as an angled slice.
+
+Reaching it means resolving an unnamed child of the track — the notch carries no attribute, it is simply the element after the fill. Either:
+
+1. Take over the bar's notch: hide the app's and draw ours, so the line runs unbroken to the bottom edge as the mockup has it. Costs one more structural anchor on an unnamed node
+2. Leave the app's notch upright and end our line at the bar's top edge. No extra coupling, but the mark stops one row short and the bottom row's mark stays vertical while the rest lean
+
 ## Open
 
 - [ ] How reactive the runout estimate's moving average is. A 20-minute mean makes it jump; an hour makes it sluggish
 - [ ] Whether a row's increment should be marked within its cumulative fill, to recover the burn-rate reading a curve gave directly
-- [ ] How many windows of history to retain, and what evicts them
 - [ ] What the stack shows before ten rows of history exist at all — empty tracks, or fewer rows
+- [ ] Whether the stagger should finish with the box rather than halfway through it, which would put the step at about 44ms

@@ -41,7 +41,7 @@ All coupling to the app's markup is confined to one place, so that the app chang
 - [ ] Each fallback records what it stands in for, so it can be deleted when the app grows the attribute
 - [ ] Anchors never match on utility class names, because those exist in the compiled stylesheet only for as long as some component uses them
 
-Anchors are needed for the composer, the pull request detail toggle and its expanded state, the branch dropdown, the checks row and the review row with the content each reveals, and the open workspace switcher menu with its rows, the sidebar's wordmark and the brand mark in both the header and the retracted rail.
+Anchors are needed for the composer, the pull request detail toggle and its expanded state, the branch dropdown, the checks row and the review row with the content each reveals, and the open workspace switcher menu with its rows, the sidebar's wordmark and the brand mark in both the header and the retracted rail, and the sidebar footer's Claude usage bar with the block holding it.
 
 The checks row and the review row are disclosures, and each holds its own readings behind a chevron, so what the extension adds beneath a row goes inside that content rather than after the row.
 

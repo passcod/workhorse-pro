@@ -30,6 +30,13 @@ const VALIDATORS: { prefix: string; check: Validator }[] = [
     prefix: 'branch-status:',
     check: (body) => isObject(body) && 'branch' in body && 'loop' in body,
   },
+  {
+    // Both keys are always present and exactly one is set, so their presence is
+    // the shape. This is also what rejects the refresh POST's own response,
+    // which carries neither. spec: DATA
+    prefix: 'subscription-usage',
+    check: (body) => isObject(body) && 'report' in body && 'unavailable' in body,
+  },
 ]
 
 function validFor(key: string, body: unknown): boolean {

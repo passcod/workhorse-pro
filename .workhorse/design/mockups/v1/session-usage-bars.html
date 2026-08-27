@@ -107,9 +107,10 @@
   already sits. Percent stays on x in every row, so each one is the instrument
   people already read. History runs back through the window's reset, so the stack
   is a <b>rolling five hours</b> rather than this session alone — and the reset
-  climbs the stack as the session runs, leaving less of the previous one. The clock
-  mark is one line per session, masked through the rows it crosses at the notch's
-  own 3px; <b>its snap back to the left is the reset</b>.
+  climbs the stack as the session runs, leaving less of the previous one. Rows
+  before the reset are <b>faded well back</b>, so they read as context rather than
+  as the position. The clock mark is one line per session, masked through the rows
+  it crosses at the notch's own 3px; <b>its snap back to the left is the reset</b>.
 </p>
 
 <div class="row">
@@ -166,8 +167,11 @@
             <rect x="0" y="85" width="228" height="5" rx="2.5"/>
           </g>
 
-          <!-- The previous window: over par throughout, spent in full by its end. -->
-          <g fill="#b45309">
+          <!-- The previous window: over par throughout, spent in full by its end.
+               Faded well back, so it reads as context rather than as the
+               position. Each past row still takes the colour its own crossing
+               gives it; the fade applies to whichever that is. -->
+          <g fill="#b45309" fill-opacity="0.3">
             <rect x="0" y="0"  width="70.7"  height="5" rx="2.5"/>
             <rect x="0" y="9"  width="100.3" height="5" rx="2.5"/>
             <rect x="0" y="18" width="132.2" height="5" rx="2.5"/>
@@ -207,9 +211,9 @@
     </div>
     <div class="verdict">
       Constant height solves the empty opening, and the fresh start reads clearly
-      against what came before. But note the <b>stack is mostly amber while the
-      head row is muted</b> — the two disagree, because they describe different
-      windows.
+      against what came before. Eight of ten rows are over par, but faded back they
+      sit as context, so the footer's first read is still <b>the position now</b>,
+      which is muted.
     </div>
   </div>
 
@@ -263,8 +267,9 @@
             <rect x="0" y="85" width="228" height="5" rx="2.5"/>
           </g>
 
-          <!-- The tail of the previous window, spent in full. -->
-          <g fill="#b45309">
+          <!-- The tail of the previous window, spent in full. Faded back the same
+               way, so the reset reads as a change in weight as well as a gap. -->
+          <g fill="#b45309" fill-opacity="0.3">
             <rect x="0" y="0"  width="200.6" height="5" rx="2.5"/>
             <rect x="0" y="9"  width="221.2" height="5" rx="2.5"/>
             <rect x="0" y="18" width="228"   height="5" rx="2.5"/>

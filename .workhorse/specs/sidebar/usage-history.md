@@ -86,7 +86,7 @@ The bar's head row names the reading and states when the window resets.
 - [ ] With the stack closed, the head row states the reset
 - [ ] With the stack open, it states where this window is heading, derived from the rate of recent readings
 - [ ] Where the allowance is expected to go before the window turns over, that reading is when it runs out
-- [ ] Where the window is expected to turn over first, it is the proportion the allowance will have reached by then
+- [ ] Where the window is expected to turn over before the allowance is spent, it says so and no more: how much will have gone by then is not stated
 - [ ] Where there is not yet a rate to read from — fewer than two recent readings, or a window that is not being spent — it says that a reading is still being worked out
 - [ ] Where the allowance is already gone there is nothing ahead to state, and the reset stands in both states
 - [ ] Only the runout carries the warning colour; the others stay quiet even while the rest of the head row is coloured for a window being overspent
@@ -96,6 +96,9 @@ The open stack owing a forward reading includes owing the fact that it does not 
 
 Being on track is reassurance and a settling reading is an absence, and neither is news.
 Colouring them would spend the one signal the footer has on something that does not need acting on.
+
+A projected figure is only given where it is actionable, which is the runout.
+Where the window will turn over first there is nothing to act on, and putting a projection there invites a guess being read as a measurement — the stack already shows the run it would have been derived from.
 
 The open stack always owes a forward reading.
 Falling back to the reset there says nothing the closed bar had not already said, which makes opening the stack pointless in exactly the ordinary case: a window being spent at a comfortable rate has no runout, and that is most of the time.

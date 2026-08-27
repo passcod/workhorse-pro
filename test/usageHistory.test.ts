@@ -330,28 +330,14 @@ test('a burn that spends the allowance first forecasts a runout', () => {
   assert.ok(Math.abs(ahead.at - at(OPEN, 190 + 22 / 1.2)) < 1000)
 })
 
-test('a burn the window outlasts forecasts where it lands', () => {
-  // 30% to 31% over forty minutes is 0.025% a minute, and 110 minutes remain, so
-  // it lands a little under 34%.
+test('a burn the window outlasts reads as on track', () => {
+  // 30% to 31% over forty minutes leaves the allowance intact well past the
+  // reset. Where it lands is not stated: the stack already shows the run.
   const gentle = samplesFor(RESET, OPEN, [
     [150, 30],
     [190, 31],
   ])
-  const ahead = forecast(gentle, RESET, RESET, NOW)
-  assert.equal(ahead?.kind, 'ontrack')
-  if (ahead?.kind !== 'ontrack') return
-  assert.ok(Math.abs(ahead.percent - (31 + 0.025 * 110)) < 0.01, `got ${ahead.percent}`)
-})
-
-test('a forecast that would overrun the allowance is capped', () => {
-  // Cannot report more than the whole window, however the arithmetic lands.
-  const steady = samplesFor(RESET, OPEN, [
-    [150, 80],
-    [190, 82],
-  ])
-  const ahead = forecast(steady, RESET, RESET, NOW)
-  assert.ok(ahead !== null)
-  if (ahead.kind === 'ontrack') assert.ok(ahead.percent <= 100)
+  assert.deepEqual(forecast(gentle, RESET, RESET, NOW), { kind: 'ontrack' })
 })
 
 test('no rate yet says so rather than falling silent', () => {

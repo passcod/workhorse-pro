@@ -78,7 +78,7 @@ function forecastText(ahead: Forecast): string {
     case 'runout':
       return `runout ${timeOf(ahead.at)}`
     case 'ontrack':
-      return `on track ${Math.round(ahead.percent)}%`
+      return 'on track'
     case 'estimating':
       return 'estimating'
   }

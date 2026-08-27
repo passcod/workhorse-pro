@@ -379,6 +379,8 @@ export function forecast(
   const reading = rateOf(samples, window, now)
   if (reading === null) return { kind: 'estimating' }
 
-  const ending = Math.min(100, reading.percent + reading.rate * Math.max(0, resetsAt - now))
-  return { kind: 'ontrack', percent: ending }
+  // Being spent, and the window turns over before the allowance does. Where it
+  // lands is not stated: the stack already shows the run, and a projected figure
+  // beside it invites reading a guess as a measurement.
+  return { kind: 'ontrack' }
 }

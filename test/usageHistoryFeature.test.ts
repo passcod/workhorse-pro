@@ -214,7 +214,7 @@ test('a gentle burn reads as on track, and stays quiet', () => {
   reconcile()
 
   const ahead = document.querySelector<HTMLElement>('.whp-usage-forecast')!
-  assert.match(ahead.textContent ?? '', /^on track \d+%$/)
+  assert.equal(ahead.textContent, 'on track')
   // Not a warning, so it does not take the head row's amber even where the head
   // row has it.
   assert.ok(ahead.classList.contains('whp-usage-calm'))

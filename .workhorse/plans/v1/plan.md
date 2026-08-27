@@ -47,8 +47,9 @@ The expansion is a stack of bars, not a line chart.
 ### The clock mark becomes a mask
 
 - **One line per window**, from where the window opened at the top left to where its clock stands at the bottom right, masked through the rows it crosses
-- **3px measured across the line**, matching the bar's own notch. That needs a wider horizontal offset the shallower the line runs, computed from the stack's dimensions rather than hard-coded — at seven rows it is about 7.9px, at two rows about 10.2px
-- **Vertical edges, not a stroke.** A 3px SVG stroke is perpendicular by definition but only spans about 3.2px of a 5px row at this angle, leaving slivers of fill above and below. Vertical edges guarantee a full-height gap at every point, which is what the app's notch does
+- **4px measured across the line**, one more than the bar's 3px notch, because the angle makes it read narrower than it is. That needs a wider horizontal width the shallower the line runs, computed from the stack's dimensions rather than hard-coded — about 10.6px for a seven-row span, about 13.6px for a two-row one
+- **Centred on the clock**, the way the bar's own notch is, rather than starting at it
+- **Vertical edges, not a stroke.** An SVG stroke is perpendicular by definition but a 4px one spans only about 4.3px of a 5px row at this angle, leaving slivers of fill above and below. Vertical edges guarantee a full-height gap at every point, which is what the app's notch does
 - **The line's snap back to the left is the reset**, and it is the only thing marking it. Rows are evenly pitched throughout: the fill dropping back to near nothing and the mark jumping left already say where the window turned over, so a wider gap or a rule between the two windows would be restating it
 
 A single straight line per window cannot be exact on every row, because rows are not uniformly spaced in time — there are gaps between them, and the bottom row occupies a full row's height while representing only part of its half hour. Accepted: each row's own fill colour carries the verdict independently of where the line falls, and the line's job is to show the clock sweeping.
@@ -70,6 +71,18 @@ Ten rows always, running back through the reset, so the stack is a rolling five 
 Knock-on: with the previous window visible by default, a separate "look back at previous windows" mode has little left to do. It likely collapses into how many windows of history the stack holds.
 
 The typical-curve idea needs rethinking under this shape — a faint curve behind a live curve does not translate to a stack of bars. Possibly a per-row marker of typical usage at that point in a window.
+
+## Motion
+
+Opening and closing are one transition run in both directions, eased in and out throughout. 400ms for the box and the clock mark, so they land together.
+
+- **The bar and the freshness row never move.** Collapsed and open are one box at two heights, with the head row pinned to its top so it rides upward as the box grows, and the stack held in a window pinned to the bar's own line — one row tall when closed, ten when open. Growing that window reveals rows above the bar rather than displacing it
+- **Each row appears whole**, not wiped or grown, staggered 22ms apart from the bar upward. Closing runs the other way, 18ms apart from the top down, so the stack peels off from the far end rather than collapsing into the bar
+- **The clock mark skews from straight to angled.** At rest it is the bar's own vertical notch; over the open it tilts back into the line and widens from 3px to the angled 4px. Reversed on close
+
+Implemented as a vertical rect with an animated `skewX`, so "straight" is the untransformed state rather than a second shape to interpolate towards. Each row carries its own slice of the line at the shared angle, which means no clip path is needed to keep the mark inside its rows, and a row's slice hides and reveals with the row. The slices translate from the window's own pivot — the live bar's notch for the current window, its end for a past one — so the mark fans out of one vertical line rather than appearing as a staircase.
+
+`prefers-reduced-motion` needs a resting answer: the open state without the stagger or the skew animation.
 
 ## Interaction
 

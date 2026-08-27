@@ -19,6 +19,10 @@
     --amber: #b45309;
     /* Mockup annotation only. Never rendered by the extension. */
     --note: #b8b2ab;
+
+    /* Motion. One duration for the box and the mark so they land together. */
+    --open: 400ms;
+    --ease: ease-in-out;
   }
 
   * { box-sizing: border-box; }
@@ -32,11 +36,11 @@
   }
 
   h1 { margin: 0 0 6px; font-size: 15px; font-weight: 600; color: var(--text-primary); }
-  .lede { margin: 0 0 34px; font-size: 12px; line-height: 1.65; max-width: 660px; }
+  .lede { margin: 0 0 34px; font-size: 12px; line-height: 1.65; max-width: 680px; }
   .lede b { color: var(--text-primary); font-weight: 600; }
 
-  .row { display: flex; gap: 44px; align-items: flex-start; }
-  .col { width: 280px; }
+  .row { display: flex; gap: 40px; align-items: flex-start; }
+  .col { width: 272px; }
 
   .state-label {
     font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
@@ -49,13 +53,13 @@
     width: 260px;
     background: var(--bg-sidebar);
     border: 1px solid var(--border-subtle);
-    overflow: hidden;
   }
+  .sidebar.clipped { overflow: hidden; }
   .nav { padding: 12px; display: flex; flex-direction: column; gap: 9px; }
   .nav-row { height: 26px; border-radius: 6px; background: rgba(28,25,23,0.045); }
   .nav-row.w1 { width: 78%; } .nav-row.w3 { width: 84%; }
 
-  /* ── The expanded meter ───────────────────────────────────────── */
+  /* ── The meter, shared by every panel ─────────────────────────── */
   .slot { padding: 12px 16px; border-top: 1px solid var(--border-subtle); }
   .meter-head {
     display: flex; align-items: center; justify-content: space-between;
@@ -92,11 +96,71 @@
   .avatar { width: 24px; height: 24px; border-radius: 999px; background: var(--bg-inset); }
   .user-name { height: 9px; width: 84px; border-radius: 3px; background: rgba(28,25,23,0.09); }
 
+  /* ══ The playable panel ═══════════════════════════════════════════
+     Collapsed and open are one box at two heights: 70px and 151px. The head row
+     is pinned to the box's top so it rides upward as the box grows, and the
+     stack sits in a window pinned to the bar's own line — 5px tall when closed,
+     86px when open — so the bar never moves and the rows reveal above it. */
+  .footer-zone { position: relative; height: 70px; }
+  .panel {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 70px;
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border-subtle);
+    transition: height var(--open) var(--ease), box-shadow var(--open) var(--ease);
+  }
+  .footer-zone:hover .panel {
+    height: 151px;
+    box-shadow: 0 -6px 20px rgba(28,25,23,0.07);
+  }
+
+  .panel-head { position: absolute; top: 12px; left: 16px; right: 16px; }
+  .panel-fresh { position: absolute; bottom: 12px; left: 16px; right: 16px; }
+
+  /* The window onto the stack. Bottom-anchored, so growing it reveals rows
+     upward from the bar rather than pushing the bar down. */
+  .stack-window {
+    position: absolute; left: 16px; bottom: 33px;
+    width: 228px; height: 5px;
+    overflow: hidden;
+    transition: height var(--open) var(--ease);
+  }
+  .footer-zone:hover .stack-window { height: 86px; }
+  .stack-window svg { position: absolute; left: 0; bottom: 0; }
+
+  /* Each row appears whole, staggered from the bar upward. Closing runs the
+     other way, so the stack peels off from the top. */
+  .srow {
+    opacity: 0;
+    transition: opacity 90ms var(--ease);
+    transition-delay: calc(var(--i) * 18ms);
+  }
+  .footer-zone:hover .srow {
+    opacity: 1;
+    transition-delay: calc((9 - var(--i)) * 22ms);
+  }
+  /* The bottom row is the bar. It is never revealed, because it was always there. */
+  .srow.bar { opacity: 1; transition: none; }
+
+  /* The clock mark. A vertical rect at rest, exactly as the bar draws it, skewed
+     back into the line as the stack opens. scaleX carries it from the bar's 3px
+     to the width that reads as 4px once angled. */
+  .slice {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transform: translateX(var(--dx)) skewX(0deg) scaleX(var(--s0));
+    transition: transform var(--open) var(--ease);
+  }
+  .footer-zone:hover .slice {
+    transform: translateX(0) skewX(var(--a)) scaleX(1);
+  }
+
   .legend { margin-top: 12px; font-size: 11px; line-height: 1.75; }
   .legend div { display: flex; gap: 8px; align-items: baseline; }
   .legend .k { color: var(--note); white-space: nowrap; min-width: 62px; }
   .verdict { margin-top: 12px; font-size: 12px; line-height: 1.6; }
   .verdict b { font-weight: 600; color: var(--text-primary); }
+  .hint { margin-top: 10px; font-size: 11px; line-height: 1.6; color: var(--note); }
 </style>
 </head>
 <body>
@@ -107,19 +171,137 @@
   where the bar already sits. Percent stays on x in every row, so each one is the
   instrument people already read. History runs back through the window's reset, so
   the stack is a <b>rolling five hours</b> rather than this session alone — and the
-  reset climbs the stack as the session runs, leaving less of the previous one.
-  Rows before the reset are <b>faded well back</b>, so they read as context rather
-  than as the position. The clock mark is one line per session, masked through the
-  rows it crosses at the notch's own 3px; <b>its snap back to the left is the
-  reset</b>, which needs no gap or rule to mark it.
+  reset climbs the stack as the session runs. Rows before the reset are
+  <b>faded well back</b>. The clock mark is one line per session at 4px across the
+  line; <b>its snap back to the left is the reset</b>, which needs no gap or rule
+  to mark it.
 </p>
 
 <div class="row">
 
+  <!-- ══ Playable ════════════════════════════════════════════════ -->
+  <div class="col">
+    <div class="state-label">Opening — hover to play</div>
+    <div class="sidebar">
+      <div class="nav">
+        <div class="nav-row w1"></div><div class="nav-row w3"></div>
+        <div class="nav-row w1"></div><div class="nav-row w3"></div>
+      </div>
+
+      <div class="footer-zone">
+        <div class="panel" title="">
+          <div class="panel-head">
+            <div class="meter-head">
+              <span class="meter-label over">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 2v4M12 18v4M4.9 4.9l2.9 2.9M16.2 16.2l2.9 2.9M2 12h4M18 12h4"/>
+                </svg>
+                Claude usage
+              </span>
+              <span class="meter-reset over">runout est 3:30 pm</span>
+            </div>
+          </div>
+
+          <div class="stack-window">
+            <svg width="228" height="86" viewBox="0 0 228 86" role="img"
+                 aria-label="78% of the five-hour plan window used, 63% of the window elapsed, spending faster than it refills. Runout estimated 3:30 pm.">
+              <!-- Rows 0-2: the tail of the previous window, faded back. Its mark
+                   pivots on its own end, 100% at that window's reset. -->
+              <g class="srow" style="--i:0">
+                <rect x="0" y="0" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="0" width="200.6" height="5" rx="2.5" fill="#b45309" fill-opacity="0.3"/>
+                <rect class="slice" x="168.195" y="0" width="12.55" height="5" fill="#f1efeb"
+                      style="--dx:53.53px; --a:71.4deg; --s0:0.239"/>
+              </g>
+              <g class="srow" style="--i:1">
+                <rect x="0" y="9" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="9" width="221.2" height="5" rx="2.5" fill="#b45309" fill-opacity="0.3"/>
+                <rect class="slice" x="194.955" y="9" width="12.55" height="5" fill="#f1efeb"
+                      style="--dx:26.77px; --a:71.4deg; --s0:0.239"/>
+              </g>
+              <g class="srow" style="--i:2">
+                <rect x="0" y="18" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="18" width="228" height="5" rx="2.5" fill="#b45309" fill-opacity="0.3"/>
+                <rect class="slice" x="221.725" y="18" width="12.55" height="5" fill="#f1efeb"
+                      style="--dx:0px; --a:71.4deg; --s0:0.239"/>
+              </g>
+
+              <!-- Rows 3-9: this window. Five quiet half hours, then the crossing.
+                   Its mark pivots on the bar's own notch at 63.3%. -->
+              <g class="srow" style="--i:3">
+                <rect x="0" y="27" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="27" width="4.6" height="5" rx="2.5" fill="#938b84"/>
+                <rect class="slice" x="6.945" y="27" width="10.57" height="5" fill="#f1efeb"
+                      style="--dx:132.17px; --a:67.77deg; --s0:0.284"/>
+              </g>
+              <g class="srow" style="--i:4">
+                <rect x="0" y="36" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="36" width="11.4" height="5" rx="2.5" fill="#938b84"/>
+                <rect class="slice" x="28.975" y="36" width="10.57" height="5" fill="#f1efeb"
+                      style="--dx:110.14px; --a:67.77deg; --s0:0.284"/>
+              </g>
+              <g class="srow" style="--i:5">
+                <rect x="0" y="45" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="45" width="20.5" height="5" rx="2.5" fill="#938b84"/>
+                <rect class="slice" x="51.005" y="45" width="10.57" height="5" fill="#f1efeb"
+                      style="--dx:88.11px; --a:67.77deg; --s0:0.284"/>
+              </g>
+              <g class="srow" style="--i:6">
+                <rect x="0" y="54" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="54" width="31.9" height="5" rx="2.5" fill="#938b84"/>
+                <rect class="slice" x="73.035" y="54" width="10.57" height="5" fill="#f1efeb"
+                      style="--dx:66.08px; --a:67.77deg; --s0:0.284"/>
+              </g>
+              <g class="srow" style="--i:7">
+                <rect x="0" y="63" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="63" width="68.4" height="5" rx="2.5" fill="#938b84"/>
+                <rect class="slice" x="95.055" y="63" width="10.57" height="5" fill="#f1efeb"
+                      style="--dx:44.06px; --a:67.77deg; --s0:0.284"/>
+              </g>
+              <g class="srow" style="--i:8">
+                <rect x="0" y="72" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="72" width="141.4" height="5" rx="2.5" fill="#b45309"/>
+                <rect class="slice" x="117.085" y="72" width="10.57" height="5" fill="#f1efeb"
+                      style="--dx:22.03px; --a:67.77deg; --s0:0.284"/>
+              </g>
+              <!-- The bar itself. Always present, never revealed. -->
+              <g class="srow bar" style="--i:9">
+                <rect x="0" y="81" width="228" height="5" rx="2.5" fill="#e8e5df"/>
+                <rect x="0" y="81" width="177.8" height="5" rx="2.5" fill="#b45309"/>
+                <rect class="slice" x="139.115" y="81" width="10.57" height="5" fill="#f1efeb"
+                      style="--dx:0px; --a:67.77deg; --s0:0.284"/>
+              </g>
+            </svg>
+          </div>
+
+          <div class="panel-fresh">
+            <div class="freshness">
+              <span class="age">updated 5m ago</span>
+              <button class="update" type="button">Update now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-menu"><div class="avatar"></div><div class="user-name"></div></div>
+    </div>
+
+    <div class="legend">
+      <div><span class="k">box</span><span>70px to 151px, 400ms</span></div>
+      <div><span class="k">rows</span><span>90ms each, 22ms apart, bar upward</span></div>
+      <div><span class="k">mark</span><span>vertical to 67.8°, over the full open</span></div>
+    </div>
+    <div class="hint">
+      Hover the footer. The bar and the freshness row never move; the head row
+      rides up as the box grows.
+    </div>
+  </div>
+
   <!-- ══ One hour in ═════════════════════════════════════════════ -->
   <div class="col">
     <div class="state-label">One hour in — reset near the bottom</div>
-    <div class="sidebar">
+    <div class="sidebar clipped">
       <div class="nav">
         <div class="nav-row w1"></div><div class="nav-row w3"></div>
       </div>
@@ -189,13 +371,11 @@
             <rect x="0" y="81" width="11.4" height="5" rx="2.5"/>
           </g>
 
-          <!-- The clock mark: one line per window. 3px measured across the line,
-               which needs a wider horizontal offset the shallower it runs. The
-               jump from the upper line's end to the lower line's start is the
-               reset. -->
+          <!-- The clock mark: one line per window, centred on the clock the way
+               the bar's own notch is, 4px measured across the line. -->
           <g clip-path="url(#rowsA)" fill="#f1efeb">
-            <path d="M 45.6,0 L 54.2,0 L 236.6,68 L 228,68 Z"/>
-            <path d="M 0,72 L 10.2,72 L 55.8,86 L 45.6,86 Z"/>
+            <path d="M 39.875,0 L 51.325,0 L 233.725,68 L 222.275,68 Z"/>
+            <path d="M -6.815,72 L 6.815,72 L 52.415,86 L 38.785,86 Z"/>
           </g>
         </svg>
 
@@ -210,20 +390,18 @@
     <div class="legend">
       <div><span class="k">this window</span><span>2 rows, 5% used</span></div>
       <div><span class="k">previous</span><span>8 rows, spent in full</span></div>
-      <div><span class="k">reset</span><span>between rows 8 and 9</span></div>
     </div>
     <div class="verdict">
-      Constant height solves the empty opening, and the fresh start reads clearly
-      against what came before. Eight of ten rows are over par, but faded back they
-      sit as context, so the footer's first read is still <b>the position now</b>,
-      which is muted.
+      Constant height solves the empty opening. Eight of ten rows are over par, but
+      faded back they sit as context, so the footer's first read is still <b>the
+      position now</b>, which is muted.
     </div>
   </div>
 
   <!-- ══ Three hours ten in ══════════════════════════════════════ -->
   <div class="col">
     <div class="state-label">Three hours ten in — reset near the top</div>
-    <div class="sidebar">
+    <div class="sidebar clipped">
       <div class="nav">
         <div class="nav-row w1"></div><div class="nav-row w3"></div>
       </div>
@@ -291,11 +469,11 @@
             <rect x="0" y="81" width="177.8" height="5" rx="2.5"/>
           </g>
 
-          <!-- The clock mark: one line per window. The lower line's end lands on
-               63.3%, where the bar's own notch sits. -->
+          <!-- The clock mark: one line per window, centred on the clock. The lower
+               line's end lands on 63.3%, where the bar's own notch sits. -->
           <g clip-path="url(#rowsB)" fill="#f1efeb">
-            <path d="M 159.6,0 L 169.0,0 L 237.4,23 L 228,23 Z"/>
-            <path d="M 0,27 L 7.9,27 L 152.3,86 L 144.4,86 Z"/>
+            <path d="M 153.325,0 L 165.875,0 L 234.275,23 L 221.725,23 Z"/>
+            <path d="M -5.285,27 L 5.285,27 L 149.685,86 L 139.115,86 Z"/>
           </g>
         </svg>
 

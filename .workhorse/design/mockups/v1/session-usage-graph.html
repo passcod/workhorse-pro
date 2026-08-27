@@ -1,0 +1,314 @@
+<!-- spec: sidebar/claude-usage-graph.md (not yet written) -->
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>Session usage graph</title>
+<style>
+  /* Tokens lifted from the app's own globals.css, light theme, so the overlay
+     takes its colours from the meter it grows out of. */
+  :root {
+    --bg-sidebar: #f1efeb;
+    --bg-surface: #ffffff;
+    --bg-inset: #e8e5df;
+    --text-primary: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #776f6a;
+    --text-quiet: #938b84;
+    --border-subtle: #eae7e1;
+    --accent: #c2410c;
+    --accent-hover: #9a3412;
+    --amber: #b45309;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 48px;
+    background: #faf9f7;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    gap: 56px;
+    align-items: flex-start;
+  }
+
+  .caption {
+    max-width: 300px;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--text-secondary);
+  }
+  .caption h2 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .caption p { margin: 0 0 12px; }
+  .caption b { color: var(--text-primary); font-weight: 600; }
+
+  /* ── The sidebar, at its real width ───────────────────────────── */
+  .sidebar {
+    position: relative;
+    width: 260px;
+    height: 520px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Indicative only: the nav above the footer is not what this card changes,
+     and the overlay covers it. Shapes stand in for rows. */
+  .nav { flex: 1; padding: 14px 12px; display: flex; flex-direction: column; gap: 9px; }
+  .nav-row { height: 26px; border-radius: 6px; background: rgba(28,25,23,0.045); }
+  .nav-row.w1 { width: 78%; }
+  .nav-row.w2 { width: 62%; }
+  .nav-row.w3 { width: 84%; }
+  .nav-row.w4 { width: 55%; }
+  .nav-row.w5 { width: 71%; }
+  .nav-head {
+    height: 10px; width: 42%; margin: 6px 0 10px;
+    border-radius: 3px; background: rgba(28,25,23,0.07);
+  }
+
+  /* ── The footer meter, reproduced from ClaudeUsageMeter ───────── */
+  .slot {
+    padding: 12px 16px;
+    min-height: 80px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .meter-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; margin-bottom: 7px;
+  }
+  .meter-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    flex-shrink: 0; white-space: nowrap;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
+    color: var(--amber);
+  }
+  .meter-reset {
+    white-space: nowrap; font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(180,83,9,0.8);
+  }
+  .track {
+    position: relative; height: 5px; border-radius: 999px;
+    background: var(--bg-inset); overflow: hidden;
+  }
+  .fill { height: 100%; border-radius: 999px; background: var(--amber); width: 78%; }
+  .notch {
+    position: absolute; top: 0; bottom: 0; width: 3px;
+    transform: translateX(-50%); background: var(--bg-sidebar);
+    left: 63.3%;
+  }
+  .freshness {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; margin-top: 8px;
+  }
+  .age { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+  .update {
+    font-size: 11px; font-weight: 500; color: var(--accent);
+    background: none; border: 0; padding: 0; cursor: pointer;
+    font-family: inherit;
+  }
+  .update:hover { color: var(--accent-hover); }
+
+  .user-menu {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px 14px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .avatar {
+    width: 24px; height: 24px; border-radius: 999px;
+    background: var(--bg-inset); flex-shrink: 0;
+  }
+  .user-name { height: 9px; width: 84px; border-radius: 3px; background: rgba(28,25,23,0.09); }
+
+  /* ── The expansion ───────────────────────────────────────────────
+     Absolutely positioned and anchored to the footer's own bottom edge, so it
+     grows upward over the nav and nothing above it moves. It carries the head
+     row and the freshness row itself, so the meter appears to grow rather than
+     to be joined by a second panel. */
+  .scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(241,239,235,0.97) 62%, rgba(241,239,235,0.55) 100%);
+    pointer-events: none;
+  }
+  .expansion {
+    position: absolute;
+    left: 0; right: 0;
+    /* Sits exactly where the slot sits, and extends upward. */
+    bottom: 62px;
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border-subtle);
+    padding: 12px 16px;
+    box-shadow: 0 -6px 20px rgba(28,25,23,0.07);
+  }
+
+  .plot { display: block; margin-top: 2px; }
+
+  .axis {
+    display: flex; justify-content: space-between;
+    margin-top: 5px;
+    font-size: 10px; font-variant-numeric: tabular-nums;
+    color: var(--text-quiet);
+  }
+  .projection {
+    margin-top: 7px;
+    font-size: 11px; font-weight: 500;
+    color: var(--amber);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+
+  <div class="nav">
+    <div class="nav-head"></div>
+    <div class="nav-row w1"></div>
+    <div class="nav-row w3"></div>
+    <div class="nav-row w2"></div>
+    <div class="nav-row w5"></div>
+    <div class="nav-row w4"></div>
+    <div class="nav-row w1"></div>
+    <div class="nav-row w3"></div>
+  </div>
+
+  <div class="scrim"></div>
+
+  <!-- The expanded state. title="" on this node is what suppresses the app's
+       own tooltip on the slot beneath, without touching the app's markup. -->
+  <div class="expansion" title="">
+
+    <div class="meter-head">
+      <span class="meter-label">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2v4M12 18v4M4.9 4.9l2.9 2.9M16.2 16.2l2.9 2.9M2 12h4M18 12h4"/>
+        </svg>
+        Claude usage
+      </span>
+      <span class="meter-reset">resets 4:59 pm</span>
+    </div>
+
+    <!-- x is the five-hour window, y is 0 to 100%. Par is therefore the
+         diagonal, and needs no computing. -->
+    <svg class="plot" width="228" height="88" viewBox="0 0 228 88" role="img"
+         aria-label="78% of the five-hour window used, 63% of the window elapsed, spending faster than it refills. At this rate the window caps out about 3:30 pm.">
+      <defs>
+        <linearGradient id="underPar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#776f6a" stop-opacity="0.26"/>
+          <stop offset="100%" stop-color="#776f6a" stop-opacity="0.02"/>
+        </linearGradient>
+        <linearGradient id="overPar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#b45309" stop-opacity="0.30"/>
+          <stop offset="100%" stop-color="#b45309" stop-opacity="0.03"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Track baseline, echoing the bar's own inset colour. -->
+      <line x1="0" y1="87.5" x2="228" y2="87.5" stroke="#e8e5df" stroke-width="1"/>
+
+      <!-- Par: ideal burn, 0 at window open to 100% at reset. Drawn in the
+           app's primary text colour rather than literal black, so it survives
+           the dark theme. -->
+      <line x1="0" y1="88" x2="228" y2="0" stroke="#1c1917" stroke-width="1" stroke-opacity="0.55"/>
+      <text x="196" y="12" font-size="9" fill="#1c1917" fill-opacity="0.5"
+            font-family="Inter, sans-serif">par</text>
+
+      <!-- Area under the curve, split at the crossing. -->
+      <path d="M 0,88 L 22.8,86.2 L 45.6,83.6 L 68.4,80.1 L 91.2,75.7 L 114,61.6 L 134.7,36.0 L 134.7,88 Z"
+            fill="url(#underPar)"/>
+      <path d="M 134.7,36.0 L 136.8,33.4 L 144.4,19.4 L 144.4,88 L 134.7,88 Z"
+            fill="url(#overPar)"/>
+
+      <!-- The curve itself: dark grey while under par, amber once past it. The
+           colour rule is the bar's own crossing, not a chosen percentage. -->
+      <path d="M 0,88 L 22.8,86.2 L 45.6,83.6 L 68.4,80.1 L 91.2,75.7 L 114,61.6 L 134.7,36.0"
+            fill="none" stroke="#57534e" stroke-width="1.75" stroke-linejoin="round"/>
+      <path d="M 134.7,36.0 L 136.8,33.4 L 144.4,19.4"
+            fill="none" stroke="#b45309" stroke-width="1.75" stroke-linejoin="round"/>
+
+      <!-- Where the curve crossed par. -->
+      <circle cx="134.7" cy="36.0" r="1.9" fill="var(--bg-sidebar)" stroke="#b45309" stroke-width="1.1"/>
+
+      <!-- Prediction: the recent burn rate carried forward, capped at 100%. -->
+      <path d="M 144.4,19.4 L 158.3,0.9 L 228,0.9"
+            fill="none" stroke="#b45309" stroke-width="1.5"
+            stroke-dasharray="2 2.5" stroke-opacity="0.75" stroke-linecap="round"/>
+
+      <!-- Now. -->
+      <circle cx="144.4" cy="19.4" r="2.6" fill="#b45309"/>
+    </svg>
+
+    <div class="axis">
+      <span>12:00 pm</span>
+      <span>4:59 pm</span>
+    </div>
+
+    <div class="projection">caps out about 3:30 pm</div>
+
+    <!-- Carried by the expansion, since it covers the slot beneath. A click
+         here forwards to the app's own button. -->
+    <div class="freshness">
+      <span class="age">updated 5m ago</span>
+      <button class="update" type="button">Update now</button>
+    </div>
+  </div>
+
+  <!-- The collapsed meter, unchanged, sitting beneath the expansion. -->
+  <div class="slot">
+    <div class="meter-head">
+      <span class="meter-label">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2v4M12 18v4M4.9 4.9l2.9 2.9M16.2 16.2l2.9 2.9M2 12h4M18 12h4"/>
+        </svg>
+        Claude usage
+      </span>
+      <span class="meter-reset">resets 4:59 pm</span>
+    </div>
+    <div class="track">
+      <div class="fill"></div>
+      <div class="notch"></div>
+    </div>
+    <div class="freshness">
+      <span class="age">updated 5m ago</span>
+      <button class="update" type="button">Update now</button>
+    </div>
+  </div>
+
+  <div class="user-menu">
+    <div class="avatar"></div>
+    <div class="user-name"></div>
+  </div>
+
+</div>
+
+<div class="caption">
+  <h2>Session usage graph, expanded</h2>
+  <p>
+    The bar's clock notch, unrolled. <b>x is the five-hour window</b> and
+    <b>y is 0 to 100%</b>, which makes par the diagonal and leaves nothing to
+    compute.
+  </p>
+  <p>
+    The curve is dark grey under par and amber past it, on the crossing the bar
+    already uses for its own colour. The dotted continuation carries the recent
+    burn rate forward, capped at 100%.
+  </p>
+  <p>
+    Anchored to the footer's bottom edge and grown upward, so the nav above does
+    not move. The nav shapes behind the scrim are indicative, not this card's
+    work.
+  </p>
+</div>
+
+</body>
+</html>

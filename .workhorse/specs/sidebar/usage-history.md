@@ -80,12 +80,17 @@ The footer holds its height as data states swap so that the navigation above nev
 The bar's head row names the reading and states when the window resets.
 
 - [ ] With the stack closed, the head row states the reset
-- [ ] With the stack open, it states when the allowance is expected to run out, whenever that is expected before the reset
-- [ ] Where no runout is expected before the reset, the reset stands in both states
-- [ ] The expected runout is derived from the rate of recent readings
+- [ ] With the stack open, it states where this window is heading, derived from the rate of recent readings
+- [ ] Where the allowance is expected to go before the window turns over, that reading is when it runs out
+- [ ] Where the window is expected to turn over first, it is the proportion the allowance will have reached by then
+- [ ] Where there is no rate to read — fewer than two recent readings, or a window that is not being spent — the reset stands in both states
 
-The runout replaces the reset rather than joining it, and only while the stack is open.
-Once the allowance is going to be gone before the window turns over, when it runs out is the actionable time and the reset is not — but that figure is read off the recorded series, so it belongs with the series rather than standing in the closed bar, where the app's own reading is the reset.
+The open stack always owes a forward reading.
+Falling back to the reset there says nothing the closed bar had not already said, which makes opening the stack pointless in exactly the ordinary case: a window being spent at a comfortable rate has no runout, and that is most of the time.
+
+Which of the two readings applies follows from the projection rather than from a preference.
+If the allowance goes first, when it goes is the actionable figure; if the window turns over first, where the allowance lands is.
+Both are read off the recorded series, which is why they belong with the series rather than in the closed bar, where the app's own reading is the reset.
 
 ## Recorded readings
 

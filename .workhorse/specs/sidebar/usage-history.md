@@ -81,18 +81,18 @@ The footer holds its height as data states swap so that the navigation above nev
 
 ## What the head row says
 
-The bar's head row names the reading and states when the window resets.
+The bar's head row names the reading and states where this window is heading.
 
-- [ ] With the stack closed, the head row states the reset
-- [ ] With the stack open, it states where this window is heading, derived from the rate of recent readings
-- [ ] Where the allowance is expected to go before the window turns over, that reading is when it runs out
+- [ ] With the stack closed, the head row states where this window is heading, derived from the rate of recent readings
+- [ ] With the stack open, it states the reset
+- [ ] Where the allowance is expected to go before the window turns over, the closed reading is when it runs out
 - [ ] Where the window is expected to turn over before the allowance is spent, it says so and no more: how much will have gone by then is not stated
 - [ ] Where there is not yet a rate to read from — fewer than two recent readings, or a window that is not being spent — it says that a reading is still being worked out
 - [ ] Where the allowance is already gone there is nothing ahead to state, and the reset stands in both states
 - [ ] Only the runout carries the warning colour; the others stay quiet even while the rest of the head row is coloured for a window being overspent
 
 A reading still settling is stated rather than hidden.
-The open stack owing a forward reading includes owing the fact that it does not have one yet, which is the ordinary state for the first minutes after the feature is switched on.
+The closed bar carrying the forward reading carries the fact that it does not have one yet, which is the ordinary state for the first minutes after the feature is switched on.
 
 Being on track is reassurance and a settling reading is an absence, and neither is news.
 Colouring them would spend the one signal the footer has on something that does not need acting on.
@@ -100,12 +100,14 @@ Colouring them would spend the one signal the footer has on something that does 
 A projected figure is only given where it is actionable, which is the runout.
 Where the window will turn over first there is nothing to act on, and putting a projection there invites a guess being read as a measurement — the stack already shows the run it would have been derived from.
 
-The open stack always owes a forward reading.
-Falling back to the reset there says nothing the closed bar had not already said, which makes opening the stack pointless in exactly the ordinary case: a window being spent at a comfortable rate has no runout, and that is most of the time.
+The forward reading is the one worth a glance, so the closed bar carries it.
+Whether the allowance is on track or about to run out is what a reader wants without opening anything.
 
-Which of the two readings applies follows from the projection rather than from a preference.
+Which of the two forward readings applies follows from the projection rather than from a preference.
 If the allowance goes first, when it goes is the actionable figure; if the window turns over first, where the allowance lands is.
-Both are read off the recorded series, which is why they belong with the series rather than in the closed bar, where the app's own reading is the reset.
+
+The reset is the app's own reading, and opening the stack brings it back.
+It says nothing derived and nothing that moves with the rate, which is why it is the detail a reader opens for rather than the glance — and where there is no forward reading to give, it stands closed too, since the closed bar always owes something.
 
 ## Recorded readings
 

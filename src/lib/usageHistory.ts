@@ -373,9 +373,9 @@ export function forecast(
   const runout = runoutAt(samples, window, resetsAt, now)
   if (runout !== null) return { kind: 'runout', at: runout }
 
-  // One reading is no rate. Said rather than hidden: the open stack owing a
-  // forward reading includes owing the fact that it does not have one yet, which
-  // is the ordinary state for the first minutes after the feature is switched on.
+  // One reading is no rate. Said rather than hidden: the closed bar carrying a
+  // forward reading carries the fact that it does not have one yet, which is the
+  // ordinary state for the first minutes after the feature is switched on.
   const reading = rateOf(samples, window, now)
   if (reading === null) return { kind: 'estimating' }
 

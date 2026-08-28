@@ -184,7 +184,7 @@ function at(minutes: number): number {
 
 // ── The head row ─────────────────────────────────────────────────────────
 
-test('the reset is always rendered, for the closed bar', () => {
+test('the reset is always rendered, for the open stack', () => {
   reconcile()
   const reset = document.querySelector<HTMLElement>('.whp-usage-reset')
   assert.match(reset?.textContent ?? '', /^resets \d/)
@@ -204,7 +204,7 @@ test('a burn that spends the allowance first reads as a runout', () => {
   // "est" is dropped: it pushed the time out of a row that has to fit beside a
   // label.
   assert.doesNotMatch(ahead?.textContent ?? '', /est/)
-  // The reset stays rendered for the closed state.
+  // The reset stays rendered for the open state.
   assert.match(document.querySelector('.whp-usage-reset')?.textContent ?? '', /^resets /)
 })
 
@@ -222,8 +222,8 @@ test('a gentle burn reads as on track, and stays quiet', () => {
 
 test('too few readings to project says so', () => {
   // One reading is no rate, which is the ordinary state for the first minutes
-  // after the feature is switched on. The open stack owes a forward reading, and
-  // owing it includes owing the fact that there is not one yet.
+  // after the feature is switched on. The closed bar carries a forward reading,
+  // and carrying it includes carrying the fact that there is not one yet.
   reconcile()
   const ahead = document.querySelector<HTMLElement>('.whp-usage-forecast')!
   assert.equal(ahead.textContent, 'estimating')

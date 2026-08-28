@@ -140,9 +140,10 @@ function buildStackNode(): HTMLDivElement {
   label.appendChild(claudeMark())
   label.appendChild(el('span', undefined, 'Claude usage'))
   head.appendChild(label)
-  // Both readings are rendered and the stylesheet shows one. Which is on screen
-  // follows the hover that opens the stack, and no pass observes that — a
-  // feature that swapped the text itself would need to watch the pointer.
+  // Both readings are rendered and the stylesheet shows one: the forward reading
+  // closed, the reset open. Which is on screen follows the hover that opens the
+  // stack, and no pass observes that — a feature that swapped the text itself
+  // would need to watch the pointer.
   head.appendChild(el('span', 'whp-usage-value whp-usage-reset'))
   head.appendChild(el('span', 'whp-usage-value whp-usage-forecast'))
   root.appendChild(head)
@@ -280,15 +281,15 @@ function paintHead(
 
   setClass(head, 'whp-usage-head-over', rows[ROWS - 1]?.over ?? false)
 
-  // The reset is what the closed bar states, because it is what the app's own bar
-  // states and the closed state is not the extension's to reword.
+  // The reset is what the open stack states, because it is the app's own reading
+  // and not the extension's to reword. It stands closed too wherever there is no
+  // forward reading to give.
   setText(reset, `resets ${timeOf(resetsAt)}`)
 
-  // The open stack states where the window is heading instead. Falling back to
-  // the reset there would say nothing the closed bar had not already said, so a
-  // forward reading is given wherever there is a rate to read one from — either
-  // when the allowance goes, or where it lands if the window turns over first.
-  // spec: UHST
+  // The closed bar states where the window is heading — the reading worth a
+  // glance without opening anything. A forward reading is given wherever there is
+  // a rate to read one from: either when the allowance goes, or where it lands if
+  // the window turns over first. spec: UHST
   const ahead_ = forecast(getUsageSamples(), window, resetsAt, now)
   setClass(head, 'whp-usage-forecast-known', ahead_ !== null)
   // Only a runout is a warning. Being on track is reassurance and estimating is

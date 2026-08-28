@@ -392,10 +392,10 @@ a.whp-check:hover .whp-check-job {
   color: var(--text-quiet, #938b84);
 }
 
-/* Closed, the head row states the reset — the same reading the app's own bar
-   gives, since the closed state is not the extension's to reword. Open, it
-   states when the allowance runs out, which is read off the series and so
-   belongs with the series.
+/* Closed, the head row states where the window is heading — read off the series,
+   the reading worth a glance without opening anything. Open, it states the reset,
+   the same reading the app's own bar gives, brought back as the detail behind the
+   glance.
 
    Swapped here rather than in the feature: which one applies follows the hover
    that opens the stack, and no reconcile pass observes the pointer. */
@@ -403,14 +403,24 @@ a.whp-check:hover .whp-check-job {
   display: none;
 }
 
-/* Only where a runout is actually expected before the reset. Otherwise the reset
-   stands in both states, because there is no second reading to give. */
-.whp-usage-slot:hover .whp-usage-forecast-known .whp-usage-reset {
+/* Closed with a forward reading to give, it stands and the reset steps aside.
+   Without one — the allowance already gone — the reset stands closed too. */
+.whp-usage-forecast-known .whp-usage-reset {
   display: none;
 }
 
-.whp-usage-slot:hover .whp-usage-forecast-known .whp-usage-forecast {
+.whp-usage-forecast-known .whp-usage-forecast {
   display: inline;
+}
+
+/* Open, the reset stands and the forward reading steps aside, whichever was
+   showing closed. */
+.whp-usage-slot:hover .whp-usage-reset {
+  display: inline;
+}
+
+.whp-usage-slot:hover .whp-usage-forecast {
+  display: none;
 }
 
 /* How much of the window has gone, standing where the reading's age does while

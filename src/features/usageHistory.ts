@@ -66,9 +66,15 @@ function claudeMark(): SVGElement {
   return svg
 }
 
+/**
+ * Built once and reused: the reset reformats on every reconcile pass, and a
+ * fresh formatter per call resolves the locale's date rules each time.
+ */
+const TIME_FORMAT = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
+
 /** A local wall-clock time, as the app renders the reset. */
 function timeOf(ms: number): string {
-  return new Date(ms).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  return TIME_FORMAT.format(ms)
 }
 
 /** What the open stack says is coming. Empty leaves the reset standing. */
